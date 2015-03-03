@@ -28,7 +28,7 @@ class AuthUserSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = AuthUser
-        fields = ('id', 'company_id', 'email', 'first_name', 'last_name', 'metadata', 'created_at', 'updated_at',
+        fields = ('id', 'company_id', 'account', 'email', 'first_name', 'last_name', 'metadata', 'created_at', 'updated_at',
                   'password', 'confirm_password',)
         read_only_fields = ('id', 'created_at', 'updated_at')
 
@@ -73,7 +73,7 @@ class AuthUserSerializer(serializers.HyperlinkedModelSerializer):
 class PlaceSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Place
-        fields = ('id', 'uuid', 'reference_id', 'name',
+        fields = ('id', 'account', 'uuid', 'reference_id', 'name',
                   'location', 'arrival_rssi', 'departure_rssi',
                   'metadata', 'created_at', 'updated_at', 'is_active')
         read_only_fields = ('id', 'created_at', 'updated_at')

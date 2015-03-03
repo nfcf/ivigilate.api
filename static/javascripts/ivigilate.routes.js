@@ -24,7 +24,7 @@
       controller: 'PlacesController',
       controllerAs: 'vm',
       templateUrl: '/static/templates/places/places.html'
-    }).when('/place', {
+    }).when('/places/:place_id', {
       controller: 'PlaceController',
       controllerAs: 'vm',
       templateUrl: '/static/templates/places/place.html'

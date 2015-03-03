@@ -1,22 +1,45 @@
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-8 col-md-offset-2">
         <h1>Places</h1>
 
-        <table st-table="vm.displayedPlaces" st-safe-src="vm.places" class="table table-striped">
-            <thead>
-            <tr>
-                <th>name</th>
-                <th>referenceID</th>
-                <th>location</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="place in vm.displayedPlaces">
-                <td>{{ place.name }}</td>
-                <td>{{ place.reference_id }}</td>
-                <td>{{ place.location }}</td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="well">
+            <table st-table="vm.displayedPlaces" st-safe-src="vm.places" class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Unique ID</th>
+                    <th>Name</th>
+                    <th>Arrival RSSI</th>
+                    <th>Departure RSSI</th>
+                    <th>Is Active?</th>
+                </tr>
+                <tr>
+                    <th>
+                        <input st-search="'uuid'" placeholder="Search for Unique ID" class="input-sm form-control"
+                               type="search"/>
+                    </th>
+                    <th>
+                        <input st-search="'name'" placeholder="Search by Name" class="input-sm form-control" type="search"/>
+                    </th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="place in vm.displayedPlaces">
+                    <td>{{ place.uuid }}</td>
+                    <td>{{ place.name }}</td>
+                    <td>{{ place.arrival_rssi }}</td>
+                    <td>{{ place.departure_rssi }}</td>
+                    <td>{{ place.is_active }}</td>
+                    <td>
+                        <button type="button" ng-click="vm.editPlace(place)" class="btn btn-sm">
+                            <i class="glyphicon glyphicon-edit"></i>
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

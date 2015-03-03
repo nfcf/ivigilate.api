@@ -8,16 +8,29 @@
                 <div class="alert alert-success" ng-show="vm.success" ng-bind="vm.success"></div>
 
                 <div class="form-group">
-                    <label for="reference_id">ID</label>
+                    <label for="uuid">Unique ID</label>
+                    <input type="text" class="form-control" id="uuid" ng-model="vm.place.uuid" disabled />
+                </div>
+
+                <div class="form-group">
+                    <label for="reference_id">Reference ID</label>
                     <input type="text" class="form-control" id="reference_id" ng-model="vm.place.reference_id"
-                           placeholder=""/>
+                           placeholder="Use this to keep a reference to other systems."/>
                 </div>
 
                 <div class="form-group">
                     <label for="name">Name</label>
                     <input type="text" class="form-control" id="name" ng-model="vm.place.name" placeholder=""/>
+                </div>
 
-                    <div id="map-canvas"></div>
+                <div class="form-group">
+                    <label for="arrival_rssi">Arrival RSSI</label>
+                    <input type="text" class="form-control" id="arrival_rssi" ng-model="vm.place.arrival_rssi" />
+                </div>
+
+                <div class="form-group">
+                    <label for="departure_rssi">Departure RSSI</label>
+                    <input type="text" class="form-control" id="departure_rssi" ng-model="vm.place.departure_rssi" />
                 </div>
 
                 <div class="form-group">
@@ -26,6 +39,10 @@
                     <ui-gmap-google-map center="vm.map.center" zoom="vm.map.zoom">
                         <ui-gmap-marker idKey="vm.marker.id" coords="vm.marker.coords" options="vm.marker.options" events="vm.marker.events" ></ui-gmap-marker>
                     </ui-gmap-google-map>
+                </div>
+
+                <div class="form-group">
+                    <label><input type="checkbox" id="is_active" ng-model="vm.place.is_active" /> Is Active?</label>
                 </div>
 
                 <div class="form-group">

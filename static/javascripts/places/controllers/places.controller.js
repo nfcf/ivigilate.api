@@ -10,6 +10,7 @@
     function PlacesController($location, $scope, Authentication, Places) {
         var vm = this;
         vm.refresh = refresh;
+        vm.editPlace = editPlace;
 
         vm.places = undefined;
 
@@ -30,8 +31,13 @@
             }
 
             function errorFn(data, status, headers, config) {
-                $location.url('/');
+                vm.error = data.data.status + ": " + data.data.message;
+                setTimeout($location.url('/'), 5);
             }
+        }
+
+        function editPlace(place) {
+            $location.url('/places/' + place.id);
         }
     }
 })();

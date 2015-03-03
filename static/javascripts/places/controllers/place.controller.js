@@ -5,12 +5,14 @@
         .module('ivigilate.places.controllers')
         .controller('PlaceController', PlaceController);
 
-    PlaceController.$inject = ['$location', '$scope', 'Authentication', 'Places'];
+    PlaceController.$inject = ['$location', '$scope', '$timeout', '$routeParams', 'Authentication', 'Places'];
 
-    function PlaceController($location, $scope, Authentication, Places) {
+    function PlaceController($location, $scope, $timeout, $routeParams, Authentication, Places) {
         var vm = this;
         vm.update = update;
 
+        vm.success = undefined;
+        vm.error = undefined;
         vm.place = undefined;
         vm.map = undefined;
         vm.marker = {
@@ -32,23 +34,33 @@
         function activate() {
             var user = Authentication.getAuthenticatedUser();
             if (user) {
-                Places.get(1).then(placesSuccessFn, placesErroFn);
+                Places.get($routeParams.place_id).then(successFn, errorFn);
             }
-
-            function placesSuccessFn(data, status, headers, config) {
-                vm.place = data.data;
-                vm.map = {
-                    center: {
-                        latitude: vm.place.location.split(",")[0],
-                        longitude: vm.place.location.split(",")[1]
-                    }, zoom: 8
-                };
-                vm.marker.coords.latitude = vm.map.center.latitude;
-                vm.marker.coords.longitude = vm.map.center.longitude;
-            }
-
-            function placesErroFn(data, status, headers, config) {
+            else {
                 $location.url('/');
+            }
+
+            function successFn(data, status, headers, config) {
+                vm.place = data.data;
+
+                if (user.account == vm.place.account) { // Check if place belongs to account
+                    vm.map = {
+                        center: {
+                            latitude: vm.place.location.split(",")[0],
+                            longitude: vm.place.location.split(",")[1]
+                        }, zoom: 8
+                    };
+                    vm.marker.coords.latitude = vm.map.center.latitude;
+                    vm.marker.coords.longitude = vm.map.center.longitude;
+                } else {
+                    vm.place = undefined;
+                    vm.error = "You don't have permissions to edit this place's information."
+                }
+            }
+
+            function errorFn(data, status, headers, config) {
+                vm.error = data.data.status + ": " + data.data.message;
+                $timeout(function(){ $location.url('/'); }, 5000);
             }
         }
 

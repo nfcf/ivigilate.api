@@ -130,3 +130,16 @@ class PlaceViewSet(viewsets.ModelViewSet):
         queryset = self.queryset.filter(account=account)
         serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data)
+
+    def retrieve(self, request, id=None):
+        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
+        try:
+            queryset = self.queryset.get(id=id,account=account)
+        except Place.DoesNotExist:
+            return Response({
+            'status': 'Bad request',
+            'message': 'Place does not exist or is not associated with the current logged on account.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.serializer_class(queryset, many=False)
+        return Response(serializer.data)
