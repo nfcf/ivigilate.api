@@ -1,0 +1,22 @@
+<div class="row">
+    <div class="col-md-12">
+        <h1>Places</h1>
+
+        <table st-table="vm.displayedPlaces" st-safe-src="vm.places" class="table table-striped">
+            <thead>
+            <tr>
+                <th>name</th>
+                <th>referenceID</th>
+                <th>location</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="place in vm.displayedPlaces">
+                <td>{{ place.name }}</td>
+                <td>{{ place.reference_id }}</td>
+                <td>{{ place.location }}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

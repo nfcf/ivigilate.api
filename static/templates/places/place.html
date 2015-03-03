@@ -1,0 +1,37 @@
+<div class="row">
+    <div class="col-md-4 col-md-offset-4">
+        <h1>Place</h1>
+
+        <div class="well">
+            <form role="form" ng-submit="vm.update()">
+                <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
+                <div class="alert alert-success" ng-show="vm.success" ng-bind="vm.success"></div>
+
+                <div class="form-group">
+                    <label for="reference_id">ID</label>
+                    <input type="text" class="form-control" id="reference_id" ng-model="vm.place.reference_id"
+                           placeholder=""/>
+                </div>
+
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" class="form-control" id="name" ng-model="vm.place.name" placeholder=""/>
+
+                    <div id="map-canvas"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="location">Location</label>
+                    <input type="text" class="form-control" id="location" ng-model="vm.place.location" disabled/>
+                    <ui-gmap-google-map center="vm.map.center" zoom="vm.map.zoom">
+                        <ui-gmap-marker idKey="vm.marker.id" coords="vm.marker.coords" options="vm.marker.options" events="vm.marker.events" ></ui-gmap-marker>
+                    </ui-gmap-google-map>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
