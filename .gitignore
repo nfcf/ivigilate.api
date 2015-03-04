@@ -59,4 +59,7 @@ target/
 # bower
 static/bower_components/
 
+#PyCharm
+.idea/
+
 
