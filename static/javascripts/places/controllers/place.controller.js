@@ -10,6 +10,7 @@
     function PlaceController($location, $scope, $timeout, $routeParams, Authentication, Places) {
         var vm = this;
         vm.update = update;
+        vm.goBack = goBack;
 
         vm.success = undefined;
         vm.error = undefined;
@@ -25,6 +26,22 @@
             events: {
                 dragend: function (marker, eventName, args) {
                     vm.place.location = marker.getPosition().lat() + "," + marker.getPosition().lng();
+                }
+            }
+        };
+        vm.searchbox = {
+            template: 'searchbox.tpl.html',
+            events: {
+                places_changed: function (searchBox) {
+                    var places = searchBox.getPlaces();
+                    if (places && places.length > 0) {
+                        vm.map.center.latitude = places[0].geometry.location.lat();
+                        vm.map.center.longitude = places[0].geometry.location.lng();
+                        vm.map.center.zoom = 15;
+
+                        vm.marker.coords.latitude = vm.map.center.latitude;
+                        vm.marker.coords.longitude = vm.map.center.longitude;
+                    }
                 }
             }
         };
@@ -46,8 +63,8 @@
                 if (user.account == vm.place.account) { // Check if place belongs to account
                     vm.map = {
                         center: {
-                            latitude: vm.place.location.split(",")[0],
-                            longitude: vm.place.location.split(",")[1]
+                            latitude: vm.place.location ? vm.place.location.split(",")[0] : "34.698986644",
+                            longitude: vm.place.location ? vm.place.location.split(",")[1] : "-40.70744491"
                         }, zoom: 8
                     };
                     vm.marker.coords.latitude = vm.map.center.latitude;
@@ -60,12 +77,28 @@
 
             function errorFn(data, status, headers, config) {
                 vm.error = data.data.status + ": " + data.data.message;
-                $timeout(function(){ $location.url('/'); }, 5000);
+                $timeout(function () {
+                    $location.url('/');
+                }, 5000);
             }
         }
 
         function update() {
-            Places.update(vm.place);
+            Places.update(vm.place).then(successFn, errorFn);
+
+            function successFn(data, status, headers, config) {
+                vm.error = null;
+                vm.success = 'The current Place has been updated.';
+            }
+
+            function errorFn(data, status, headers, config) {
+                vm.success = null;
+                vm.error = 'Failed to update Place with error: ' + JSON.stringify(data.data);
+            }
+        }
+
+        function goBack() {
+            $location.url('/places');
         }
     }
 })();

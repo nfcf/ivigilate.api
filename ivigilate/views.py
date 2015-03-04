@@ -88,7 +88,7 @@ class LoginView(views.APIView):
         if user is not None:
             if user.is_active:
                 login(request, user)
-                serialized = AuthUserSerializer(user)
+                serialized = AuthUserSerializer(user, context={'request': request})
                 return Response(serialized.data)
             else:
                 return Response({
@@ -128,7 +128,7 @@ class PlaceViewSet(viewsets.ModelViewSet):
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         queryset = self.queryset.filter(account=account)
-        serializer = self.serializer_class(queryset, many=True)
+        serializer = self.serializer_class(queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
     def retrieve(self, request, id=None):
@@ -141,5 +141,5 @@ class PlaceViewSet(viewsets.ModelViewSet):
             'message': 'Place does not exist or is not associated with the current logged on account.'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = self.serializer_class(queryset, many=False)
+        serializer = self.serializer_class(queryset, many=False, context={'request': request})
         return Response(serializer.data)

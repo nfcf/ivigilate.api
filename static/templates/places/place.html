@@ -1,5 +1,5 @@
 <div class="row">
-    <div class="col-md-4 col-md-offset-4">
+    <div class="col-md-6 col-md-offset-3">
         <h1>Place</h1>
 
         <div class="well">
@@ -9,7 +9,7 @@
 
                 <div class="form-group">
                     <label for="uuid">Unique ID</label>
-                    <input type="text" class="form-control" id="uuid" ng-model="vm.place.uuid" disabled />
+                    <input type="text" class="form-control" id="uuid" ng-model="vm.place.uuid" disabled/>
                 </div>
 
                 <div class="form-group">
@@ -20,34 +20,47 @@
 
                 <div class="form-group">
                     <label for="name">Name</label>
-                    <input type="text" class="form-control" id="name" ng-model="vm.place.name" placeholder=""/>
+                    <input type="text" class="form-control" id="name" ng-model="vm.place.name"/>
                 </div>
 
                 <div class="form-group">
                     <label for="arrival_rssi">Arrival RSSI</label>
-                    <input type="text" class="form-control" id="arrival_rssi" ng-model="vm.place.arrival_rssi" />
+                    <input type="text" class="form-control" id="arrival_rssi" ng-model="vm.place.arrival_rssi"/>
                 </div>
 
                 <div class="form-group">
                     <label for="departure_rssi">Departure RSSI</label>
-                    <input type="text" class="form-control" id="departure_rssi" ng-model="vm.place.departure_rssi" />
+                    <input type="text" class="form-control" id="departure_rssi" ng-model="vm.place.departure_rssi"/>
                 </div>
 
                 <div class="form-group">
                     <label for="location">Location</label>
                     <input type="text" class="form-control" id="location" ng-model="vm.place.location" disabled/>
+                </div>
+
+                <div class="form-group">
+                    <script type="text/ng-template" id="searchbox.tpl.html">
+                        <input type="text" class="angular-google-map-searchbox" placeholder="Search Box">
+                    </script>
                     <ui-gmap-google-map center="vm.map.center" zoom="vm.map.zoom">
-                        <ui-gmap-marker idKey="vm.marker.id" coords="vm.marker.coords" options="vm.marker.options" events="vm.marker.events" ></ui-gmap-marker>
+                        <ui-gmap-search-box template="vm.searchbox.template"
+                                            events="vm.searchbox.events"></ui-gmap-search-box>
+                        <ui-gmap-marker idKey="vm.marker.id" coords="vm.marker.coords" options="vm.marker.options"
+                                        events="vm.marker.events"></ui-gmap-marker>
                     </ui-gmap-google-map>
                 </div>
 
                 <div class="form-group">
-                    <label><input type="checkbox" id="is_active" ng-model="vm.place.is_active" /> Is Active?</label>
+                    <label><input type="checkbox" id="is_active" ng-model="vm.place.is_active"/> Is Active?</label>
                 </div>
 
                 <div class="form-group">
                     <button type="submit" class="btn btn-primary">Update</button>
+                    <button ng-click="vm.goBack()" class="btn btn-default">Go back</button>
                 </div>
+
+                <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
+                <div class="alert alert-success" ng-show="vm.success" ng-bind="vm.success"></div>
             </form>
         </div>
     </div>

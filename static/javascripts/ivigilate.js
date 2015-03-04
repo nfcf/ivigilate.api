@@ -5,6 +5,7 @@
         .module('ivigilate', [
             'uiGmapgoogle-maps',
             'smart-table',
+            'ngPasswordStrength',
             'ivigilate.config',
             'ivigilate.routes',
             'ivigilate.authentication',

@@ -173,7 +173,7 @@ class Place(models.Model):
     uuid = models.CharField(max_length=36, unique=True)
     reference_id = models.CharField(max_length=64)
     name = models.CharField(max_length=64)
-    location = GeopositionField()
+    location = GeopositionField(null=True)
     arrival_rssi = models.IntegerField(default=-75)
     departure_rssi = models.IntegerField(default=-90)
     metadata = models.TextField(blank=True)
@@ -190,6 +190,9 @@ class Place(models.Model):
         else:
             self.updated_at = now
         super(Place, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return '%s - %s' % (self.account.company_id, self.uuid)
 
 class Sighting(models.Model):
     movable = models.ForeignKey(Movable)

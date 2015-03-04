@@ -32,16 +32,7 @@
         }
 
         function update(place) {
-            return $http.put('/api/v1/places/' + place.id + '/', place).then(successFn, errorFn);
-
-            function successFn(data, status, headers, config) {
-                //Authentication.login(email, password);
-            }
-
-            function errorFn(data, status, headers, config) {
-                console.error(data.data.status + ": " + data.data.message);
-                alert(data.data.status + ": " + data.data.message);
-            }
+            return $http.put('/api/v1/places/' + place.id + '/', place);
         }
     }
 })();

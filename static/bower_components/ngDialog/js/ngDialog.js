@@ -10,7 +10,7 @@
         module.exports = factory(require('angular'));
     } else if (typeof define === 'function' && define.amd) {
         // AMD
-        define(['../../angular/angular'], factory);
+        define(['angular'], factory);
     } else {
         // Global Variables
         factory(root.angular);
@@ -154,7 +154,7 @@
 										return;
 									});
 								}
-							} else if (!preCloseCallbackResult) {
+							} else if (preCloseCallbackResult) {
 								privateMethods.performCloseDialog($dialog, value);
 							}
 						} else {
@@ -444,4 +444,6 @@
 			}
 		};
 	}]);
+
+	return m;
 }));

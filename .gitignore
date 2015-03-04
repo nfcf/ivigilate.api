@@ -56,4 +56,7 @@ docs/_build/
 # PyBuilder
 target/
 
+# bower
+static/bower_components/
+
 

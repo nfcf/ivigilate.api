@@ -6,11 +6,11 @@
             <table st-table="vm.displayedPlaces" st-safe-src="vm.places" class="table table-striped">
                 <thead>
                 <tr>
-                    <th>Unique ID</th>
-                    <th>Name</th>
-                    <th>Arrival RSSI</th>
-                    <th>Departure RSSI</th>
-                    <th>Is Active?</th>
+                    <th st-sort="uuid">Unique ID</th>
+                    <th st-sort="name" st-sort-default="True">Name</th>
+                    <th st-sort="arrival_rssi">Arrival RSSI</th>
+                    <th st-sort="departure_rssi">Departure RSSI</th>
+                    <th st-sort="is_active">Is Active?</th>
                 </tr>
                 <tr>
                     <th>
@@ -18,7 +18,8 @@
                                type="search"/>
                     </th>
                     <th>
-                        <input st-search="'name'" placeholder="Search by Name" class="input-sm form-control" type="search"/>
+                        <input st-search="'name'" placeholder="Search by Name" class="input-sm form-control"
+                               type="search"/>
                     </th>
                     <th></th>
                     <th></th>
@@ -39,6 +40,13 @@
                     </td>
                 </tr>
                 </tbody>
+                <tfoot>
+                <tr>
+                    <td colspan="5" class="text-center">
+                        <div st-pagination="" st-items-by-page="15" st-displayed-pages="7"></div>
+                    </td>
+                </tr>
+                </tfoot>
             </table>
         </div>
     </div>

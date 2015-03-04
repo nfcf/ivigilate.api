@@ -5,9 +5,9 @@
     .module('ivigilate.authentication.services')
     .factory('Authentication', Authentication);
 
-  Authentication.$inject = ['$cookies', '$http'];
+  Authentication.$inject = ['$cookieStore', '$http'];
 
-  function Authentication($cookies, $http) {
+  function Authentication($cookieStore, $http) {
 
       var Authentication = {
           getAuthenticatedUser: getAuthenticatedUser,
@@ -27,13 +27,13 @@
               company_id: company_id,
               email: email,
               password: password
-          }).then(registerSuccessFn, registerErrorFn);
+          }).then(successFn, errorFn);
 
-          function registerSuccessFn(data, status, headers, config) {
+          function successFn(data, status, headers, config) {
               Authentication.login(email, password);
           }
 
-          function registerErrorFn(data, status, headers, config) {
+          function errorFn(data, status, headers, config) {
               console.error(data.data.status + ": " + data.data.message);
               alert(data.data.status + ": " + data.data.message);
           }
@@ -42,50 +42,51 @@
       function login(email, password) {
           return $http.post('/api/v1/login/', {
               email: email, password: password
-          }).then(loginSuccessFn, loginErrorFn);
+          }).then(successFn, errorFn);
 
-          function loginSuccessFn(data, status, headers, config) {
+          function successFn(data, status, headers, config) {
               Authentication.setAuthenticatedUser(data.data);
               window.location = '/';
           }
 
-          function loginErrorFn(data, status, headers, config) {
-              console.error('Login failure!');
+          function errorFn(data, status, headers, config) {
+              console.error(data.data.status + ": " + data.data.message);
+              console.error(JSON.stringify(data.data));
           }
       }
 
       function logout() {
         return $http.post('/api/v1/logout/')
-            .then(logoutSuccessFn, logoutErrorFn);
+            .then(successFn, errorFn);
 
-        function logoutSuccessFn(data, status, headers, config) {
+        function successFn(data, status, headers, config) {
             Authentication.unauthenticate();
             window.location = '/';
         }
 
-        function logoutErrorFn(data, status, headers, config) {
+        function errorFn(data, status, headers, config) {
             console.error('Logout failure!');
         }
       }
 
       function getAuthenticatedUser() {
-          if (!$cookies.authenticatedUser) {
+          if (!$cookieStore.get('authenticatedUser')) {
               return;
           }
 
-          return JSON.parse($cookies.authenticatedUser);
+          return $cookieStore.get('authenticatedUser');
       }
 
       function setAuthenticatedUser(user) {
-          $cookies.authenticatedUser = JSON.stringify(user);
+          $cookieStore.put('authenticatedUser', user);
       }
 
       function isAuthenticated() {
-          return !!$cookies.authenticatedUser;
+          return !!$cookieStore.get('authenticatedUser');
       }
 
       function unauthenticate() {
-          delete $cookies.authenticatedUser;
+          $cookieStore.remove('authenticatedUser');
       }
   }
 })();

@@ -12,18 +12,21 @@
   ],
   "dependencies": {
     "angular": "~1.4.0",
-    "angular-route": "~1.4.0",
     "angular-cookies": "~1.4.0",
     "angular-google-maps": "~2.0.0",
+    "angular-route": "~1.4.0",
     "angular-smart-table": "~1.4.0",
-    "ng-password-strength": "~0.1.0",
     "bootstrap": "~3.3.0",
     "jquery": "~2.1.1",
+    "ng-lodash": "~0.2.0",
+    "ng-password-strength": "~0.1.0",
     "ngDialog": "~0.3.3",
-    "underscore": "~1.7.0"
+    "underscore": "~1.7.0",
+    "underscore.string": "~3.0.0"
   },
   "resolutions": {
     "underscore": "~1.5.x",
-    "angular-google-maps": "~2.0.13"
+    "angular-google-maps": "~2.0.13",
+    "angular": "~1.4.0"
   }
 }
