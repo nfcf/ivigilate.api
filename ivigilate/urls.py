@@ -9,6 +9,17 @@ router.register(r'users', views.AuthUserViewSet)
 router.register(r'places', views.PlaceViewSet)
 
 urlpatterns = patterns('',
+    url(r'^user/password/reset/$',
+        'django.contrib.auth.views.password_reset',
+        {'post_reset_redirect' : '/user/password/reset/done/'},
+        name="password_reset"),
+    (r'^user/password/reset/done/$',
+        'django.contrib.auth.views.password_reset_done'),
+    (r'^user/password/reset/(?P<uidb64>[0-9A-Za-z]+)-(?P<token>.+)/$',
+        'django.contrib.auth.views.password_reset_confirm',
+        {'post_reset_redirect' : '/user/password/done/'}),
+    (r'^user/password/done/$',
+        'django.contrib.auth.views.password_reset_complete'),
     url(r'^api/v1/', include(router.urls)),
     url(r'^api/v1/login/$', views.LoginView.as_view(), name='login'),
     url(r'^api/v1/logout/$', views.LogoutView.as_view(), name='logout'),
