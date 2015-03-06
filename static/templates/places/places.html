@@ -7,14 +7,20 @@
                 <thead>
                 <tr>
                     <th st-sort="uuid">Unique ID</th>
+                    <th st-sort="reference_id">Reference ID</th>
                     <th st-sort="name" st-sort-default="True">Name</th>
                     <th st-sort="arrival_rssi">Arrival RSSI</th>
                     <th st-sort="departure_rssi">Departure RSSI</th>
                     <th st-sort="is_active">Active?</th>
+                    <th></th>
                 </tr>
                 <tr>
                     <th>
                         <input st-search="'uuid'" placeholder="Search for Unique ID" class="input-sm form-control"
+                               type="search">
+                    </th>
+                    <th>
+                        <input st-search="'reference_id'" placeholder="Search for Reference ID" class="input-sm form-control"
                                type="search">
                     </th>
                     <th>
@@ -24,11 +30,13 @@
                     <th></th>
                     <th></th>
                     <th></th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr ng-repeat="place in vm.displayedPlaces">
                     <td>{{ place.uuid }}</td>
+                    <td>{{ place.reference_id }}</td>
                     <td>{{ place.name }}</td>
                     <td>{{ place.arrival_rssi }}</td>
                     <td>{{ place.departure_rssi }}</td>

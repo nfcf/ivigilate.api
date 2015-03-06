@@ -5,9 +5,9 @@
         .module('ivigilate.places.controllers')
         .controller('PlacesController', PlacesController);
 
-    PlacesController.$inject = ['$location', '$scope', 'Authentication', 'Places'];
+    PlacesController.$inject = ['$location', '$scope', 'Authentication', 'Places', 'dialogs'];
 
-    function PlacesController($location, $scope, Authentication, Places) {
+    function PlacesController($location, $scope, Authentication, Places, dialogs) {
         var vm = this;
         vm.refresh = refresh;
         vm.editPlace = editPlace;
@@ -20,6 +20,9 @@
             var user = Authentication.getAuthenticatedUser();
             if (user) {
                 refresh();
+            }
+            else {
+                $location.url('/');
             }
         }
 
@@ -37,7 +40,12 @@
         }
 
         function editPlace(place) {
-            $location.url('/places/' + place.id);
+            var dlg = dialogs.create('static/templates/places/place.html', 'PlaceController as vm', place, 'lg');
+            dlg.result.then(function(editedPlace) {
+                place = editedPlace;
+            });
+
+            //$location.url('/places/' + place.id);
         }
     }
 })();

@@ -5,12 +5,12 @@
         .module('ivigilate.places.controllers')
         .controller('PlaceController', PlaceController);
 
-    PlaceController.$inject = ['$location', '$scope', '$timeout', '$routeParams', 'Authentication', 'Places'];
+    PlaceController.$inject = ['$location', '$scope', '$modalInstance', 'data', 'Authentication', 'Places'];
 
-    function PlaceController($location, $scope, $timeout, $routeParams, Authentication, Places) {
+    function PlaceController($location, $scope, $modalInstance, data, Authentication, Places) {
         var vm = this;
-        vm.update = update;
-        vm.goBack = goBack;
+        vm.cancel = cancel;
+        vm.save = save;
 
         vm.success = undefined;
         vm.error = undefined;
@@ -51,44 +51,38 @@
         function activate() {
             var user = Authentication.getAuthenticatedUser();
             if (user) {
-                Places.get($routeParams.place_id).then(successFn, errorFn);
+                populateDialog(data, user);
             }
             else {
                 $location.url('/');
             }
+        }
 
-            function successFn(data, status, headers, config) {
-                vm.place = data.data;
+        function populateDialog(data, user) {
+            vm.place = data;
 
-                if (user.account == vm.place.account) { // Check if place belongs to account
-                    vm.map = {
-                        center: {
-                            latitude: vm.place.location ? vm.place.location.split(",")[0] : "34.698986644",
-                            longitude: vm.place.location ? vm.place.location.split(",")[1] : "-40.70744491"
-                        }, zoom: 8
-                    };
-                    vm.marker.coords.latitude = vm.map.center.latitude;
-                    vm.marker.coords.longitude = vm.map.center.longitude;
-                } else {
-                    vm.place = undefined;
-                    vm.error = "You don't have permissions to edit this place's information."
-                }
-            }
-
-            function errorFn(data, status, headers, config) {
-                vm.error = data.data.status + ": " + data.data.message;
-                $timeout(function () {
-                    $location.url('/');
-                }, 5000);
+            if (user.account == vm.place.account) { // Check if place belongs to account
+                vm.map = {
+                    center: {
+                        latitude: vm.place.location ? vm.place.location.split(",")[0] : "34.698986644",
+                        longitude: vm.place.location ? vm.place.location.split(",")[1] : "-40.70744491"
+                    }, zoom: 8
+                };
+                vm.marker.coords.latitude = vm.map.center.latitude;
+                vm.marker.coords.longitude = vm.map.center.longitude;
+            } else {
+                vm.place = undefined;
+                vm.error = "You don't have permissions to edit this place's information."
             }
         }
 
-        function update() {
+        function save() {
             Places.update(vm.place).then(successFn, errorFn);
 
             function successFn(data, status, headers, config) {
-                vm.error = null;
-                vm.success = 'The current Place has been updated.';
+                $modalInstance.close(vm.place);
+                //vm.error = null;
+                //vm.success = 'The current Place has been updated.';
             }
 
             function errorFn(data, status, headers, config) {
@@ -97,8 +91,8 @@
             }
         }
 
-        function goBack() {
-            $location.url('/places');
+        function cancel() {
+            $modalInstance.dismiss('Cancel');
         }
     }
 })();

@@ -22,6 +22,9 @@
             if (user) {
                 Settings.get(user.id).then(successFn, errorFn);
             }
+            else {
+                $location.url('/');
+            }
 
             function successFn(data, status, headers, config) {
                 vm.user = data.data;
