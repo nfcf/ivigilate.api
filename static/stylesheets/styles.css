@@ -15,9 +15,7 @@
     content:"\e080";
 }
 
-a { cursor: pointer; }
-
-ul.nav li.dropdown:hover ul.dropdown-menu{ display: block; }
+a, th { cursor: pointer; }
 
 .angular-google-map-searchbox { margin-top: 5px; width: 200px; }
 .angular-google-map-container { margin-top: 10px; height: 300px; }

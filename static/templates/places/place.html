@@ -1,22 +1,23 @@
 <div class="modal-header">
+    <button ng-click="vm.cancel()" class="close">×</button>
     <h3 class="modal-title">Place</h3>
 </div>
 <div class="modal-body">
     <div class="row">
-        <div class="col-lg-4">
+        <div class="col-xs-6 col-md-4">
             <div class="form-group">
                 <label for="uuid">Unique ID</label>
                 <input type="text" class="form-control" id="uuid" ng-model="vm.place.uuid" disabled/>
             </div>
         </div>
-        <div class="col-lg-4">
+        <div class="col-xs-6 col-md-4">
             <div class="form-group">
                 <label for="reference_id">Reference ID</label>
                 <input type="text" class="form-control" id="reference_id" ng-model="vm.place.reference_id"
-                       placeholder="Use this to keep a reference to other systems."/>
+                       placeholder="A reference to another system"/>
             </div>
         </div>
-        <div class="col-lg-4">
+        <div class="col-xs-12 col-md-4">
             <div class="form-group">
                 <label for="name">Name</label>
                 <input type="text" class="form-control" id="name" ng-model="vm.place.name"/>
@@ -25,24 +26,26 @@
     </div>
 
     <div class="row">
-        <div class="col-lg-6">
+        <div class="col-xs-6 col-md-4">
             <div class="form-group">
                 <label for="arrival_rssi">Arrival RSSI</label>
                 <input type="text" class="form-control" id="arrival_rssi" ng-model="vm.place.arrival_rssi"/>
             </div>
         </div>
-        <div class="col-lg-6">
+        <div class="col-xs-6 col-md-4">
             <div class="form-group">
                 <label for="departure_rssi">Departure RSSI</label>
                 <input type="text" class="form-control" id="departure_rssi" ng-model="vm.place.departure_rssi"/>
             </div>
         </div>
+        <div class="col-xs-6 col-md-4">
+            <div class="form-group">
+                <label for="location">Location</label>
+                <input type="text" class="form-control" id="location" ng-model="vm.place.location" readonly/>
+            </div>
+        </div>
     </div>
 
-    <div class="form-group">
-        <label for="location">Location</label>
-        <input type="text" class="form-control" id="location" ng-model="vm.place.location" readonly/>
-    </div>
 
     <div class="form-group">
         <script type="text/ng-template" id="searchbox.tpl.html">
@@ -66,5 +69,4 @@
 <div class="modal-footer">
     <button ng-click="vm.cancel()" class="btn btn-default">Cancel</button>
     <button ng-click="vm.save()" class="btn btn-primary">Save</button>
-</div>
 </div>

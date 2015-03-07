@@ -4,23 +4,22 @@
     <div class="container-fluid">
         <div class="navbar-header">
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
-                    data-target="#ivigilate-navbar">
+                    data-target="#navbar">
                 <span class="sr-only">Toggle Navigation</span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
             <a class="navbar-brand" href="/">iVigilate</a>
-        </div>
-        <!-- ./navbar-header -->
+        </div><!-- ./navbar-header -->
 
-        <div class="navbar-collapse collapse" id="ivigilate-navbar">
-            <ul class="nav navbar-nav pull-right">
+        <div id="navbar" class="navbar-collapse collapse" >
+            <ul class="nav navbar-nav navbar-right">
                 {% if user.is_authenticated %}
                     <li><a href="/sightings">Sightings</a></li>
                     <li><a href="/places">Places</a></li>
                     <li class="dropdown">
-                        <a class="dropdown-toggle" href="#">
+                        <a class="dropdown-toggle" href="">
                             <i class="glyphicon glyphicon-user"></i> {{ user.email|split:"@,0" }}<span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu" role="menu">
@@ -33,8 +32,6 @@
                     <li><a href="/register">Register</a></li>
                 {% endif %}
             </ul>
-        </div>
-        <!-- /.collapse.navbar-collapse -->
-    </div>
-    <!-- /.container-fluid -->
+        </div><!-- /.collapse.navbar-collapse -->
+    </div><!-- /.container-fluid -->
 </nav>

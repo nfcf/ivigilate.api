@@ -2,7 +2,7 @@
     <div class="col-md-8 col-md-offset-2">
         <h1>Places</h1>
 
-        <div class="well">
+        <div class="well table-responsive">
             <table st-table="vm.displayedPlaces" st-safe-src="vm.places" class="table table-striped">
                 <thead>
                 <tr>
@@ -16,11 +16,11 @@
                 </tr>
                 <tr>
                     <th>
-                        <input st-search="'uuid'" placeholder="Search for Unique ID" class="input-sm form-control"
+                        <input st-search="'uuid'" placeholder="Search by Unique ID" class="input-sm form-control"
                                type="search">
                     </th>
                     <th>
-                        <input st-search="'reference_id'" placeholder="Search for Reference ID" class="input-sm form-control"
+                        <input st-search="'reference_id'" placeholder="Search by Reference ID" class="input-sm form-control"
                                type="search">
                     </th>
                     <th>
@@ -48,8 +48,8 @@
                 </tbody>
                 <tfoot>
                 <tr>
-                    <td colspan="5" class="text-center">
-                        <div st-pagination="" st-items-by-page="15" st-displayed-pages="7"></div>
+                    <td colspan="7" class="text-center">
+                        <div st-pagination="" st-items-by-page="15" st-displayed-pages="5"></div>
                     </td>
                 </tr>
                 </tfoot>

@@ -2,18 +2,46 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="023cadd0-8089-48d8-a7e9-2db843ec153b" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/ivigilate/templatetags/split.py" />
+      <change type="DELETED" beforePath="C:\Users\nfreire\PycharmProjects\ivigilate\static\bower_components\angular-google-maps\src\coffee\directives\api\models\parent\circle-parent-mode.coffee" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/.bower.json" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/.bower.json" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/Gruntfile.coffee" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/Gruntfile.coffee" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/README.markdown" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/README.markdown" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bower.json" afterPath="$PROJECT_DIR$/bower.json" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/javascripts/ivigilate.config.js" afterPath="$PROJECT_DIR$/static/javascripts/ivigilate.config.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/bower.json" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/bower.json" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/spec/coffee/directives/api/circle.spec.coffee" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/spec/coffee/directives/api/circle.spec.coffee" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/example/example.html" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/example/example.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/example/assets/scripts/controllers/example.js" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/example/assets/scripts/controllers/example.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/src/coffee/directives/api/models/child/free-draw-polygons-child.coffee" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/src/coffee/directives/api/models/child/free-draw-polygons-child.coffee" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/src/coffee/directives/api/free-draw-polygons.coffee" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/src/coffee/directives/api/free-draw-polygons.coffee" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/src/coffee/extensions/google.maps.coffee" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/src/coffee/extensions/google.maps.coffee" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/src/coffee/directives/api/i-circle.coffee" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/src/coffee/directives/api/i-circle.coffee" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/templates/index.html" afterPath="$PROJECT_DIR$/templates/index.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/example/issue-504-markers-flash.html" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/example/issue-504-markers-flash.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/example/assets/scripts/controllers/issue-504-markers-flash.js" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/example/assets/scripts/controllers/issue-504-markers-flash.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/example/issue-946-markers-update.html" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/example/issue-946-markers-update.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/example/assets/scripts/controllers/issue-946-markers-update.js" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/example/assets/scripts/controllers/issue-946-markers-update.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/example/issue-978-window-not-open-not-transcluded-marker.html" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/example/issue-978-window-not-open-not-transcluded-marker.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/example/assets/scripts/controllers/issue-978-window-not-open-not-transcluded-marker.js" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/example/assets/scripts/controllers/issue-978-window-not-open-not-transcluded-marker.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/javascripts/ivigilate.js" afterPath="$PROJECT_DIR$/static/javascripts/ivigilate.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/templates/javascripts.html" afterPath="$PROJECT_DIR$/templates/javascripts.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/templates/authentication/login.html" afterPath="$PROJECT_DIR$/static/templates/authentication/login.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/src/coffee/directives/api/models/child/marker-child-model.coffee" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/src/coffee/directives/api/models/child/marker-child-model.coffee" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/src/coffee/directives/api/models/parent/markers-parent-model.coffee" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/src/coffee/directives/api/models/parent/markers-parent-model.coffee" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/spec/coffee/directives/api/models/parent/markers-parent-model.spec.coffee" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/spec/coffee/directives/api/models/parent/markers-parent-model.spec.coffee" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/spec/coffee/directives/api/markers.spec.coffee" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/spec/coffee/directives/api/markers.spec.coffee" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/src/coffee/directives/api/utils/model-key.coffee" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/src/coffee/directives/api/utils/model-key.coffee" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/spec/coffee/directives/api/utils/model-key.spec.coffee" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/spec/coffee/directives/api/utils/model-key.spec.coffee" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/src/coffee/directives/api/utils/models-watcher.coffee" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/src/coffee/directives/api/utils/models-watcher.coffee" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/templates/navbar.html" afterPath="$PROJECT_DIR$/templates/navbar.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/javascripts/places/controllers/place.controller.js" afterPath="$PROJECT_DIR$/static/javascripts/places/controllers/place.controller.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/grunt/options.coffee" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/grunt/options.coffee" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/package.js" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/package.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/package.json" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/package.json" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/templates/places/place.html" afterPath="$PROJECT_DIR$/static/templates/places/place.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/javascripts/places/controllers/places.controller.js" afterPath="$PROJECT_DIR$/static/javascripts/places/controllers/places.controller.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/templates/places/places.html" afterPath="$PROJECT_DIR$/static/templates/places/places.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/javascripts/settings/controllers/settings.controller.js" afterPath="$PROJECT_DIR$/static/javascripts/settings/controllers/settings.controller.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/scripts/publish" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/scripts/publish" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/templates/authentication/register.html" afterPath="$PROJECT_DIR$/static/templates/authentication/register.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/templates/authentication/settings.html" afterPath="$PROJECT_DIR$/static/templates/authentication/settings.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/stylesheets/styles.css" afterPath="$PROJECT_DIR$/static/stylesheets/styles.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/bower_components/angular-google-maps/src/coffee/directives/api/models/child/window-child-model.coffee" afterPath="$PROJECT_DIR$/static/bower_components/angular-google-maps/src/coffee/directives/api/models/child/window-child-model.coffee" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="ivigilate.iws" />
@@ -45,91 +73,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="password_reset_form.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/templates/registration/password_reset_form.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.65384614" vertical-offset="0" max-vertical-offset="442">
-              <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="25" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="places.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/static/templates/places/places.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-15.115385" vertical-offset="423" max-vertical-offset="1088">
-              <caret line="48" column="23" selection-start-line="48" selection-start-column="23" selection-end-line="48" selection-end-column="23" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="places.controller.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/static/javascripts/places/controllers/places.controller.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="40" max-vertical-offset="952">
-              <caret line="27" column="0" selection-start-line="27" selection-start-column="0" selection-end-line="27" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="add_attributes.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/ivigilate/templatetags/add_attributes.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="357">
-              <caret line="4" column="18" selection-start-line="4" selection-start-column="4" selection-end-line="4" selection-end-column="18" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="navbar.html" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/templates/navbar.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.5290934" vertical-offset="0" max-vertical-offset="765">
-              <caret line="23" column="69" selection-start-line="23" selection-start-column="69" selection-end-line="23" selection-end-column="69" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="split.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/ivigilate/templatetags/split.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="204">
-              <caret line="6" column="46" selection-start-line="6" selection-start-column="46" selection-end-line="6" selection-end-column="46" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="javascripts.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/templates/javascripts.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="1.0" vertical-offset="94" max-vertical-offset="884">
-              <caret line="4" column="86" selection-start-line="4" selection-start-column="80" selection-end-line="4" selection-end-column="86" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="place.controller.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/static/javascripts/places/controllers/place.controller.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1751">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="styles.css" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/static/stylesheets/styles.css">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="544">
-              <caret line="20" column="0" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
+            <state vertical-scroll-proportion="-0.65384614" vertical-offset="0" max-vertical-offset="1088">
+              <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -138,8 +86,88 @@
       <file leaf-file-name="place.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/static/templates/places/place.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-12.0" vertical-offset="351" max-vertical-offset="1292">
-              <caret line="39" column="10" selection-start-line="39" selection-start-column="10" selection-end-line="39" selection-end-column="10" />
+            <state vertical-scroll-proportion="-0.65384614" vertical-offset="0" max-vertical-offset="1326">
+              <caret line="1" column="48" selection-start-line="1" selection-start-column="48" selection-end-line="1" selection-end-column="48" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="stylesheets.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/templates/stylesheets.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-4.576923" vertical-offset="0" max-vertical-offset="272">
+              <caret line="7" column="43" selection-start-line="7" selection-start-column="43" selection-end-line="7" selection-end-column="43" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="bower.json" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/static/bower_components/bootstrap/bower.json">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-0.0" vertical-offset="0" max-vertical-offset="748">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="bootstrap.original.css" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/static/bower_components/bootstrap/dist/css/bootstrap.original.css">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="111724">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="bootstrap.css" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/static/bower_components/bootstrap/dist/css/bootstrap.css">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="116246">
+              <caret line="3" column="43" selection-start-line="3" selection-start-column="43" selection-end-line="3" selection-end-column="43" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="settings.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/static/templates/authentication/settings.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-11.192307" vertical-offset="287" max-vertical-offset="782">
+              <caret line="34" column="30" selection-start-line="34" selection-start-column="30" selection-end-line="34" selection-end-column="41" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="styles.css" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/static/stylesheets/styles.css">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.5121413" vertical-offset="57" max-vertical-offset="510">
+              <caret line="17" column="5" selection-start-line="17" selection-start-column="5" selection-end-line="17" selection-end-column="5" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="register.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/static/templates/authentication/register.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-8.269231" vertical-offset="176" max-vertical-offset="629">
+              <caret line="23" column="22" selection-start-line="23" selection-start-column="22" selection-end-line="23" selection-end-column="22" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="login.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/static/templates/authentication/login.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-3.0384614" vertical-offset="74" max-vertical-offset="527">
+              <caret line="9" column="40" selection-start-line="9" selection-start-column="40" selection-end-line="9" selection-end-column="40" />
               <folding />
             </state>
           </provider>
@@ -153,23 +181,18 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/static/javascripts/places/services/settings.service.js" />
-        <option value="$PROJECT_DIR$/.bowerrc" />
         <option value="$PROJECT_DIR$/static/bower_components/lodash.min.js" />
         <option value="$PROJECT_DIR$/static/javascripts/settings/services/settings.service.js" />
-        <option value="$PROJECT_DIR$/static/templates/authentication/settings.html" />
         <option value="$PROJECT_DIR$/static/javascripts/authentication/controllers/login.controller.js" />
         <option value="$PROJECT_DIR$/static/javascripts/authentication/controllers/register.controller.js" />
         <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/static/javascripts/ivigilate.routes.js" />
         <option value="$PROJECT_DIR$/static/javascripts/ivigilate.routes.js" />
-        <option value="$PROJECT_DIR$/static/templates/authentication/login.html" />
         <option value="$PROJECT_DIR$/ivigilate/serializers.py" />
         <option value="$PROJECT_DIR$/ivigilate/serializers.py" />
         <option value="$PROJECT_DIR$/templates/stylesheets.html" />
         <option value="$PROJECT_DIR$/ivigilate/views.py" />
         <option value="$PROJECT_DIR$/ivigilate/views.py" />
-        <option value="$PROJECT_DIR$/static/templates/authentication/register.html" />
         <option value="$PROJECT_DIR$/static/javascripts/authentication/services/authentication.service.js" />
         <option value="$PROJECT_DIR$/static/javascripts/places/services/places.service.js" />
         <option value="$PROJECT_DIR$/ivigilate/models.py" />
@@ -191,19 +214,24 @@
         <option value="$PROJECT_DIR$/templates/registration/password_reset_email.html" />
         <option value="$PROJECT_DIR$/templates/registration/password_reset_confirm.html" />
         <option value="$PROJECT_DIR$/templates/registration/password_reset_complete.html" />
-        <option value="$PROJECT_DIR$/bower.json" />
-        <option value="$PROJECT_DIR$/static/javascripts/ivigilate.js" />
         <option value="$PROJECT_DIR$/templates/javascripts.html" />
         <option value="$PROJECT_DIR$/static/javascripts/settings/controllers/settings.controller.js" />
         <option value="$PROJECT_DIR$/static/javascripts/places/controllers/place.controller.js" />
         <option value="$PROJECT_DIR$/static/javascripts/places/controllers/places.controller.js" />
         <option value="$PROJECT_DIR$/static/javascripts/ivigilate.config.js" />
-        <option value="$PROJECT_DIR$/static/templates/places/places.html" />
-        <option value="$PROJECT_DIR$/static/templates/places/place.html" />
         <option value="$PROJECT_DIR$/ivigilate/templatetags/add_attributes.py" />
         <option value="$PROJECT_DIR$/ivigilate/templatetags/split.py" />
-        <option value="$PROJECT_DIR$/static/stylesheets/styles.css" />
         <option value="$PROJECT_DIR$/templates/navbar.html" />
+        <option value="$PROJECT_DIR$/templates/index.html" />
+        <option value="$PROJECT_DIR$/static/javascripts/ivigilate.js" />
+        <option value="$PROJECT_DIR$/bower.json" />
+        <option value="$PROJECT_DIR$/static/templates/authentication/settings.html" />
+        <option value="$PROJECT_DIR$/static/templates/authentication/register.html" />
+        <option value="$PROJECT_DIR$/static/templates/authentication/login.html" />
+        <option value="$PROJECT_DIR$/static/bower_components/bootstrap/dist/css/bootstrap.css" />
+        <option value="$PROJECT_DIR$/static/templates/places/places.html" />
+        <option value="$PROJECT_DIR$/static/templates/places/place.html" />
+        <option value="$PROJECT_DIR$/static/stylesheets/styles.css" />
       </list>
     </option>
   </component>
@@ -213,8 +241,8 @@
   <component name="ProjectFrameBounds">
     <option name="x" value="-8" />
     <option name="y" value="-8" />
-    <option name="width" value="1936" />
-    <option name="height" value="1056" />
+    <option name="width" value="1382" />
+    <option name="height" value="744" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -255,6 +283,7 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -326,6 +355,10 @@
               <option name="myItemId" value="templates" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="authentication" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
           </PATH>
           <PATH>
             <PATH_ELEMENT>
@@ -358,10 +391,6 @@
               <option name="myItemId" value="static" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="javascripts" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
           </PATH>
           <PATH>
             <PATH_ELEMENT>
@@ -377,125 +406,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="javascripts" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="settings" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ivigilate" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ivigilate" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="static" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="javascripts" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="settings" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="controllers" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ivigilate" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ivigilate" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="static" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="javascripts" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="places" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ivigilate" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ivigilate" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="static" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="javascripts" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="places" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="services" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ivigilate" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ivigilate" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="static" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="javascripts" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="places" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="controllers" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ivigilate" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ivigilate" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="static" />
+              <option name="myItemId" value="bower_components" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -533,7 +444,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -558,11 +468,11 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\nfreire\PycharmProjects\ivigilate\static\bower_components\bootstrap\dist\css" />
       <recent name="C:\Users\nfreire\PycharmProjects\ivigilate\ivigilate\templatetags" />
       <recent name="C:\Users\nfreire\PycharmProjects\ivigilate\static\javascripts\places\controllers" />
       <recent name="C:\Users\nfreire\PycharmProjects\ivigilate\static\templates\places" />
       <recent name="C:\Users\nfreire\PycharmProjects\ivigilate\static\javascripts\" />
-      <recent name="C:\Users\nfreire\PycharmProjects\ivigilate\static\javascripts\settings" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\nfreire\PycharmProjects\ivigilate\ivigilate" />
@@ -857,29 +767,29 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="7" />
+    <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.16944024" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.2512563" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.21533442" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32864866" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32756758" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.1427027" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.11727079" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3213703" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.21533442" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32626426" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32756758" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3213703" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32626426" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -924,55 +834,11 @@
     </watches-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://C:/Python34/Lib/site-packages/django/views/generic/base.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="857" max-vertical-offset="3655">
-          <caret line="68" column="0" selection-start-line="68" selection-start-column="0" selection-end-line="68" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python34/Lib/site-packages/django/views/decorators/csrf.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="683" max-vertical-offset="1071">
-          <caret line="56" column="0" selection-start-line="56" selection-start-column="0" selection-end-line="56" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python34/Lib/site-packages/django/core/handlers/base.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="3020" max-vertical-offset="4148">
-          <caret line="200" column="0" selection-start-line="200" selection-start-column="0" selection-end-line="200" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/static/javascripts/settings/services/settings.service.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="153" max-vertical-offset="646">
-          <caret line="19" column="0" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python34/Lib/site-packages/djangorestframework-3.0.4-py3.4.egg/rest_framework/generics.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="3900" max-vertical-offset="6120">
-          <caret line="246" column="0" selection-start-line="246" selection-start-column="0" selection-end-line="246" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://C:/Python34/Lib/site-packages/djangorestframework-3.0.4-py3.4.egg/rest_framework/mixins.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="891" max-vertical-offset="1547">
           <caret line="64" column="0" selection-start-line="64" selection-start-column="0" selection-end-line="64" selection-end-column="0" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/static/templates/authentication/settings.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="255" max-vertical-offset="782">
-          <caret line="15" column="50" selection-start-line="15" selection-start-column="50" selection-end-line="15" selection-end-column="50" />
         </state>
       </provider>
     </entry>
@@ -997,18 +863,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/templates/stylesheets.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-4.576923" vertical-offset="0" max-vertical-offset="272">
-          <caret line="7" column="43" selection-start-line="7" selection-start-column="43" selection-end-line="7" selection-end-column="43" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://C:/Python34/Lib/site-packages/django/contrib/auth/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="1350" max-vertical-offset="3230">
           <caret line="102" column="0" selection-start-line="102" selection-start-column="0" selection-end-line="102" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1042,7 +900,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="593">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1081,13 +938,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/static/templates/authentication/register.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-13.730769" vertical-offset="0" max-vertical-offset="629">
-          <caret line="21" column="103" selection-start-line="21" selection-start-column="103" selection-end-line="21" selection-end-column="103" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/static/javascripts/authentication/services/authentication.service.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="952" max-vertical-offset="1649">
@@ -1123,21 +973,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/templates/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-9.153846" vertical-offset="0" max-vertical-offset="425">
-          <caret line="14" column="1" selection-start-line="0" selection-start-column="0" selection-end-line="19" selection-end-column="7" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/static/templates/authentication/login.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="340" max-vertical-offset="527">
-          <caret line="20" column="81" selection-start-line="20" selection-start-column="20" selection-end-line="20" selection-end-column="81" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ivigilate/settings.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="1326" max-vertical-offset="2261">
@@ -1150,7 +985,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="238" max-vertical-offset="544">
           <caret line="14" column="52" selection-start-line="14" selection-start-column="52" selection-end-line="14" selection-end-column="52" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1168,9 +1002,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="255" max-vertical-offset="629">
           <caret line="15" column="70" selection-start-line="15" selection-start-column="70" selection-end-line="15" selection-end-column="70" />
-          <folding>
-            <element signature="e#331#351#0#HTML" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1178,7 +1009,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-0.0" vertical-offset="0" max-vertical-offset="221">
           <caret line="0" column="53" selection-start-line="0" selection-start-column="53" selection-end-line="0" selection-end-column="53" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1186,7 +1016,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="102" max-vertical-offset="323">
           <caret line="6" column="93" selection-start-line="6" selection-start-column="93" selection-end-line="6" selection-end-column="93" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1194,23 +1023,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-3.2692308" vertical-offset="0" max-vertical-offset="204">
           <caret line="5" column="31" selection-start-line="5" selection-start-column="31" selection-end-line="5" selection-end-column="31" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/bower.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-13.5" vertical-offset="159" max-vertical-offset="714">
-          <caret line="30" column="18" selection-start-line="30" selection-start-column="18" selection-end-line="30" selection-end-column="18" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/static/javascripts/ivigilate.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="34" max-vertical-offset="765">
-          <caret line="10" column="37" selection-start-line="10" selection-start-column="37" selection-end-line="10" selection-end-column="37" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1218,15 +1030,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="163" max-vertical-offset="1003">
           <caret line="24" column="12" selection-start-line="24" selection-start-column="12" selection-end-line="26" selection-end-column="13" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/static/javascripts/ivigilate.config.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="57" max-vertical-offset="595">
-          <caret line="26" column="35" selection-start-line="26" selection-start-column="35" selection-end-line="26" selection-end-column="35" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1234,23 +1037,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-3.5172415" vertical-offset="0" max-vertical-offset="204">
           <caret line="6" column="5117" selection-start-line="6" selection-start-column="5117" selection-end-line="6" selection-end-column="5117" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/static/javascripts/places/controllers/place.controller.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1751">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/static/templates/places/place.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-12.0" vertical-offset="351" max-vertical-offset="1292">
-          <caret line="39" column="10" selection-start-line="39" selection-start-column="10" selection-end-line="39" selection-end-column="10" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1258,14 +1044,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="40" max-vertical-offset="952">
           <caret line="27" column="0" selection-start-line="27" selection-start-column="0" selection-end-line="27" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/static/templates/places/places.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-15.115385" vertical-offset="423" max-vertical-offset="1088">
-          <caret line="48" column="23" selection-start-line="48" selection-start-column="23" selection-end-line="48" selection-end-column="23" />
           <folding />
         </state>
       </provider>
@@ -1280,7 +1058,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/templates/registration/password_reset_form.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.65384614" vertical-offset="0" max-vertical-offset="442">
+        <state vertical-scroll-proportion="0.0" vertical-offset="17" max-vertical-offset="442">
           <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="25" />
           <folding />
         </state>
@@ -1296,24 +1074,152 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/templates/javascripts.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.0" vertical-offset="94" max-vertical-offset="884">
+        <state vertical-scroll-proportion="0.0" vertical-offset="94" max-vertical-offset="884">
           <caret line="4" column="86" selection-start-line="4" selection-start-column="80" selection-end-line="4" selection-end-column="86" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/static/stylesheets/styles.css">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="544">
-          <caret line="20" column="0" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/templates/navbar.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5290934" vertical-offset="0" max-vertical-offset="765">
-          <caret line="23" column="69" selection-start-line="23" selection-start-column="69" selection-end-line="23" selection-end-column="69" />
+        <state vertical-scroll-proportion="-13.730769" vertical-offset="0" max-vertical-offset="714">
+          <caret line="21" column="51" selection-start-line="21" selection-start-column="51" selection-end-line="21" selection-end-column="51" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/templates/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-7.8461537" vertical-offset="0" max-vertical-offset="391">
+          <caret line="12" column="37" selection-start-line="12" selection-start-column="37" selection-end-line="12" selection-end-column="37" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/javascripts/places/controllers/place.controller.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1751">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/javascripts/ivigilate.config.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="57" max-vertical-offset="595">
+          <caret line="26" column="35" selection-start-line="26" selection-start-column="35" selection-end-line="26" selection-end-column="35" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/javascripts/ivigilate.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="34" max-vertical-offset="782">
+          <caret line="6" column="42" selection-start-line="6" selection-start-column="42" selection-end-line="6" selection-end-column="42" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/bower_components/angular-google-maps/README.markdown">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.86024094" vertical-offset="408" max-vertical-offset="1972">
+          <caret line="45" column="0" selection-start-line="45" selection-start-column="0" selection-end-line="45" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/bower_components/angular-google-maps/package.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1071">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bower.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-5.6538463" vertical-offset="159" max-vertical-offset="714">
+          <caret line="18" column="30" selection-start-line="18" selection-start-column="30" selection-end-line="18" selection-end-column="30" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/templates/stylesheets.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-4.576923" vertical-offset="0" max-vertical-offset="272">
+          <caret line="7" column="43" selection-start-line="7" selection-start-column="43" selection-end-line="7" selection-end-column="43" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/bower_components/bootstrap/bower.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="748">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/bower_components/bootstrap/dist/css/bootstrap.original.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="111724">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/templates/authentication/settings.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-11.192307" vertical-offset="287" max-vertical-offset="782">
+          <caret line="34" column="30" selection-start-line="34" selection-start-column="30" selection-end-line="34" selection-end-column="41" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/templates/authentication/login.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-3.0384614" vertical-offset="74" max-vertical-offset="527">
+          <caret line="9" column="40" selection-start-line="9" selection-start-column="40" selection-end-line="9" selection-end-column="40" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/templates/authentication/register.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-8.269231" vertical-offset="176" max-vertical-offset="629">
+          <caret line="23" column="22" selection-start-line="23" selection-start-column="22" selection-end-line="23" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/bower_components/bootstrap/dist/css/bootstrap.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="116246">
+          <caret line="3" column="43" selection-start-line="3" selection-start-column="43" selection-end-line="3" selection-end-column="43" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/templates/places/place.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.65384614" vertical-offset="0" max-vertical-offset="1326">
+          <caret line="1" column="48" selection-start-line="1" selection-start-column="48" selection-end-line="1" selection-end-column="48" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/templates/places/places.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.65384614" vertical-offset="0" max-vertical-offset="1088">
+          <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/stylesheets/styles.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.5121413" vertical-offset="57" max-vertical-offset="510">
+          <caret line="17" column="5" selection-start-line="17" selection-start-column="5" selection-end-line="17" selection-end-column="5" />
           <folding />
         </state>
       </provider>

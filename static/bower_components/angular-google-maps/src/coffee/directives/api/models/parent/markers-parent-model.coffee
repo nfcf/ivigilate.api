@@ -7,6 +7,11 @@ angular.module("uiGmapgoogle-maps.directives.api.models.parent")
     (IMarkerParentModel, ModelsWatcher,
       PropMap, MarkerChildModel, _async,
       ClustererMarkerManager, MarkerManager, $timeout, IMarker, uiGmapPromise, GmapUtil, $log) ->
+        _setPlurals  = (val, objToSet) ->
+          objToSet.plurals = new PropMap() #for api consistency
+          objToSet.scope.plurals = objToSet.plurals #for transclusion
+          objToSet
+
         class MarkersParentModel extends IMarkerParentModel
           @include GmapUtil
           @include ModelsWatcher
@@ -15,8 +20,7 @@ angular.module("uiGmapgoogle-maps.directives.api.models.parent")
             @interface = IMarker
             self = @
 
-            @plurals = new PropMap() #for api consistency
-            @scope.plurals = @plurals #for transclusion
+            _setPlurals(new PropMap(), @)
             @scope.pluralsUpdate =
               updateCtr: 0
 
@@ -174,8 +178,8 @@ angular.module("uiGmapgoogle-maps.directives.api.models.parent")
             unless model[@idKey]?
               @$log.error("Marker model has no id to assign a child to. This is required for performance. Please assign id, or redirect id to a different key.")
               return
-            @$log.info('child', child, 'markers', @scope.plurals)
-            childScope = scope.$new(true)
+            @$log.info('child', child, 'markers', @scope.markerModels)
+            childScope = scope.$new(false)
             childScope.events = scope.events
             keys = {}
             IMarker.scopeKeys.forEach (k) ->
@@ -191,9 +195,11 @@ angular.module("uiGmapgoogle-maps.directives.api.models.parent")
                 model.destroy(false) if model?
               , _async.chunkSizeFrom(@scope.cleanchunk, false)
               .then =>
-                delete @scope.plurals
                 @gManager.clear() if @gManager?
-                @scope.plurals = new PropMap()
+                # _setPlurals(new PropMap(), @)
+                @plurals.removeAll()
+                if @plurals != @scope.plurals
+                  console.error 'plurals out of sync for MarkersParentModel'
                 @scope.pluralsUpdate.updateCtr += 1
 
           maybeExecMappedEvent:(cluster, fnName) ->

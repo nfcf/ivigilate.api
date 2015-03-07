@@ -1,20 +1,18 @@
 <!DOCTYPE html>
 <html ng-app="ivigilate">
 <head>
-  <title>iVigilate</title>
-  <base href="/" />
-  {% include 'stylesheets.html' %}
+    <title>iVigilate</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <base href="/"/>
+    {% include 'stylesheets.html' %}
 </head>
 
 <body>
-  {% include 'navbar.html' %}
+{% include 'navbar.html' %}
 
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-xs-12" ng-view></div>
-    </div>
-  </div>
+<div class="container-fluid" ng-view>
+</div>
 
-  {% include 'javascripts.html' %}
+{% include 'javascripts.html' %}
 </body>
 </html>
