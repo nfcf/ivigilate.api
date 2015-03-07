@@ -90,10 +90,14 @@ class AuthUserAdmin(UserAdmin):
 class EventAdmin(admin.ModelAdmin):
     pass
 
+@admin.register(Place)
+class PlaceAdmin(admin.ModelAdmin):
+    pass
+
 @admin.register(Movable)
 class MovableAdmin(admin.ModelAdmin):
     pass
 
-@admin.register(Place)
-class PlaceAdmin(admin.ModelAdmin):
+@admin.register(Sighting)
+class SightingAdmin(admin.ModelAdmin):
     pass

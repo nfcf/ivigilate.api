@@ -7,6 +7,8 @@ router = routers.DefaultRouter()
 router.register(r'accounts', views.AccountViewSet)
 router.register(r'users', views.AuthUserViewSet)
 router.register(r'places', views.PlaceViewSet)
+router.register(r'movables', views.MovableViewSet)
+router.register(r'sightings', views.SightingViewSet)
 
 urlpatterns = patterns('',
     url(r'^user/password/reset/$',

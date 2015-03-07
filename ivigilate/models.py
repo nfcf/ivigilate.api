@@ -37,13 +37,18 @@ class License(models.Model):
         ('AC', 'Absence Control'),
         ('LF', 'Lost & Found'),
     )
-    account = models.ForeignKey(Account)
+    account = models.ForeignKey(Account, related_name='licenses')
     type = models.CharField(max_length=3, choices=TYPE)
     max_movables = models.IntegerField()
     max_users = models.IntegerField()
     metadata = models.TextField(blank=True)
     valid_from = models.DateTimeField()
     valid_until = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return "%s: type=%s, movables=%s, users=%s, from=%s, until=%s)" % \
+               (self.account, self.type, self.max_movables,
+                self.max_users, self.valid_from.strftime('%Y-%m-%d'), self.valid_until.strftime('%Y-%m-%d'))
 
 class AuthUserManager(BaseUserManager):
     use_in_migrations = True
@@ -75,7 +80,7 @@ class AuthUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True,
         help_text=_('Required.'),
         error_messages={
-            'unique': _("The given email address has already been registered."),
+            'unique': _('The given email address has already been registered.'),
         })
     first_name = models.CharField(_('first name'), max_length=30, blank=True)
     last_name = models.CharField(_('last name'), max_length=30, blank=True)
@@ -135,38 +140,6 @@ class Event(models.Model):
             self.updated_at = now
         super(Event, self).save(*args, **kwargs)
 
-class Movable(models.Model):
-    TYPE = (
-        ('B', 'Beacon'),
-        ('W', 'Watcher'),
-        ('BW', 'Beacon & Watcher'),
-    )
-
-    account = models.ForeignKey(Account)
-    uuid = models.CharField(max_length=36, unique=True)
-    reference_id = models.CharField(max_length=64)
-    photo = models.ImageField(upload_to='photos')
-    first_name = models.CharField(max_length=64)
-    last_name = models.CharField(max_length=64)
-    type = models.CharField(max_length=2, choices=TYPE)
-    arrival_rssi = models.IntegerField(default=-75)
-    departure_rssi = models.IntegerField(default=-90)
-    metadata = models.TextField(blank=True)
-    reported_missing = models.BooleanField(default=False)
-    event_limits = models.ManyToManyField(Event, through='EventLimit', related_name='+')
-    event_occurrences = models.ManyToManyField(Event, through='EventOccurrence', related_name='+')
-    created_at = models.DateTimeField(editable=False)
-    updated_at = models.DateTimeField(editable=False)
-    is_active = models.BooleanField(default=True)
-
-    def save(self, *args, **kwargs):
-        now = datetime.now(timezone.utc)
-        if not self.id:
-            self.created_at = now
-            self.updated_at = now
-        else:
-            self.updated_at = now
-        super(Movable, self).save(*args, **kwargs)
 
 class Place(models.Model):
     account = models.ForeignKey(Account)
@@ -194,9 +167,47 @@ class Place(models.Model):
     def __str__(self):
         return '%s - %s' % (self.account.company_id, self.uuid)
 
+
+class Movable(models.Model):
+    TYPE = (
+        ('B', 'Beacon'),
+        ('W', 'Watcher'),
+        ('BW', 'Beacon & Watcher'),
+    )
+
+    account = models.ForeignKey(Account)
+    uuid = models.CharField(max_length=36, unique=True)
+    reference_id = models.CharField(max_length=64, blank=True)
+    photo = models.ImageField(upload_to='photos', blank=True, null=True)
+    first_name = models.CharField(max_length=64, blank=True)
+    last_name = models.CharField(max_length=64, blank=True)
+    type = models.CharField(max_length=2, choices=TYPE)
+    arrival_rssi = models.IntegerField(default=-75, blank=True)
+    departure_rssi = models.IntegerField(default=-90, blank=True)
+    metadata = models.TextField(blank=True)
+    reported_missing = models.BooleanField(default=False)
+    event_limits = models.ManyToManyField(Event, through='EventLimit', related_name='+')
+    event_occurrences = models.ManyToManyField(Event, through='EventOccurrence', related_name='+')
+    created_at = models.DateTimeField(editable=False)
+    updated_at = models.DateTimeField(editable=False)
+    is_active = models.BooleanField(default=True)
+
+    def save(self, *args, **kwargs):
+        now = datetime.now(timezone.utc)
+        if not self.id:
+            self.created_at = now
+            self.updated_at = now
+        else:
+            self.updated_at = now
+        super(Movable, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return '%s - %s' % (self.first_name, self.last_name)
+
+
 class Sighting(models.Model):
     movable = models.ForeignKey(Movable)
-    watcher_id = models.CharField(max_length=32, db_index=True)
+    watcher_id = models.CharField(max_length=36, db_index=True)
     first_seen_at = models.DateTimeField(editable=False)
     last_seen_at = models.DateTimeField(editable=False)
     location = GeopositionField()
@@ -219,6 +230,10 @@ class Sighting(models.Model):
             self.last_seen_at = now
         else:
             self.last_seen_at = now
+            if self.confirmed and self.confirmed_by and not self.confirmed_at:
+                self.confirmed_at = now
+            if self.comment and self.commented_by and not self.commented_at:
+                self.commented_at = now
         super(Sighting, self).save(*args, **kwargs)
 
 class Schedule(models.Model):
