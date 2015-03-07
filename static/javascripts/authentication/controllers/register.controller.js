@@ -21,7 +21,24 @@
         }
 
         function register() {
-            Authentication.register(vm.company_id, vm.email, vm.password);
+            Authentication.register(vm.company_id, vm.email, vm.password).then(successFn, errorFn);
+
+            function successFn(data, status, headers, config) {
+                Authentication.login(vm.email, vm.password).then(successFn, errorFn);
+
+                function successFn(data, status, headers, config) {
+                    Authentication.setAuthenticatedUser(data.data);
+                    window.location = '/'; //use this instead of $location.url to force refresh the navbar
+                }
+
+                function errorFn(data, status, headers, config) {
+                    vm.error = 'Failed to login user with error: ' + JSON.stringify(data.data.message);
+                }
+            }
+
+            function errorFn(data, status, headers, config) {
+                vm.error = 'Failed to register new user with error: ' + JSON.stringify(data.data.message);
+            }
         }
     }
 })();

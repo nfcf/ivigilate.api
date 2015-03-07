@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterField(
             model_name='sighting',
-            name='watcher_id',
+            name='watcher_uid',
             field=models.CharField(max_length=36, db_index=True),
             preserve_default=True,
         ),

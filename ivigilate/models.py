@@ -143,9 +143,9 @@ class Event(models.Model):
 
 class Place(models.Model):
     account = models.ForeignKey(Account)
-    uuid = models.CharField(max_length=36, unique=True)
-    reference_id = models.CharField(max_length=64)
-    name = models.CharField(max_length=64)
+    uid = models.CharField(max_length=36)
+    reference_id = models.CharField(max_length=64, blank=True)
+    name = models.CharField(max_length=64, blank=True)
     location = GeopositionField(null=True)
     arrival_rssi = models.IntegerField(default=-75)
     departure_rssi = models.IntegerField(default=-90)
@@ -154,6 +154,9 @@ class Place(models.Model):
     updated_at = models.DateTimeField(editable=False)
     is_active = models.BooleanField(default=True)
     #objects = models.GeoManager()
+
+    class Meta:
+        unique_together = ('account', 'uid',)
 
     def save(self, *args, **kwargs):
         now = datetime.now(timezone.utc)
@@ -165,7 +168,7 @@ class Place(models.Model):
         super(Place, self).save(*args, **kwargs)
 
     def __str__(self):
-        return '%s - %s' % (self.account.company_id, self.uuid)
+        return '%s - %s: %s' % (self.account.company_id, self.uid, self.name)
 
 
 class Movable(models.Model):
@@ -176,7 +179,7 @@ class Movable(models.Model):
     )
 
     account = models.ForeignKey(Account)
-    uuid = models.CharField(max_length=36, unique=True)
+    uid = models.CharField(max_length=36, unique=True)
     reference_id = models.CharField(max_length=64, blank=True)
     photo = models.ImageField(upload_to='photos', blank=True, null=True)
     first_name = models.CharField(max_length=64, blank=True)
@@ -202,12 +205,12 @@ class Movable(models.Model):
         super(Movable, self).save(*args, **kwargs)
 
     def __str__(self):
-        return '%s - %s' % (self.first_name, self.last_name)
+        return '%s - %s: %s %s' % (self.account.company_id, self.uid, self.first_name, self.last_name)
 
 
 class Sighting(models.Model):
     movable = models.ForeignKey(Movable)
-    watcher_id = models.CharField(max_length=36, db_index=True)
+    watcher_uid = models.CharField(max_length=36, db_index=True)
     first_seen_at = models.DateTimeField(editable=False)
     last_seen_at = models.DateTimeField(editable=False)
     location = GeopositionField()
@@ -217,7 +220,7 @@ class Sighting(models.Model):
     confirmed = models.BooleanField(default=False)
     confirmed_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
     confirmed_at = models.DateTimeField(null=True)
-    comment = models.TextField()
+    comment = models.TextField(blank=True)
     commented_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
     commented_at = models.DateTimeField(null=True)
     is_active = models.BooleanField(default=True)

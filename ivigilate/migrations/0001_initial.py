@@ -208,7 +208,7 @@ class Migration(migrations.Migration):
             name='Sighting',
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False, verbose_name='ID', auto_created=True)),
-                ('watcher_id', models.CharField(db_index=True, max_length=32)),
+                ('watcher_uid', models.CharField(db_index=True, max_length=32)),
                 ('first_seen_at', models.DateTimeField(editable=False)),
                 ('last_seen_at', models.DateTimeField(editable=False)),
                 ('location', geoposition.fields.GeopositionField(max_length=42)),

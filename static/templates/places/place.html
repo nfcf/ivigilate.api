@@ -6,8 +6,8 @@
     <div class="row">
         <div class="col-xs-6 col-md-4">
             <div class="form-group">
-                <label for="uuid">Unique ID</label>
-                <input type="text" class="form-control" id="uuid" ng-model="vm.place.uuid" disabled/>
+                <label for="uid">Unique ID</label>
+                <input type="text" class="form-control" id="uid" ng-model="vm.place.uid" disabled/>
             </div>
         </div>
         <div class="col-xs-6 col-md-4">
@@ -29,13 +29,13 @@
         <div class="col-xs-6 col-md-4">
             <div class="form-group">
                 <label for="arrival_rssi">Arrival RSSI</label>
-                <input type="text" class="form-control" id="arrival_rssi" ng-model="vm.place.arrival_rssi"/>
+                <input type="number" class="form-control" id="arrival_rssi" ng-model="vm.place.arrival_rssi"/>
             </div>
         </div>
         <div class="col-xs-6 col-md-4">
             <div class="form-group">
                 <label for="departure_rssi">Departure RSSI</label>
-                <input type="text" class="form-control" id="departure_rssi" ng-model="vm.place.departure_rssi"/>
+                <input type="number" class="form-control" id="departure_rssi" ng-model="vm.place.departure_rssi"/>
             </div>
         </div>
         <div class="col-xs-6 col-md-4">
@@ -64,7 +64,6 @@
     </div>
 
     <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
-    <div class="alert alert-success" ng-show="vm.success" ng-bind="vm.success"></div>
 </div>
 <div class="modal-footer">
     <button ng-click="vm.cancel()" class="btn btn-default">Cancel</button>

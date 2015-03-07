@@ -6,7 +6,7 @@
             <table st-table="vm.displayedPlaces" st-safe-src="vm.places" class="table table-striped">
                 <thead>
                 <tr>
-                    <th st-sort="uuid">Unique ID</th>
+                    <th st-sort="uid">Unique ID</th>
                     <th st-sort="reference_id">Reference ID</th>
                     <th st-sort="name" st-sort-default="True">Name</th>
                     <th st-sort="arrival_rssi">Arrival RSSI</th>
@@ -16,13 +16,13 @@
                 </tr>
                 <tr>
                     <th colspan="7">
-                        <input st-search placeholder="Global Search" class="input-sm form-control" type="search">
+                        <input st-search placeholder="Global Search" class="input-sm form-control" type="search" />
                     </th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr ng-repeat="place in vm.displayedPlaces">
-                    <td>{{ place.uuid }}</td>
+                    <td>{{ place.uid }}</td>
                     <td>{{ place.reference_id }}</td>
                     <td>{{ place.name }}</td>
                     <td>{{ place.arrival_rssi }}</td>

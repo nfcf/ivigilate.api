@@ -81,13 +81,10 @@
 
             function successFn(data, status, headers, config) {
                 $modalInstance.close(vm.place);
-                //vm.error = null;
-                //vm.success = 'The current Place has been updated.';
             }
 
             function errorFn(data, status, headers, config) {
-                vm.success = null;
-                vm.error = 'Failed to update Place with error: ' + JSON.stringify(data.data);
+                vm.error = 'Failed to update Place with error: ' + JSON.stringify(data.data.message);
             }
         }
 

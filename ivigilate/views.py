@@ -20,21 +20,18 @@ class IndexView(TemplateView):
 
 
 class AccountViewSet(viewsets.ModelViewSet):
-    lookup_field = 'id'
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
 
     def get_permissions(self):
-        if self.request.method in permissions.SAFE_METHODS:
-            return (permissions.IsAuthenticated(),)
-
+        if self.request.method in ['HEAD', 'OPTIONS']:
+            return (permissions.AllowAny(),)
         return (permissions.IsAuthenticated(),)
 
     def list(self, request):
         if request.user and request.user.is_staff:
             #return only the list of active accounts
             queryset = self.queryset.filter(licenses__valid_until__gt=datetime.now(timezone.utc)).distinct()
-
             page = self.paginate_queryset(queryset)
             serializer = self.get_pagination_serializer(page)
             return Response(serializer.data)
@@ -47,11 +44,11 @@ class AccountViewSet(viewsets.ModelViewSet):
     #def create(self, request):
     #    pass
 
-    def retrieve(self, request, id=None):
+    def retrieve(self, request, pk=None):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
-        if account.id == int(id):
+        if account.id == int(pk):
             try:
-                queryset = self.queryset.get(id=id)
+                queryset = self.queryset.get(id=pk)
             except Account.DoesNotExist:
                 return Response({
                 'status': 'Bad request',
@@ -77,21 +74,20 @@ class AccountViewSet(viewsets.ModelViewSet):
 
 
 class AuthUserViewSet(viewsets.ModelViewSet):
-    lookup_field = 'id'
     queryset = AuthUser.objects.all()
-    serializer_class = AuthUserSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return AuthUserReadSerializer
+        return AuthUserWriteSerializer
 
     def get_permissions(self):
-        if self.request.method in permissions.SAFE_METHODS:
+        if self.request.method in ['HEAD', 'OPTIONS','POST']:
             return (permissions.AllowAny(),)
-
-        if self.request.method == 'POST':
-            return (permissions.AllowAny(),)
-
-        return (permissions.IsAuthenticated(), IsAccountOwner(),)
+        return (permissions.IsAuthenticated(),)
 
     def create(self, request):
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.get_serializer_class()(data=request.data)
         errorMessage = None
 
         password = request.data.get('password', None)
@@ -109,6 +105,12 @@ class AuthUserViewSet(viewsets.ModelViewSet):
             'message': errorMessage
             }, status=status.HTTP_400_BAD_REQUEST)
 
+    def list(self, request):
+        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
+        queryset = self.queryset.filter(account=account)
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_pagination_serializer(page)
+        return Response(serializer.data)
 
 class LoginView(views.APIView):
     permission_classes = (permissions.AllowAny,)
@@ -123,7 +125,7 @@ class LoginView(views.APIView):
         if user is not None:
             if user.is_active:
                 login(request, user)
-                serialized = AuthUserSerializer(user, context={'request': request})
+                serialized = AuthUserReadSerializer(user, context={'request': request})
                 return Response(serialized.data)
             else:
                 return Response({
@@ -147,106 +149,84 @@ class LogoutView(views.APIView):
 
 
 class PlaceViewSet(viewsets.ModelViewSet):
-    lookup_field = 'id'
     queryset = Place.objects.all()
-    serializer_class = PlaceSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return PlaceReadSerializer
+        return PlaceWriteSerializer
 
     def get_permissions(self):
-        if self.request.method in permissions.SAFE_METHODS:
+        if self.request.method in ['HEAD', 'OPTIONS','POST']:
             return (permissions.AllowAny(),)
-
-        if self.request.method == 'POST':
-            return (permissions.AllowAny(),)
-
         return (permissions.IsAuthenticated(), )
-
-    def create(self, request):
-        serializer = self.serializer_class(data=request.data)
-
-        if serializer.is_valid():
-            if serializer.save():
-                return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
-
-        return Response({
-            'status': 'Bad request',
-            'message': 'Place could not be created with received data: ' + serializer.error_messages
-            }, status=status.HTTP_400_BAD_REQUEST)
 
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         queryset = self.queryset.filter(account=account)
-        serializer = self.serializer_class(queryset, many=True, context={'request': request})
+        #page = self.paginate_queryset(queryset)
+        #serializer = self.get_pagination_serializer(page)
+        serializer = self.get_serializer_class()(queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
-    def retrieve(self, request, id=None):
+    def retrieve(self, request, pk=None):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         try:
-            queryset = self.queryset.get(id=id,account=account)
+            queryset = self.queryset.get(id=pk,account=account)
         except Place.DoesNotExist:
             return Response({
             'status': 'Bad request',
             'message': 'Place does not exist or is not associated with the current logged on account.'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = self.serializer_class(queryset, many=False, context={'request': request})
+        serializer = self.get_serializer_class()(queryset, many=False, context={'request': request})
         return Response(serializer.data)
 
 
 class MovableViewSet(viewsets.ModelViewSet):
-    lookup_field = 'id'
     queryset = Movable.objects.all()
-    serializer_class = MovableSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return MovableReadSerializer
+        return MovableWriteSerializer
 
     def get_permissions(self):
-        if self.request.method == 'POST':
+        if self.request.method in ['HEAD', 'OPTIONS','POST']:
             return (permissions.AllowAny(),)
-
         return (permissions.IsAuthenticated(), )
-
-    def create(self, request):
-        serializer = self.serializer_class(data=request.data)
-
-        if serializer.is_valid():
-            if serializer.save():
-                return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
-
-        return Response({
-            'status': 'Bad request',
-            'message': serializer.errors
-            }, status=status.HTTP_400_BAD_REQUEST)
 
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         queryset = self.queryset.filter(account=account)
-        serializer = self.serializer_class(queryset, many=True, context={'request': request})
+        serializer = self.get_serializer_class()(queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
-    def retrieve(self, request, id=None):
+    def retrieve(self, request, pk=None):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         try:
-            queryset = self.queryset.get(id=id,account=account)
+            queryset = self.queryset.get(id=pk,account=account)
         except Movable.DoesNotExist:
             return Response({
             'status': 'Bad request',
             'message': 'Movable does not exist or is not associated with the current logged on account.'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = self.serializer_class(queryset, many=False, context={'request': request})
+        serializer = self.get_serializer_class()(queryset, many=False, context={'request': request})
         return Response(serializer.data)
 
 
 class SightingViewSet(viewsets.ModelViewSet):
-    lookup_field = 'id'
     queryset = Sighting.objects.all()
-    serializer_class = SightingSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return SightingReadSerializer
+        return SightingWriteSerializer
 
     def get_permissions(self):
-        if self.request.method in permissions.SAFE_METHODS:
+        if self.request.method in ['HEAD', 'OPTIONS','POST']:
             return (permissions.AllowAny(),)
-
-        if self.request.method == 'POST':
-            return (permissions.AllowAny(),)
-
         return (permissions.IsAuthenticated(), )
 
     def list(self, request):
@@ -256,36 +236,16 @@ class SightingViewSet(viewsets.ModelViewSet):
         serializer = self.get_pagination_serializer(page)
         return Response(serializer.data)
 
-    def retrieve(self, request, id=None):
+    def retrieve(self, request, pk=None):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         try:
-            queryset = self.queryset.get(id=id,movable__account=account)
+            queryset = self.queryset.get(id=pk,movable__account=account)
         except Sighting.DoesNotExist:
             return Response({
             'status': 'Bad request',
             'message': 'Sighting does not exist or is not associated with the current logged on account.'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = self.serializer_class(queryset, many=False, context={'request': request})
+        serializer = self.get_serializer_class()(queryset, many=False, context={'request': request})
         return Response(serializer.data)
 
-    def update(self, request, id=None):
-        user = request.user if not isinstance(request.user, AnonymousUser) else None
-        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
-        try:
-            queryset = self.queryset.get(id=id,movable__account=account)
-        except Sighting.DoesNotExist:
-            return Response({
-            'status': 'Bad request',
-            'message': 'Sighting does not exist or is not associated with the current logged on account.'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer = self.serializer_class(queryset, data=request.data)
-        if serializer.is_valid():
-            if serializer.save():
-                return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
-
-        return Response({
-            'status': 'Bad request',
-            'message': 'Sighting could not be updated with received data: ' + serializer.error_messages
-            }, status=status.HTTP_400_BAD_REQUEST)

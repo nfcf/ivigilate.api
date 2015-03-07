@@ -41,11 +41,11 @@
 
         function editPlace(place) {
             var dlg = dialogs.create('static/templates/places/place.html', 'PlaceController as vm', place, 'lg');
-            dlg.result.then(function(editedPlace) {
-                place = editedPlace;
+            dlg.result.then(function (editedPlace) {
+                for (var k in editedPlace) {
+                    place[k] = editedPlace[k];
+                }
             });
-
-            //$location.url('/places/' + place.id);
         }
     }
 })();
