@@ -2,22 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="023cadd0-8089-48d8-a7e9-2db843ec153b" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/javascripts/ivigilate.config.js" afterPath="$PROJECT_DIR$/static/javascripts/ivigilate.config.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/javascripts/ivigilate.routes.js" afterPath="$PROJECT_DIR$/static/javascripts/ivigilate.routes.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/javascripts/authentication/controllers/login.controller.js" afterPath="$PROJECT_DIR$/static/javascripts/authentication/controllers/login.controller.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/templates/authentication/login.html" afterPath="$PROJECT_DIR$/static/templates/authentication/login.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ivigilate/models.py" afterPath="$PROJECT_DIR$/ivigilate/models.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/templates/registration/password_reset_base.html" afterPath="$PROJECT_DIR$/templates/registration/password_reset_base.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/templates/registration/password_reset_confirm.html" afterPath="$PROJECT_DIR$/templates/registration/password_reset_confirm.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/templates/registration/password_reset_form.html" afterPath="$PROJECT_DIR$/templates/registration/password_reset_form.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/templates/authentication/register.html" afterPath="$PROJECT_DIR$/static/templates/authentication/register.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ivigilate/serializers.py" afterPath="$PROJECT_DIR$/ivigilate/serializers.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/templates/authentication/settings.html" afterPath="$PROJECT_DIR$/static/templates/authentication/settings.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/javascripts/sightings/controllers/sightings.controller.js" afterPath="$PROJECT_DIR$/static/javascripts/sightings/controllers/sightings.controller.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/templates/sightings/sightings.html" afterPath="$PROJECT_DIR$/static/templates/sightings/sightings.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/javascripts/sightings/services/sightings.service.js" afterPath="$PROJECT_DIR$/static/javascripts/sightings/services/sightings.service.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/stylesheets/styles.css" afterPath="$PROJECT_DIR$/static/stylesheets/styles.css" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ivigilate/views.py" afterPath="$PROJECT_DIR$/ivigilate/views.py" />
     </list>
     <ignored path="ivigilate.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -88,21 +74,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="sightings.html" pinned="false" current-in-tab="false">
+      <file leaf-file-name="sightings.html" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/static/templates/sightings/sightings.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.65384614" vertical-offset="170" max-vertical-offset="1513">
-              <caret line="11" column="97" selection-start-line="11" selection-start-column="97" selection-end-line="11" selection-end-column="97" />
+            <state vertical-scroll-proportion="0.19653179" vertical-offset="578" max-vertical-offset="1547">
+              <caret line="38" column="27" selection-start-line="38" selection-start-column="27" selection-end-line="38" selection-end-column="27" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="sightings.controller.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="sightings.controller.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/static/javascripts/sightings/controllers/sightings.controller.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.574026" vertical-offset="459" max-vertical-offset="1632">
-              <caret line="40" column="20" selection-start-line="40" selection-start-column="20" selection-end-line="42" selection-end-column="21" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="1207" max-vertical-offset="1632">
+              <caret line="78" column="36" selection-start-line="78" selection-start-column="36" selection-end-line="78" selection-end-column="51" />
               <folding />
             </state>
           </provider>
@@ -205,8 +191,8 @@
         <option value="$PROJECT_DIR$/static/javascripts/ivigilate.routes.js" />
         <option value="$PROJECT_DIR$/static/javascripts/ivigilate.routes.js" />
         <option value="$PROJECT_DIR$/static/javascripts/authentication/controllers/login.controller.js" />
-        <option value="$PROJECT_DIR$/static/templates/sightings/sightings.html" />
         <option value="$PROJECT_DIR$/static/javascripts/sightings/controllers/sightings.controller.js" />
+        <option value="$PROJECT_DIR$/static/templates/sightings/sightings.html" />
       </list>
     </option>
   </component>
@@ -1354,18 +1340,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/static/templates/sightings/sightings.html">
+    <entry file="file://$PROJECT_DIR$/static/javascripts/sightings/controllers/sightings.controller.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.65384614" vertical-offset="170" max-vertical-offset="1513">
-          <caret line="11" column="97" selection-start-line="11" selection-start-column="97" selection-end-line="11" selection-end-column="97" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="1207" max-vertical-offset="1632">
+          <caret line="78" column="36" selection-start-line="78" selection-start-column="36" selection-end-line="78" selection-end-column="51" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/static/javascripts/sightings/controllers/sightings.controller.js">
+    <entry file="file://$PROJECT_DIR$/static/templates/sightings/sightings.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.574026" vertical-offset="459" max-vertical-offset="1632">
-          <caret line="40" column="20" selection-start-line="40" selection-start-column="20" selection-end-line="42" selection-end-column="21" />
+        <state vertical-scroll-proportion="0.19653179" vertical-offset="578" max-vertical-offset="1547">
+          <caret line="38" column="27" selection-start-line="38" selection-start-column="27" selection-end-line="38" selection-end-column="27" />
           <folding />
         </state>
       </provider>

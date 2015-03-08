@@ -76,7 +76,7 @@
         function refreshSightingsWithFromDate() {
             if (vm.sightings) {
                 for (var i = 0; i < vm.sightings.length; i++) {
-                    vm.sightings[i].wasSeenInDateInterval = vm.sightings[i].last_seen_at > vm.fromDate;
+                    vm.sightings[i].wasRecentlySeen = vm.sightings[i].last_seen_at > vm.fromDate;
                 }
             }
         }

@@ -36,35 +36,37 @@
                 <table st-table="vm.displayedSightings" st-safe-src="vm.sightings" class="table table-striped">
                     <thead>
                     <tr>
+                        <th st-sort="wasRecentlySeen" st-sort-default="true"><span class="glyphicon glyphicon-eye-open"></span></th>
                         <th>Photo</th>
                         <th st-sort="movable.reference_id">Reference ID</th>
                         <th st-sort="movable.first_name">First Name</th>
                         <th st-sort="movable.last_name">Last Name</th>
                         <th st-sort="last_seen_at">Last Seen At</th>
-                        <th st-sort="rssi">RSSI</th>
-                        <th st-sort="battery">Battery</th>
+                        <th class="text-center" st-sort="rssi">RSSI</th>
+                        <th class="text-center" st-sort="battery">Battery</th>
                         <th st-sort="comment">Comment</th>
                         <th st-sort="confirmed">Confirmed</th>
                         <th></th>
                     </tr>
                     <tr>
-                        <th colspan="10">
+                        <th colspan="11">
                             <input st-search placeholder="Global Search" class="input-sm form-control" type="search"/>
                         </th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr ng-repeat="sighting in vm.displayedSightings"
-                        ng-class="{'danger': !sighting.wasSeenInDateInterval}">
+                        ng-class="{'danger': !sighting.wasRecentlySeen}">
+                        <td class="valign-middle text-center"><input type="checkbox" ng-model="sighting.wasRecentlySeen" disabled></td>
                         <td style="height:56px"><img src="{{ sighting.movable.photo }}" height="40" ng-if="sighting.movable.photo"/></td>
                         <td class="valign-middle">{{ sighting.movable.reference_id }}</td>
                         <td class="valign-middle">{{ sighting.movable.first_name }}</td>
                         <td class="valign-middle">{{ sighting.movable.last_name }}</td>
                         <td class="valign-middle">{{ sighting.last_seen_at | relativeDate }} at {{ sighting.location_name }}</td>
-                        <td class="valign-middle">{{ sighting.rssi }}</td>
-                        <td class="valign-middle">{{ sighting.battery }}</td>
+                        <td class="valign-middle text-center">{{ sighting.rssi }}</td>
+                        <td class="valign-middle text-center">{{ sighting.battery }}</td>
                         <td class="valign-middle">{{ sighting.comment }}</td>
-                        <td class="valign-middle"><input type="checkbox" ng-model="sighting.confirmed" disabled></td>
+                        <td class="valign-middle text-center"><input type="checkbox" ng-model="sighting.confirmed" disabled></td>
                         <td class="valign-middle">
                             <a ng-click="vm.editSighting(sighting)">Edit</a>
                         </td>
@@ -72,7 +74,7 @@
                     </tbody>
                     <tfoot>
                     <tr>
-                        <td colspan="10" class="text-center">
+                        <td colspan="11" class="text-center">
                             <div st-pagination="" st-items-by-page="15" st-displayed-pages="5"></div>
                         </td>
                     </tr>
