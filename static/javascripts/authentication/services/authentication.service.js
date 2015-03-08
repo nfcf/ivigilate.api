@@ -36,7 +36,7 @@
 
             function successFn(data, status, headers, config) {
                 Authentication.unauthenticate();
-                window.location = '/';
+                window.location = '/login';
             }
 
             function errorFn(data, status, headers, config) {

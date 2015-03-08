@@ -150,8 +150,8 @@ class MovableReadSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Movable
         fields = ('id', 'account', 'uid', 'reference_id', 'photo',
-                  'first_name', 'last_name', 'type', 'arrival_rssi', 'departure_rssi',
-                  'metadata', 'reported_missing', 'created_at', 'updated_at', 'is_active')
+                  'first_name', 'last_name', 'arrival_rssi', 'departure_rssi', 'metadata',
+                  'reported_missing', 'created_at', 'updated_at', 'is_active')
 
 
 class MovableWriteSerializer(serializers.ModelSerializer):
@@ -162,8 +162,8 @@ class MovableWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movable
         fields = ('id', 'company_id', 'uid', 'reference_id', 'photo',
-                  'first_name', 'last_name', 'type', 'arrival_rssi', 'departure_rssi',
-                  'metadata', 'reported_missing', 'created_at', 'updated_at', 'is_active')
+                  'first_name', 'last_name', 'arrival_rssi', 'departure_rssi', 'metadata',
+                  'reported_missing', 'created_at', 'updated_at', 'is_active')
         read_only_fields = ('id', 'created_at', 'updated_at')
 
     def validate_company_id(self, value):
@@ -181,17 +181,15 @@ class MovableWriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Invalid Company ID.')
 
         uid = validated_data.get('uid')
-        type = validated_data.get('type')
         metadata = validated_data.get('metadata')
 
-        return Movable.objects.create(account=account, uid=uid, type=type, metadata=metadata)
+        return Movable.objects.create(account=account, uid=uid, metadata=metadata)
 
     def update(self, instance, validated_data):
         instance.reference_id = validated_data.get('reference_id', instance.reference_id)
         instance.photo = validated_data.get('photo', instance.photo)
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
-        instance.type = validated_data.get('type', instance.type)
         instance.arrival_rssi = validated_data.get('arrival_rssi', instance.arrival_rssi)
         instance.departure_rssi = validated_data.get('departure_rssi', instance.departure_rssi)
         instance.metadata = validated_data.get('name', instance.metadata)
@@ -209,7 +207,7 @@ class SightingReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sighting
         fields = ('id', 'movable', 'watcher_uid', 'first_seen_at', 'last_seen_at',
-                  'location', 'rssi', 'battery_level', 'metadata', 'confirmed',
+                  'location', 'rssi', 'battery', 'metadata', 'confirmed',
                   'confirmed_by', 'confirmed_at', 'comment', 'commented_by', 'commented_at', 'is_active')
 
 class SightingWriteSerializer(serializers.ModelSerializer):
@@ -222,7 +220,7 @@ class SightingWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sighting
         fields = ('id', 'movable_uid', 'watcher_uid',
-                  'location', 'rssi', 'battery_level', 'metadata',
+                  'location', 'rssi', 'battery', 'metadata',
                   'confirmed', 'confirmed_by_user_email', 'comment', 'commented_by_user_email', 'is_active')
 
     def validate_movable_uid(self, value):
@@ -258,7 +256,7 @@ class SightingWriteSerializer(serializers.ModelSerializer):
         watcher_uid = validated_data.get('watcher_uid')
         location = validated_data.get('location')
         rssi = validated_data.get('rssi')
-        battery_level = validated_data.get('battery_level')
+        battery = validated_data.get('battery')
         metadata = validated_data.get('metadata')
         confirmed = validated_data.get('confirmed')
         confirmed_by_user_email = validated_data.get('confirmed_by_user_email')
@@ -279,7 +277,7 @@ class SightingWriteSerializer(serializers.ModelSerializer):
         is_active = validated_data.get('is_active')
 
         return Sighting.objects.create(movable=movable, watcher_uid=watcher_uid, location=location,
-                                       rssi=rssi, battery_level=battery_level, metadata=metadata,
+                                       rssi=rssi, battery=battery, metadata=metadata,
                                        confirmed=confirmed, confirmed_by=confirmed_by, comment=comment,
                                        commented_by=commented_by, is_active=is_active)
 
@@ -287,7 +285,7 @@ class SightingWriteSerializer(serializers.ModelSerializer):
         instance.location = validated_data.get('location', instance.location)
 
         instance.rssi = validated_data.get('rssi', instance.rssi)
-        instance.battery_level = validated_data.get('battery_level', instance.battery_level)
+        instance.battery = validated_data.get('battery', instance.battery)
         instance.metadata = validated_data.get('name', instance.metadata)
         instance.confirmed = validated_data.get('confirmed', instance.confirmed)
         confirmed_by_user_email = validated_data.get('confirmed_by_user_email')

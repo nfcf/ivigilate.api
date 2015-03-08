@@ -1,0 +1,82 @@
+<div class="row">
+    <div class="col-md-10 col-md-offset-1">
+        <h1>Latest Sightings</h1>
+
+        <div class="well">
+            <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
+            <div class="row">
+                <div class="col-md-2">
+                    <label for="fromDate">From</label>
+                    <div class="input-group">
+                        <input id="fromDate" type="text" class="form-control input-sm" datepicker-popup="yyyy-MM-dd" ng-model="dt"
+                               is-open="opened" min-date="minDate" max-date="maxDate"
+                               ng-required="true" show-button-bar="false"/>
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-sm btn-default" ng-click="open($event)"><i
+                                    class="glyphicon glyphicon-calendar"></i></button>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label for="toDate">To</label>
+                    <div class="input-group">
+                        <input id="toDate" type="text" class="form-control input-sm" datepicker-popup="yyyy-MM-dd" ng-model="dt"
+                               is-open="opened" min-date="minDate" max-date="maxDate"
+                               ng-required="true" show-button-bar="false"/>
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-sm btn-default" ng-click="open($event)"><i
+                                    class="glyphicon glyphicon-calendar"></i></button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <hr />
+            <div class="table-responsive">
+                <table st-table="vm.displayedSightings" st-safe-src="vm.sightings" class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Photo</th>
+                        <th st-sort="movable.reference_id">Reference ID</th>
+                        <th st-sort="movable.first_name">First Name</th>
+                        <th st-sort="movable.last_name">Last Name</th>
+                        <th st-sort="last_seen_at">Last Seen At</th>
+                        <th st-sort="rssi">RSSI</th>
+                        <th st-sort="battery">Battery</th>
+                        <th st-sort="comment">Comment</th>
+                        <th st-sort="confirmed">Confirmed</th>
+                        <th></th>
+                    </tr>
+                    <tr>
+                        <th colspan="10">
+                            <input st-search placeholder="Global Search" class="input-sm form-control" type="search"/>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="sighting in vm.displayedSightings">
+                        <td><img src="{{ sighting.movable.photo }}" height="40"/></td>
+                        <td>{{ sighting.movable.reference_id }}</td>
+                        <td>{{ sighting.movable.first_name }}</td>
+                        <td>{{ sighting.movable.last_name }}</td>
+                        <td>{{ sighting.last_seen_at | relativeDate }}</td>
+                        <td>{{ sighting.rssi }}</td>
+                        <td>{{ sighting.battery }}</td>
+                        <td>{{ sighting.comment }}</td>
+                        <td><input type="checkbox" ng-model="sighting.confirmed" disabled></td>
+                        <td>
+                            <a ng-click="vm.editSighting(sighting)">Edit</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                    <tfoot>
+                    <tr>
+                        <td colspan="10" class="text-center">
+                            <div st-pagination="" st-items-by-page="15" st-displayed-pages="5"></div>
+                        </td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

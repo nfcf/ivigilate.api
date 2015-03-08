@@ -231,9 +231,14 @@ class SightingViewSet(viewsets.ModelViewSet):
 
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
-        queryset = self.queryset.filter(movable__account=account).order_by('-last_seen_at')
-        page = self.paginate_queryset(queryset)
-        serializer = self.get_pagination_serializer(page)
+        queryset = self.queryset.raw('SELECT * ' + \
+                                     'FROM ivigilate_sighting s JOIN ivigilate_movable m ON s.movable_id = m.id ' + \
+                                     'WHERE m.account_id = %s AND s.id IN (' + \
+	                                 ' SELECT MAX(id) FROM ivigilate_sighting GROUP BY movable_id' + \
+                                     ') ORDER BY s.last_seen_at DESC', [account.id])
+        #page = self.paginate_queryset(queryset)
+        #serializer = self.get_pagination_serializer(page)
+        serializer = self.get_serializer_class()(queryset, many=True, context={'request': request})
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):

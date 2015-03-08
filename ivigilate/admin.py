@@ -73,7 +73,7 @@ class AuthUserAdmin(UserAdmin):
         (('Personal info'), {'fields': ('first_name', 'last_name', 'metadata')}),
         (('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',
                                    'groups', 'user_permissions')}),
-        (('Important dates'), {'fields': ('last_login', 'created_at')}),
+        (('Important dates'), {'fields': ('last_login', )}),
         )
 
     add_fieldsets = (
@@ -96,8 +96,4 @@ class PlaceAdmin(admin.ModelAdmin):
 
 @admin.register(Movable)
 class MovableAdmin(admin.ModelAdmin):
-    pass
-
-@admin.register(Sighting)
-class SightingAdmin(admin.ModelAdmin):
     pass

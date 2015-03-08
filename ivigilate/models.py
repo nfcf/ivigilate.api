@@ -47,7 +47,7 @@ class License(models.Model):
 
     def __str__(self):
         return "%s: type=%s, movables=%s, users=%s, from=%s, until=%s)" % \
-               (self.account, self.type, self.max_movables,
+               (self.account.company_id, self.type, self.max_movables,
                 self.max_users, self.valid_from.strftime('%Y-%m-%d'), self.valid_until.strftime('%Y-%m-%d'))
 
 class AuthUserManager(BaseUserManager):
@@ -100,7 +100,7 @@ class AuthUser(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         verbose_name = _('user')
-        verbose_name_plural = _('settings')
+        verbose_name_plural = _('users')
 
     def get_full_name(self):
         full_name = '%s %s' % (self.first_name, self.last_name)
@@ -168,23 +168,16 @@ class Place(models.Model):
         super(Place, self).save(*args, **kwargs)
 
     def __str__(self):
-        return '%s - %s: %s' % (self.account.company_id, self.uid, self.name)
+        return '%s: uid=%s, name=%s' % (self.account.company_id, self.uid, self.name)
 
 
 class Movable(models.Model):
-    TYPE = (
-        ('B', 'Beacon'),
-        ('W', 'Watcher'),
-        ('BW', 'Beacon & Watcher'),
-    )
-
     account = models.ForeignKey(Account)
     uid = models.CharField(max_length=36, unique=True)
     reference_id = models.CharField(max_length=64, blank=True)
     photo = models.ImageField(upload_to='photos', blank=True, null=True)
     first_name = models.CharField(max_length=64, blank=True)
     last_name = models.CharField(max_length=64, blank=True)
-    type = models.CharField(max_length=2, choices=TYPE)
     arrival_rssi = models.IntegerField(default=-75, blank=True)
     departure_rssi = models.IntegerField(default=-90, blank=True)
     metadata = models.TextField(blank=True)
@@ -194,6 +187,10 @@ class Movable(models.Model):
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(editable=False)
     is_active = models.BooleanField(default=True)
+
+    def get_full_name(self):
+        full_name = '%s %s' % (self.first_name, self.last_name)
+        return full_name.strip()
 
     def save(self, *args, **kwargs):
         now = datetime.now(timezone.utc)
@@ -205,7 +202,7 @@ class Movable(models.Model):
         super(Movable, self).save(*args, **kwargs)
 
     def __str__(self):
-        return '%s - %s: %s %s' % (self.account.company_id, self.uid, self.first_name, self.last_name)
+        return '%s: uid=%s, name=%s' % (self.account.company_id, self.uid, self.get_full_name())
 
 
 class Sighting(models.Model):
@@ -215,7 +212,7 @@ class Sighting(models.Model):
     last_seen_at = models.DateTimeField(editable=False)
     location = GeopositionField()
     rssi = models.IntegerField()
-    battery_level = models.IntegerField()
+    battery = models.IntegerField()
     metadata = models.TextField(blank=True)
     confirmed = models.BooleanField(default=False)
     confirmed_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')

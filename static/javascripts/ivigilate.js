@@ -9,13 +9,15 @@
             'ngPasswordStrength',
             'ui.bootstrap',
             'dialogs.main',
+            'relativeDate',
             'pascalprecht.translate',
             'ivigilate.config',
             'ivigilate.routes',
             'ivigilate.authentication',
             'ivigilate.layout',
             'ivigilate.settings',
-            'ivigilate.places'
+            'ivigilate.places',
+            'ivigilate.sightings'
         ]);
 
     angular

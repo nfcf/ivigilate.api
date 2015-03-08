@@ -24,10 +24,12 @@
       controller: 'PlacesController',
       controllerAs: 'vm',
       templateUrl: '/static/templates/places/places.html'
-    }).when('/places/:place_id', {
-      controller: 'PlaceController',
+    }).when('/sightings', {
+      controller: 'SightingsController',
       controllerAs: 'vm',
-      templateUrl: '/static/templates/places/place.html'
-    }).otherwise('/');
+      templateUrl: '/static/templates/sightings/sightings.html'
+    }).otherwise({
+      redirectTo: '/sightings'
+    });
   }
 })();
