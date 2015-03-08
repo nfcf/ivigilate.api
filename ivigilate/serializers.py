@@ -203,11 +203,12 @@ class MovableWriteSerializer(serializers.ModelSerializer):
 
 class SightingReadSerializer(serializers.ModelSerializer):
     movable = MovableReadSerializer()
+    location_name = serializers.CharField(source='get_location_name', read_only=True)
 
     class Meta:
         model = Sighting
-        fields = ('id', 'movable', 'watcher_uid', 'first_seen_at', 'last_seen_at',
-                  'location', 'rssi', 'battery', 'metadata', 'confirmed',
+        fields = ('id', 'movable', 'first_seen_at', 'last_seen_at',
+                  'location', 'location_name', 'rssi', 'battery', 'metadata', 'confirmed',
                   'confirmed_by', 'confirmed_at', 'comment', 'commented_by', 'commented_at', 'is_active')
 
 class SightingWriteSerializer(serializers.ModelSerializer):
@@ -231,12 +232,15 @@ class SightingWriteSerializer(serializers.ModelSerializer):
         return value
 
     def validate_watcher_uid(self, value):
-        try:
-            Place.objects.get(uid=value)
-        except Place.DoesNotExist:
+        if '@' in self.watcher_uid:
             try:
-                Movable.objects.get(uid=value)
-            except Movable.DoesNotExist:
+                AuthUser.objects.get(email=self.watcher_uid)
+            except AuthUser.DoesNotExist:
+                raise serializers.ValidationError('Invalid Watcher UID.')
+        else:
+            try:
+                Place.objects.get(uid=self.watcher_uid)
+            except Place.DoesNotExist:
                 raise serializers.ValidationError('Invalid Watcher UID.')
         return value
 

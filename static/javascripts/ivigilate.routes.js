@@ -29,7 +29,7 @@
       controllerAs: 'vm',
       templateUrl: '/static/templates/sightings/sightings.html'
     }).otherwise({
-      redirectTo: '/sightings'
+      redirectTo: '/login'
     });
   }
 })();

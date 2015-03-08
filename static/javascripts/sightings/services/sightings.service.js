@@ -27,8 +27,8 @@
             return $http.get('/api/v1/sightings/' + id + '/');
         }
 
-        function list() {
-            return $http.get('/api/v1/sightings/');
+        function list(toDate) {
+            return $http.get('/api/v1/sightings/', {params: {toDate: toDate}});
         }
 
         function update(sighting) {

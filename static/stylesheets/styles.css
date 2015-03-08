@@ -15,6 +15,10 @@
     content:"\e080";
 }
 
+.table tbody>tr>td.valign-middle{
+    vertical-align: middle;
+}
+
 a, th { cursor: pointer; }
 
 .angular-google-map-searchbox { margin-top: 5px; width: 200px; }

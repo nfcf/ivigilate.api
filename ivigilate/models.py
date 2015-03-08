@@ -223,6 +223,20 @@ class Sighting(models.Model):
     is_active = models.BooleanField(default=True)
     #objects = models.GeoManager()
 
+    def get_location_name(self):
+        location_name = None
+        if '@' in self.watcher_uid:
+            try:
+                location_name = AuthUser.objects.get(email=self.watcher_uid).get_full_name()
+            except AuthUser.DoesNotExist:
+                pass
+        else:
+            try:
+                location_name = Place.objects.get(uid=self.watcher_uid).name
+            except Place.DoesNotExist:
+                pass
+        return location_name
+
     def save(self, *args, **kwargs):
         now = datetime.now(timezone.utc)
         if not self.id:
