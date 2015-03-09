@@ -24,7 +24,7 @@
         dialogsProvider.useBackdrop('static');
         dialogsProvider.useEscClose(true);
         dialogsProvider.useCopy(true);
-        dialogsProvider.setSize('lg');
+        //dialogsProvider.setSize('lg');
 
         $translateProvider.translations('en', {
             just_now: 'just now',

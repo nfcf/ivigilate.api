@@ -10,6 +10,7 @@
     function SightingsController($location, $scope, $filter, $interval, Authentication, Sightings, dialogs) {
         var vm = this;
         vm.refresh = refresh;
+        vm.addSighting = addSighting;
         vm.editSighting = editSighting;
         vm.openDatePicker = openDatePicker;
 
@@ -64,8 +65,15 @@
             }
         }
 
+        function addSighting(sighting) {
+            var dlg = dialogs.create('static/templates/sightings/add_sighting.html', 'AddSightingController as vm', sighting, 'sm');
+            dlg.result.then(function (addedSighting) {
+                vm.places.add(addedSighting);
+            });
+        }
+
         function editSighting(sighting) {
-            var dlg = dialogs.create('static/templates/sightings/sighting.html', 'SightingController as vm', sighting, 'sm');
+            var dlg = dialogs.create('static/templates/sightings/edit_sighting.html', 'EditSightingController as vm', sighting, 'sm');
             dlg.result.then(function (editedSighting) {
                 for (var k in editedSighting) { //Copy the object attributes to the currently displayed on the table
                     place[k] = editedSighting[k];

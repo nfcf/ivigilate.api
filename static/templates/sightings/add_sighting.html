@@ -1,0 +1,52 @@
+<div class="modal-header">
+    <button ng-click="vm.cancel()" class="close">×</button>
+    <h3 class="modal-title">New Sighting</h3>
+</div>
+<div class="modal-body">
+    <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="movable_uid">Movable</label>
+                <select class="form-control" id="movable_uid" ng-model="vm.sighting.movable_uid"
+                        ng-options="x as x.first_name for x in vm.movables" required></select>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="watcher_uid">Seen where</label>
+                <select class="form-control" id="watcher_uid" ng-model="vm.sighting.watcher_uid"
+                        ng-options="x as x.name for x in vm.places" required></select>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="seen_at">At what time</label>
+                <input type="text" class="form-control" id="seen_at" ng-model="vm.sighting.first_seen_at" required />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="duration">Duration (in minutes)</label>
+                <select class="form-control" id="duration" ng-model="vm.sighting.duration"
+                        ng-options="x as x for x in vm.durations" required></select>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="form-group">
+            <label for="comment">Comment</label>
+            <input type="text" class="form-control" id="comment" ng-model="vm.sighting.comment" required/>
+        </div>
+    </div>
+
+</div>
+<div class="modal-footer">
+    <button ng-click="vm.cancel()" class="btn btn-default">Cancel</button>
+    <button ng-click="vm.save()" class="btn btn-primary">Save</button>
+</div>

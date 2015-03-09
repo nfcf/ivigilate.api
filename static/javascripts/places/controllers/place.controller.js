@@ -5,17 +5,17 @@
         .module('ivigilate.places.controllers')
         .controller('PlaceController', PlaceController);
 
-    PlaceController.$inject = ['$location', '$scope', '$modalInstance', 'data', 'Authentication', 'Places'];
+    PlaceController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data', 'Authentication', 'Places', 'uiGmapGoogleMapApi'];
 
-    function PlaceController($location, $scope, $modalInstance, data, Authentication, Places) {
+    function PlaceController($location, $scope, $timeout, $modalInstance, data, Authentication, Places, uiGmapGoogleMapApi) {
         var vm = this;
         vm.cancel = cancel;
         vm.save = save;
 
-        vm.success = undefined;
         vm.error = undefined;
         vm.place = undefined;
         vm.map = undefined;
+        vm.showMap = false;
         vm.marker = {
             id: 1,
             coords: {
@@ -51,7 +51,12 @@
         function activate() {
             var user = Authentication.getAuthenticatedUser();
             if (user) {
-                populateDialog(data, user);
+                uiGmapGoogleMapApi.then(function (maps) {
+                    $timeout(function () {
+                        populateDialog(data, user);
+                        vm.showMap = true;
+                    }, 250);
+                });
             }
             else {
                 $location.url('/');
@@ -61,19 +66,14 @@
         function populateDialog(data, user) {
             vm.place = data;
 
-            if (user.account == vm.place.account) { // Check if place belongs to account
-                vm.map = {
-                    center: {
-                        latitude: vm.place.location ? vm.place.location.split(",")[0] : "34.698986644",
-                        longitude: vm.place.location ? vm.place.location.split(",")[1] : "-40.70744491"
-                    }, zoom: 8
-                };
-                vm.marker.coords.latitude = vm.map.center.latitude;
-                vm.marker.coords.longitude = vm.map.center.longitude;
-            } else {
-                vm.place = undefined;
-                vm.error = "You don't have permissions to edit this place's information."
-            }
+            vm.map = {
+                center: {
+                    latitude: vm.place.location ? vm.place.location.split(",")[0] : "34.698986644",
+                    longitude: vm.place.location ? vm.place.location.split(",")[1] : "-40.70744491"
+                }, zoom: 8
+            };
+            vm.marker.coords.latitude = vm.map.center.latitude;
+            vm.marker.coords.longitude = vm.map.center.longitude;
         }
 
         function save() {
