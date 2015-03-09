@@ -21,6 +21,10 @@
 
 a, th { cursor: pointer; }
 
+[ng\:cloak], [ng-cloak], .ng-cloak {
+  display: none !important;
+}
+
 .angular-google-map-searchbox { margin-top: 5px; width: 200px; }
 .angular-google-map-container { margin-top: 10px; height: 300px; }
 

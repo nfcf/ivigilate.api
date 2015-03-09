@@ -26,7 +26,7 @@
 
             function successFn(data, status, headers, config) {
                 Authentication.setAuthenticatedUser(data.data);
-                window.location = '/sightings'; //use this instead of $location.url to force refresh the navbar
+                $location.url('/sightings');
             }
 
             function errorFn(data, status, headers, config) {

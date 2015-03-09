@@ -5,9 +5,9 @@
         .module('ivigilate.authentication.services')
         .factory('Authentication', Authentication);
 
-    Authentication.$inject = ['$cookieStore', '$http'];
+    Authentication.$inject = ['$cookieStore', '$http', '$rootScope'];
 
-    function Authentication($cookieStore, $http) {
+    function Authentication($cookieStore, $http, $rootScope) {
 
         var Authentication = {
             getAuthenticatedUser: getAuthenticatedUser,
@@ -31,17 +31,7 @@
         }
 
         function logout() {
-            return $http.post('/api/v1/logout/')
-                .then(successFn, errorFn);
-
-            function successFn(data, status, headers, config) {
-                Authentication.unauthenticate();
-                window.location = '/login';
-            }
-
-            function errorFn(data, status, headers, config) {
-                console.error('Logout failure!');
-            }
+            return $http.post('/api/v1/logout/');
         }
 
         function getAuthenticatedUser() {
@@ -54,14 +44,17 @@
 
         function setAuthenticatedUser(user) {
             $cookieStore.put('authenticatedUser', user);
+            $rootScope.$broadcast('IS_AUTHENTICATED', true);
         }
 
         function isAuthenticated() {
+            $rootScope.$broadcast('IS_AUTHENTICATED', !!$cookieStore.get('authenticatedUser'));
             return !!$cookieStore.get('authenticatedUser');
         }
 
         function unauthenticate() {
             $cookieStore.remove('authenticatedUser');
+            $rootScope.$broadcast('IS_AUTHENTICATED', false);
         }
     }
 })();
