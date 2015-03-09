@@ -238,7 +238,7 @@ class SightingViewSet(viewsets.ModelViewSet):
                                      'FROM ivigilate_sighting s JOIN ivigilate_movable m ON s.movable_id = m.id ' + \
                                      'WHERE m.account_id = %s AND s.last_seen_at <= %s AND s.id IN (' + \
 	                                 ' SELECT MAX(id) FROM ivigilate_sighting GROUP BY movable_id' + \
-                                     ') ORDER BY s.last_seen_at DESC', [account.id, toDate])
+                                     ') ORDER BY s.last_seen_at DESC', [account.id if account else None, toDate])
         #page = self.paginate_queryset(queryset)
         #serializer = self.get_pagination_serializer(page)
         serializer = self.get_serializer_class()(queryset, many=True, context={'request': request})

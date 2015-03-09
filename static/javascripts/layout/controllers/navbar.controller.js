@@ -13,6 +13,7 @@
         vm.init = init;
         vm.logout = logout;
 
+        vm.userEmail = undefined;
         vm.user = undefined;
 
         $rootScope.$on('IS_AUTHENTICATED', function (event, data) {
@@ -26,11 +27,12 @@
             }
         });
 
-        function init(isAuthenticated) {
-            if (!isAuthenticated) {
-                Authentication.unauthenticate();
-            } else {
+        function init(emailFromServer) {
+            var user = Authentication.getAuthenticatedUser();
+            if (emailFromServer && user && emailFromServer === user.email) {
                 Authentication.isAuthenticated();
+            } else {
+                Authentication.unauthenticate();
             }
         }
 

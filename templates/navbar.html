@@ -1,7 +1,7 @@
 {% load split %}
 
 <nav class="navbar navbar-default" role="navigation"
-     ng-controller="NavbarController as vm" ng-init="vm.init({{ user.is_authenticated | lower }})">
+     ng-controller="NavbarController as vm" ng-init="vm.init('{{ user.email }}')">
     <div class="container-fluid">
         <div class="navbar-header">
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
