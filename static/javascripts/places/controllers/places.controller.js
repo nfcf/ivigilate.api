@@ -34,7 +34,7 @@
             }
 
             function errorFn(data, status, headers, config) {
-                vm.error = data.statusText;
+                vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
             }
         }
 

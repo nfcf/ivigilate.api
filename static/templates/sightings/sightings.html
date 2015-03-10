@@ -7,36 +7,52 @@
             <div class="row">
                 <div class="col-md-2">
                     <label for="fromDate">From</label>
+                </div>
+                <div class="col-md-2">
+                    <label for="toDate">To</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-2">
                     <div class="input-group">
                         <input id="fromDate" type="text" class="form-control input-sm" datepicker-popup="yyyy-MM-dd"
-                               datepicker-options="vm.datepickerOptions" max-date="vm.fromDateMax" show-button-bar="false"
-                               is-open="vm.fromDateIsOpen" ng-model="vm.fromDate" placeholder="YYYY-MM-DD" readonly />
+                               datepicker-options="vm.datepickerOptions" max-date="vm.fromDateMax"
+                               show-button-bar="false"
+                               is-open="vm.fromDateIsOpen" ng-model="vm.fromDate" placeholder="YYYY-MM-DD" readonly/>
                         <span class="input-group-btn">
-                            <button type="button" class="btn btn-sm btn-default" ng-click="vm.openDatePicker($event, 'fromDateIsOpen')">
+                            <button type="button" class="btn btn-sm btn-default"
+                                    ng-click="vm.openDatePicker($event, 'fromDateIsOpen')">
                                 <i class="glyphicon glyphicon-calendar"></i>
                             </button>
                         </span>
                     </div>
                 </div>
                 <div class="col-md-2">
-                    <label for="toDate">To</label>
                     <div class="input-group">
                         <input id="toDate" type="text" class="form-control input-sm" datepicker-popup="yyyy-MM-dd"
                                datepicker-options="vm.datepickerOptions" max-date="vm.toDateMax" show-button-bar="false"
-                               is-open="vm.toDateIsOpen" ng-model="vm.toDate" placeholder="YYYY-MM-DD" readonly />
+                               is-open="vm.toDateIsOpen" ng-model="vm.toDate" placeholder="YYYY-MM-DD" readonly/>
                         <span class="input-group-btn">
-                            <button type="button" class="btn btn-sm btn-default" ng-click="vm.openDatePicker($event, 'toDateIsOpen')">
+                            <button type="button" class="btn btn-sm btn-default"
+                                    ng-click="vm.openDatePicker($event, 'toDateIsOpen')">
                                 <i class="glyphicon glyphicon-calendar"></i></button>
                         </span>
                     </div>
                 </div>
+                <div class="col-md-8">
+                    <div class="input-group pull-right">
+                        <button ng-click="vm.addSighting()" class="btn btn-success btn-sm">
+                            <span class="glyphicon glyphicon-plus"></span> Add</button>
+                    </div>
+                </div>
             </div>
-            <hr />
+            <hr/>
             <div class="table-responsive">
                 <table st-table="vm.displayedSightings" st-safe-src="vm.sightings" class="table table-striped">
                     <thead>
                     <tr>
-                        <th st-sort="wasRecentlySeen" st-sort-default="true"><span class="glyphicon glyphicon-eye-open"></span></th>
+                        <th st-sort="wasRecentlySeen" st-sort-default="true"><span
+                                class="glyphicon glyphicon-eye-open"></span></th>
                         <th>Photo</th>
                         <th st-sort="movable.reference_id">Reference ID</th>
                         <th st-sort="movable.first_name">First Name</th>
@@ -45,30 +61,29 @@
                         <th class="text-center" st-sort="battery">Battery</th>
                         <th st-sort="comment">Comment</th>
                         <th st-sort="confirmed">Confirmed</th>
-                        <th></th>
                     </tr>
                     <tr>
                         <th colspan="9">
                             <input st-search placeholder="Global Search" class="input-sm form-control" type="search"/>
-                        </th>
-                        <th>
-                            <button ng-click="vm.addSighting()" class="btn btn-success">
-                                <span class="glyphicon glyphicon-plus"></span> Add</button>
                         </th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr ng-repeat="sighting in vm.displayedSightings"
                         ng-class="{'danger': !sighting.wasRecentlySeen}">
-                        <td class="valign-middle text-center"><input type="checkbox" ng-model="sighting.wasRecentlySeen" disabled></td>
-                        <td style="height:56px"><img src="{{ sighting.movable.photo }}" height="40" ng-if="sighting.movable.photo"/></td>
+                        <td class="valign-middle text-center"><input type="checkbox" ng-model="sighting.wasRecentlySeen"
+                                                                     disabled></td>
+                        <td style="height:56px"><img src="{{ sighting.movable.photo }}" height="40"
+                                                     ng-if="sighting.movable.photo"/></td>
                         <td class="valign-middle">{{ sighting.movable.reference_id }}</td>
                         <td class="valign-middle">{{ sighting.movable.first_name }}</td>
                         <td class="valign-middle">{{ sighting.movable.last_name }}</td>
-                        <td class="valign-middle">{{ sighting.last_seen_at | relativeDate }} at {{ sighting.location_name }}</td>
+                        <td class="valign-middle">{{ sighting.last_seen_at | relativeDate }}
+                            at {{ sighting.location_name }}</td>
                         <td class="valign-middle text-center">{{ sighting.battery }}</td>
                         <td class="valign-middle">{{ sighting.comment }}</td>
-                        <td class="valign-middle text-center"><input type="checkbox" ng-model="sighting.confirmed" disabled></td>
+                        <td class="valign-middle text-center"><input type="checkbox" ng-model="sighting.confirmed"
+                                                                     disabled></td>
                         <td class="valign-middle text-center">
                             <a ng-click="vm.editSighting(sighting)">Edit</a>
                         </td>

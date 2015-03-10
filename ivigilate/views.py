@@ -36,10 +36,8 @@ class AccountViewSet(viewsets.ModelViewSet):
             serializer = self.get_pagination_serializer(page)
             return Response(serializer.data)
         else:
-            return Response({
-            'status': 'Bad request',
-            'message': 'You do not have permissions to access this list.'
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return Response('You do not have permissions to access this list.'
+                            , status=status.HTTP_400_BAD_REQUEST)
 
     #def create(self, request):
     #    pass
@@ -50,18 +48,14 @@ class AccountViewSet(viewsets.ModelViewSet):
             try:
                 queryset = self.queryset.get(id=pk)
             except Account.DoesNotExist:
-                return Response({
-                'status': 'Bad request',
-                'message': 'Account does not exist.'
-                }, status=status.HTTP_400_BAD_REQUEST)
+                return Response('Account does not exist.'
+                                , status=status.HTTP_400_BAD_REQUEST)
 
             serializer = self.serializer_class(queryset, many=False, context={'request': request})
             return Response(serializer.data)
         else:
-            return Response({
-                'status': 'Bad request',
-                'message': 'You do not have permissions to access this account information.'
-                }, status=status.HTTP_400_BAD_REQUEST)
+            return Response('You do not have permissions to access this account information.'
+                            , status=status.HTTP_400_BAD_REQUEST)
 
     #def update(self, request, pk=None):
     #    pass
@@ -100,10 +94,7 @@ class AuthUserViewSet(viewsets.ModelViewSet):
         if errorMessage is None:
             errorMessage = serializer.errors
 
-        return Response({
-            'status': 'Bad request',
-            'message': errorMessage
-            }, status=status.HTTP_400_BAD_REQUEST)
+        return Response(errorMessage, status=status.HTTP_400_BAD_REQUEST)
 
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
@@ -128,15 +119,11 @@ class LoginView(views.APIView):
                 serialized = AuthUserReadSerializer(user, context={'request': request})
                 return Response(serialized.data)
             else:
-                return Response({
-                    'status': 'Unauthorized',
-                    'message': 'This user has been disabled.'
-                }, status=status.HTTP_401_UNAUTHORIZED)
+                return Response('This user has been disabled.'
+                                , status=status.HTTP_401_UNAUTHORIZED)
         else:
-            return Response({
-                'status': 'Unauthorized',
-                'message': 'Email/password combination invalid.'
-            }, status=status.HTTP_401_UNAUTHORIZED)
+            return Response('Email/password combination invalid.'
+                            , status=status.HTTP_401_UNAUTHORIZED)
 
 
 class LogoutView(views.APIView):
@@ -174,10 +161,8 @@ class PlaceViewSet(viewsets.ModelViewSet):
         try:
             queryset = self.queryset.get(id=pk,account=account)
         except Place.DoesNotExist:
-            return Response({
-            'status': 'Bad request',
-            'message': 'Place does not exist or is not associated with the current logged on account.'
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return Response('Place does not exist or is not associated with the current logged on account.'
+                            , status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.get_serializer_class()(queryset, many=False, context={'request': request})
         return Response(serializer.data)
@@ -207,10 +192,8 @@ class MovableViewSet(viewsets.ModelViewSet):
         try:
             queryset = self.queryset.get(id=pk,account=account)
         except Movable.DoesNotExist:
-            return Response({
-            'status': 'Bad request',
-            'message': 'Movable does not exist or is not associated with the current logged on account.'
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return Response('Movable does not exist or is not associated with the current logged on account.'
+            , status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.get_serializer_class()(queryset, many=False, context={'request': request})
         return Response(serializer.data)
@@ -231,29 +214,41 @@ class SightingViewSet(viewsets.ModelViewSet):
 
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
-        toDate = datetime.now(timezone.utc)
-        if request.query_params is not None and request.query_params.get('toDate') is not None:
-            toDate = request.query_params.get('toDate')
-        queryset = self.queryset.raw('SELECT * ' + \
-                                     'FROM ivigilate_sighting s JOIN ivigilate_movable m ON s.movable_id = m.id ' + \
-                                     'WHERE m.account_id = %s AND s.last_seen_at <= %s AND s.id IN (' + \
-	                                 ' SELECT MAX(id) FROM ivigilate_sighting GROUP BY movable_id' + \
-                                     ') ORDER BY s.last_seen_at DESC', [account.id if account else None, toDate])
-        #page = self.paginate_queryset(queryset)
-        #serializer = self.get_pagination_serializer(page)
-        serializer = self.get_serializer_class()(queryset, many=True, context={'request': request})
-        return Response(serializer.data)
+        if account:
+            toDate = datetime.now(timezone.utc)
+            if request.query_params is not None and request.query_params.get('toDate') is not None:
+                toDate = request.query_params.get('toDate')
+            queryset = self.queryset.raw('SELECT * ' + \
+                                         'FROM ivigilate_sighting s JOIN ivigilate_movable m ON s.movable_id = m.id ' + \
+                                         'WHERE m.account_id = %s AND s.last_seen_at <= %s AND s.id IN (' + \
+	                                     ' SELECT MAX(id) FROM ivigilate_sighting GROUP BY movable_id' + \
+                                         ') ORDER BY s.last_seen_at DESC', [account.id, toDate])
+            #page = self.paginate_queryset(queryset)
+            #serializer = self.get_pagination_serializer(page)
+            serializer = self.get_serializer_class()(queryset, many=True, context={'request': request})
+            return Response(serializer.data)
+        else:
+            return Response('The current logged on user is not associated with any account.'
+                            , status=status.HTTP_400_BAD_REQUEST)
 
     def retrieve(self, request, pk=None):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         try:
             queryset = self.queryset.get(id=pk,movable__account=account)
         except Sighting.DoesNotExist:
-            return Response({
-            'status': 'Bad request',
-            'message': 'Sighting does not exist or is not associated with the current logged on account.'
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return Response('Sighting does not exist or is not associated with the current logged on account.'
+                            , status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.get_serializer_class()(queryset, many=False, context={'request': request})
         return Response(serializer.data)
+
+    def create(self, request):
+        serializer = self.get_serializer_class()(data=request.data)
+        user = request.user if not isinstance(request.user, AnonymousUser) else None
+
+        if serializer.is_valid():
+            if serializer.save(user=user):
+                return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

@@ -19,6 +19,11 @@
     vertical-align: middle;
 }
 
+.vertical-align {
+    display: flex;
+    align-items: center;
+}
+
 a, th { cursor: pointer; }
 
 [ng\:cloak], [ng-cloak], .ng-cloak {
@@ -30,3 +35,11 @@ a, th { cursor: pointer; }
 
 .st-sort-ascent:before {content: '\25B2';}
 .st-sort-descent:before {content: '\25BC';}
+
+.background-cover {
+    background: url('../images/header.jpg') no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+}

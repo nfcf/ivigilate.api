@@ -213,16 +213,18 @@ class SightingReadSerializer(serializers.ModelSerializer):
 
 class SightingWriteSerializer(serializers.ModelSerializer):
     movable_uid = serializers.CharField(source='movable.uid', required=True)
+    location = serializers.CharField(allow_blank=True, required=False)
+    battery = serializers.IntegerField(allow_null=True, required=False)
+    rssi = serializers.IntegerField(allow_null=True, required=False)
     confirmed = serializers.BooleanField(default=False)
-    confirmed_by_user_email = serializers.CharField(allow_blank=True, write_only=True)
-    commented_by_user_email = serializers.CharField(allow_blank=True, write_only=True)
-    is_active = serializers.BooleanField(default=False)
+    is_active = serializers.BooleanField(default=True)
 
     class Meta:
         model = Sighting
         fields = ('id', 'movable_uid', 'watcher_uid',
                   'location', 'rssi', 'battery', 'metadata',
-                  'confirmed', 'confirmed_by_user_email', 'comment', 'commented_by_user_email', 'is_active')
+                  'confirmed', 'comment', 'is_active')
+
 
     def validate_movable_uid(self, value):
         try:
@@ -232,23 +234,16 @@ class SightingWriteSerializer(serializers.ModelSerializer):
         return value
 
     def validate_watcher_uid(self, value):
-        if '@' in self.watcher_uid:
+        if '@' in value:
             try:
-                AuthUser.objects.get(email=self.watcher_uid)
+                AuthUser.objects.get(email=value)
             except AuthUser.DoesNotExist:
                 raise serializers.ValidationError('Invalid Watcher UID.')
         else:
             try:
-                Place.objects.get(uid=self.watcher_uid)
+                Place.objects.get(uid=value)
             except Place.DoesNotExist:
                 raise serializers.ValidationError('Invalid Watcher UID.')
-        return value
-
-    def validate_movable_uid(self, value):
-        try:
-            Movable.objects.get(uid=value)
-        except Movable.DoesNotExist:
-            raise serializers.ValidationError('Invalid Movable UID.')
         return value
 
     def create(self, validated_data):
@@ -261,23 +256,11 @@ class SightingWriteSerializer(serializers.ModelSerializer):
         location = validated_data.get('location')
         rssi = validated_data.get('rssi')
         battery = validated_data.get('battery')
-        metadata = validated_data.get('metadata')
+        metadata = validated_data.get('metadata') if validated_data.get('metadata') else ''
         confirmed = validated_data.get('confirmed')
-        confirmed_by_user_email = validated_data.get('confirmed_by_user_email')
-        confirmed_by = None
-        try:
-            if confirmed_by_user_email:
-                confirmed_by = AuthUser.objects.get(email=confirmed_by_user_email)
-        except AuthUser.DoesNotExist:
-            raise serializers.ValidationError('Invalid Confirmed by User.')
+        confirmed_by = validated_data.get('user') if validated_data.get('confirmed') else None
         comment = validated_data.get('comment')
-        commented_by_user_email = validated_data.get('commented_by_user_email')
-        commented_by = None
-        try:
-            if commented_by_user_email:
-                commented_by = AuthUser.objects.get(email=commented_by_user_email)
-        except AuthUser.DoesNotExist:
-            raise serializers.ValidationError('Invalid Commented by User.')
+        commented_by = validated_data.get('user') if validated_data.get('comment') else None
         is_active = validated_data.get('is_active')
 
         return Sighting.objects.create(movable=movable, watcher_uid=watcher_uid, location=location,

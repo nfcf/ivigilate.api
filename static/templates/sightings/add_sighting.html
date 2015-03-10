@@ -1,3 +1,4 @@
+<form role="form" ng-submit="vm.save()">
 <div class="modal-header">
     <button ng-click="vm.cancel()" class="close">×</button>
     <h3 class="modal-title">New Sighting</h3>
@@ -8,45 +9,68 @@
     <div class="row">
         <div class="col-md-6">
             <div class="form-group">
-                <label for="movable_uid">Movable</label>
-                <select class="form-control" id="movable_uid" ng-model="vm.sighting.movable_uid"
-                        ng-options="x as x.first_name for x in vm.movables" required></select>
+                <label for="movable_uid">Who did you see?</label>
+                <select class="form-control" id="movable_uid" ng-model="vm.movable"
+                        ng-options="x as x.first_name for x in vm.movables" required>
+                    <option></option>
+                </select>
             </div>
         </div>
         <div class="col-md-6">
             <div class="form-group">
                 <label for="watcher_uid">Seen where</label>
-                <select class="form-control" id="watcher_uid" ng-model="vm.sighting.watcher_uid"
-                        ng-options="x as x.name for x in vm.places" required></select>
+                <select class="form-control" id="watcher_uid" ng-model="vm.watcher"
+                        ng-options="x as x.name for x in vm.places" required>
+                    <option></option>
+                </select>
             </div>
         </div>
     </div>
 
     <div class="row">
         <div class="col-md-6">
-            <div class="form-group">
-                <label for="seen_at">At what time</label>
-                <input type="text" class="form-control" id="seen_at" ng-model="vm.sighting.first_seen_at" required />
-            </div>
+            <label for="seen_at">When and at what time</label>
         </div>
         <div class="col-md-6">
-            <div class="form-group">
-                <label for="duration">Duration (in minutes)</label>
-                <select class="form-control" id="duration" ng-model="vm.sighting.duration"
-                        ng-options="x as x for x in vm.durations" required></select>
+            <label for="duration">For how long</label>
+        </div>
+    </div>
+
+    <div class="row vertical-align">
+        <div class="col-md-4">
+            <div class="input-group">
+                <input id="fromDate" type="text" class="form-control" datepicker-popup="yyyy-MM-dd"
+                       datepicker-options="vm.datepickerOptions" max-date="vm.maxDate" show-button-bar="false"
+                       is-open="vm.datepickerIsOpen" ng-model="vm.seen_at_date" placeholder="YYYY-MM-DD" readonly/>
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default"
+                            ng-click="vm.openDatePicker($event, 'datepickerIsOpen')">
+                        <i class="glyphicon glyphicon-calendar"></i>
+                    </button>
+                </span>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <timepicker ng-model="vm.seen_at" hour-step="1" minute-step="15" show-meridian="false"></timepicker>
+        </div>
+        <div class="col-md-4">
+            <div class="input-group">
+                <timepicker ng-model="vm.duration" hour-step="1" minute-step="15" show-meridian="false"></timepicker>
             </div>
         </div>
     </div>
-
     <div class="row">
-        <div class="form-group">
-            <label for="comment">Comment</label>
-            <input type="text" class="form-control" id="comment" ng-model="vm.sighting.comment" required/>
+        <div class="col-md-12">
+            <div class="form-group">
+                <label for="comment">Comment</label>
+                <textarea type="text" class="form-control" id="comment" ng-model="vm.sighting.comment" required/>
+            </div>
         </div>
     </div>
-
 </div>
+
 <div class="modal-footer">
     <button ng-click="vm.cancel()" class="btn btn-default">Cancel</button>
-    <button ng-click="vm.save()" class="btn btn-primary">Save</button>
+    <button type="submit" class="btn btn-primary">Save</button>
 </div>
+</form>

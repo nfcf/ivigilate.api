@@ -28,7 +28,6 @@
         function activate() {
             var user = Authentication.getAuthenticatedUser();
             if (user) {
-                refresh();
                 $interval(refresh, 10000);
 
                 $scope.$watch('vm.fromDate', function () {
@@ -56,19 +55,20 @@
             }
 
             function successFn(data, status, headers, config) {
+                vm.error = null;
                 vm.sightings = data.data;
                 refreshSightingsWithFromDate();
             }
 
             function errorFn(data, status, headers, config) {
-                vm.error = data.statusText;
+                vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
             }
         }
 
         function addSighting(sighting) {
             var dlg = dialogs.create('static/templates/sightings/add_sighting.html', 'AddSightingController as vm', sighting, 'sm');
             dlg.result.then(function (addedSighting) {
-                vm.places.add(addedSighting);
+                refresh();
             });
         }
 
@@ -76,7 +76,7 @@
             var dlg = dialogs.create('static/templates/sightings/edit_sighting.html', 'EditSightingController as vm', sighting, 'sm');
             dlg.result.then(function (editedSighting) {
                 for (var k in editedSighting) { //Copy the object attributes to the currently displayed on the table
-                    place[k] = editedSighting[k];
+                    sighting[k] = editedSighting[k];
                 }
             });
         }

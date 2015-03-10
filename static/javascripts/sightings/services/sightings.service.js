@@ -13,6 +13,7 @@
             destroy: destroy,
             get: get,
             list: list,
+            add: add,
             update: update
         };
         return Sightings;
@@ -29,6 +30,10 @@
 
         function list(toDate) {
             return $http.get('/api/v1/sightings/', {params: {toDate: toDate}});
+        }
+
+        function add(sighting) {
+            return $http.post('/api/v1/sightings/', sighting);
         }
 
         function update(sighting) {

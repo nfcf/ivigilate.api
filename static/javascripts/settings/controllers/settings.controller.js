@@ -32,7 +32,6 @@
 
             function errorFn(data, status, headers, config) {
                 $location.url('/');
-                Snackbar.error('That user does not exist.');
             }
         }
 
@@ -47,7 +46,7 @@
 
             function errorFn(data, status, headers, config) {
                 vm.success = null;
-                vm.error = 'Failed to update settings with error: ' + JSON.stringify(data.data);
+                vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
             }
         }
     }

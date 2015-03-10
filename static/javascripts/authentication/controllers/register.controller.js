@@ -32,12 +32,12 @@
                 }
 
                 function errorFn(data, status, headers, config) {
-                    vm.error = 'Failed to login user with error: ' + JSON.stringify(data.data.message);
+                    vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
                 }
             }
 
             function errorFn(data, status, headers, config) {
-                vm.error = 'Failed to register new user with error: ' + JSON.stringify(data.data.message);
+                vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
             }
         }
     }
