@@ -220,7 +220,7 @@ class Sighting(models.Model):
     comment = models.TextField(blank=True)
     commented_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
     commented_at = models.DateTimeField(null=True)
-    is_active = models.BooleanField(default=True)
+    is_current = models.BooleanField(default=True)
     #objects = models.GeoManager()
 
     def get_location_name(self):

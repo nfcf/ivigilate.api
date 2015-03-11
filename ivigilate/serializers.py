@@ -209,7 +209,7 @@ class SightingReadSerializer(serializers.ModelSerializer):
         model = Sighting
         fields = ('id', 'movable', 'first_seen_at', 'last_seen_at',
                   'location', 'location_name', 'rssi', 'battery', 'metadata', 'confirmed',
-                  'confirmed_by', 'confirmed_at', 'comment', 'commented_by', 'commented_at', 'is_active')
+                  'confirmed_by', 'confirmed_at', 'comment', 'commented_by', 'commented_at', 'is_current')
 
 class SightingWriteSerializer(serializers.ModelSerializer):
     movable_uid = serializers.CharField(source='movable.uid', required=True)
@@ -217,13 +217,13 @@ class SightingWriteSerializer(serializers.ModelSerializer):
     battery = serializers.IntegerField(allow_null=True, required=False)
     rssi = serializers.IntegerField(allow_null=True, required=False)
     confirmed = serializers.BooleanField(default=False)
-    is_active = serializers.BooleanField(default=True)
+    is_current = serializers.BooleanField(default=True)
 
     class Meta:
         model = Sighting
         fields = ('id', 'movable_uid', 'watcher_uid',
                   'location', 'rssi', 'battery', 'metadata',
-                  'confirmed', 'comment', 'is_active')
+                  'confirmed', 'comment', 'is_current')
 
 
     def validate_movable_uid(self, value):
@@ -261,12 +261,12 @@ class SightingWriteSerializer(serializers.ModelSerializer):
         confirmed_by = validated_data.get('user') if validated_data.get('confirmed') else None
         comment = validated_data.get('comment')
         commented_by = validated_data.get('user') if validated_data.get('comment') else None
-        is_active = validated_data.get('is_active')
+        is_current = validated_data.get('is_current')
 
         return Sighting.objects.create(movable=movable, watcher_uid=watcher_uid, location=location,
                                        rssi=rssi, battery=battery, metadata=metadata,
                                        confirmed=confirmed, confirmed_by=confirmed_by, comment=comment,
-                                       commented_by=commented_by, is_active=is_active)
+                                       commented_by=commented_by, is_current=is_current)
 
     def update(self, instance, validated_data):
         instance.location = validated_data.get('location', instance.location)
@@ -289,7 +289,7 @@ class SightingWriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Invalid Commented by User.')
 
         instance.comment = validated_data.get('comment', instance.comment)
-        instance.is_active = validated_data.get('is_active', instance.is_active)
+        instance.is_current = validated_data.get('is_current', instance.is_current)
 
         instance.save()
 
