@@ -39,7 +39,7 @@
 
                 $scope.$watch('vm.seen_at_date', function () {
                     var dateParts = (vm.seen_at_date instanceof Date) ? vm.seen_at_date.toISOString().split('-') : vm.seen_at_date.split('-');
-                    vm.seen_at = new Date(dateParts[0], dateParts[1] - 1, dateParts[2].slice(0,2), vm.seen_at.getHours(), vm.seen_at.getMinutes());
+                    vm.seen_at = new Date(dateParts[0], dateParts[1] - 1, dateParts[2].slice(0, 2), vm.seen_at.getHours(), vm.seen_at.getMinutes());
                 });
             }
             else {

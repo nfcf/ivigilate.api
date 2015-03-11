@@ -11,7 +11,10 @@
             'dialogs.main',
             'relativeDate',
             'pascalprecht.translate',
+            'ngSanitize',
+            'ui.select',
             'ivigilate.config',
+            'ivigilate.filters',
             'ivigilate.routes',
             'ivigilate.authentication',
             'ivigilate.layout',
@@ -22,6 +25,9 @@
 
     angular
         .module('ivigilate.config', []);
+
+    angular
+        .module('ivigilate.filters', []);
 
     angular
         .module('ivigilate.routes', ['ngRoute']);
