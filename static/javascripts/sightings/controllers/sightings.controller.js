@@ -66,14 +66,14 @@
         }
 
         function addSighting(sighting) {
-            var dlg = dialogs.create('static/templates/sightings/add_sighting.html', 'AddSightingController as vm', sighting, 'sm');
+            var dlg = dialogs.create('static/templates/sightings/add_sighting.html', 'AddSightingController as vm', sighting, 'lg');
             dlg.result.then(function (addedSighting) {
                 refresh();
             });
         }
 
         function editSighting(sighting) {
-            var dlg = dialogs.create('static/templates/sightings/edit_sighting.html', 'EditSightingController as vm', sighting, 'sm');
+            var dlg = dialogs.create('static/templates/sightings/edit_sighting.html', 'EditSightingController as vm', sighting, 'lg');
             dlg.result.then(function (editedSighting) {
                 for (var k in editedSighting) { //Copy the object attributes to the currently displayed on the table
                     sighting[k] = editedSighting[k];

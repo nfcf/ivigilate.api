@@ -8,6 +8,7 @@
             'smart-table',
             'ngPasswordStrength',
             'ui.bootstrap',
+            'angularFileUpload',
             'dialogs.main',
             'relativeDate',
             'pascalprecht.translate',

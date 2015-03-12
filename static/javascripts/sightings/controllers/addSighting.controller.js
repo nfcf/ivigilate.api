@@ -4,7 +4,7 @@
     angular
         .module('ivigilate.places.controllers')
         .controller('AddSightingController', AddSightingController);
-
+    
     AddSightingController.$inject = ['$location', '$scope', '$filter', '$modalInstance', 'data', 'Authentication', 'Places', 'Movables', 'Sightings'];
 
     function AddSightingController($location, $scope, $filter, $modalInstance, data, Authentication, Places, Movables, Sightings) {

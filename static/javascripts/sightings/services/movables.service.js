@@ -5,15 +5,16 @@
         .module('ivigilate.movables.services')
         .factory('Movables', Movables);
 
-    Movables.$inject = ['$http'];
+    Movables.$inject = ['$http', '$upload'];
 
-    function Movables($http) {
+    function Movables($http, $upload) {
 
         var Movables = {
             destroy: destroy,
             get: get,
             list: list,
-            update: update
+            update: update,
+            upload: upload
         };
         return Movables;
 
@@ -33,6 +34,14 @@
 
         function update(movable) {
             return $http.put('/api/v1/movables/' + movable.id + '/', movable);
+        }
+
+        function upload(movable, image) {
+            return $upload.upload({
+                url: '/api/v1/movables/' + movable.id + '/',
+                fields: movable,
+                file: image
+            });
         }
     }
 })();

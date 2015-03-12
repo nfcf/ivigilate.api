@@ -73,7 +73,7 @@
                         ng-class="{'danger': !sighting.wasRecentlySeen}">
                         <td class="valign-middle text-center"><input type="checkbox" ng-model="sighting.wasRecentlySeen"
                                                                      disabled></td>
-                        <td style="height:56px"><img src="{{ sighting.movable.photo }}" height="40"
+                        <td style="height:56px"><img ng-src="{{ sighting.movable.photo }}" height="40px"
                                                      ng-if="sighting.movable.photo"/></td>
                         <td class="valign-middle">{{ sighting.movable.reference_id }}</td>
                         <td class="valign-middle">{{ sighting.movable.first_name }}</td>
