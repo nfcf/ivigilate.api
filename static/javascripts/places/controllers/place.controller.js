@@ -25,7 +25,7 @@
             options: {draggable: true},
             events: {
                 dragend: function (marker, eventName, args) {
-                    vm.place.location = marker.getPosition().lat() + "," + marker.getPosition().lng();
+                    vm.place.location.coordinates = [marker.getPosition().lng(), marker.getPosition().lat()];
                 }
             }
         };
@@ -68,8 +68,8 @@
 
             vm.map = {
                 center: {
-                    latitude: vm.place.location ? vm.place.location.split(",")[0] : "34.698986644",
-                    longitude: vm.place.location ? vm.place.location.split(",")[1] : "-40.70744491"
+                    longitude: vm.place.location ? vm.place.location.coordinates[0] : "-40.70744491",
+                    latitude: vm.place.location ? vm.place.location.coordinates[1] : "34.698986644"
                 }, zoom: 8
             };
             vm.marker.coords.latitude = vm.map.center.latitude;

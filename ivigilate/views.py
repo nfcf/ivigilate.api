@@ -80,6 +80,13 @@ class AuthUserViewSet(viewsets.ModelViewSet):
             return (permissions.AllowAny(),)
         return (permissions.IsAuthenticated(),)
 
+    def list(self, request):
+        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
+        queryset = self.queryset.filter(account=account)
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_pagination_serializer(page)
+        return Response(serializer.data)
+
     def create(self, request):
         serializer = self.get_serializer_class()(data=request.data)
         errorMessage = None
@@ -96,12 +103,6 @@ class AuthUserViewSet(viewsets.ModelViewSet):
 
         return Response(errorMessage, status=status.HTTP_400_BAD_REQUEST)
 
-    def list(self, request):
-        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
-        queryset = self.queryset.filter(account=account)
-        page = self.paginate_queryset(queryset)
-        serializer = self.get_pagination_serializer(page)
-        return Response(serializer.data)
 
 class LoginView(views.APIView):
     permission_classes = (permissions.AllowAny,)
@@ -167,6 +168,17 @@ class PlaceViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer_class()(queryset, many=False, context={'request': request})
         return Response(serializer.data)
 
+    def update(self, request, pk=None):
+        user = request.user if not isinstance(request.user, AnonymousUser) else None
+        instance = self.queryset.get(id=pk)
+        serializer = self.get_serializer_class()(instance, data=request.data)
+
+        if serializer.is_valid():
+            if serializer.save(user=user):
+                return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class MovableViewSet(viewsets.ModelViewSet):
     queryset = Movable.objects.all()
@@ -197,6 +209,17 @@ class MovableViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer_class()(queryset, many=False, context={'request': request})
         return Response(serializer.data)
+
+    def update(self, request, pk=None):
+        user = request.user if not isinstance(request.user, AnonymousUser) else None
+        instance = self.queryset.get(id=pk)
+        serializer = self.get_serializer_class()(instance, data=request.data)
+
+        if serializer.is_valid():
+            if serializer.save(user=user):
+                return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SightingViewSet(viewsets.ModelViewSet):
@@ -249,6 +272,17 @@ class SightingViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             if serializer.save(user=user):
                 return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk=None):
+        user = request.user if not isinstance(request.user, AnonymousUser) else None
+        instance = self.queryset.get(id=pk)
+        serializer = self.get_serializer_class()(instance, data=request.data)
+
+        if serializer.is_valid():
+            if serializer.save(user=user):
+                return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

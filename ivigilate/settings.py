@@ -11,14 +11,12 @@ SECRET_KEY = 'twfw@itai1qz^3+$21=8&pd8w=zf6hfa_$&gg$)=a8$wd2^+_t'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
 TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
 
 # Application definition
-
 INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
@@ -27,8 +25,9 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
     'rest_framework',
-    'geoposition',
+    'rest_framework_gis',
     'django_twilio',
     'compressor',
     'ivigilate',
@@ -64,26 +63,23 @@ REST_FRAMEWORK = {
 
 DATABASES = {
     'default': {
-        #'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'bscout',
-        'USER': 'bscout',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        #'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'ivigilate',
+        'USER': 'postgres',
         'PASSWORD': '123',
         'HOST': ''
     }
 }
+GEOS_LIBRARY_PATH = r'C:\OSGeo4W\bin\geos_c.dll'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
 TEMPLATE_DIRS = (

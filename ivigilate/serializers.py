@@ -1,5 +1,6 @@
 from django.contrib.auth import update_session_auth_hash
 from rest_framework import serializers
+from rest_framework_gis import serializers as gis_serializers
 from ivigilate.models import *
 
 class LicenseSerializer(serializers.HyperlinkedModelSerializer):
@@ -19,7 +20,6 @@ class LicenseSerializer(serializers.HyperlinkedModelSerializer):
         instance.metadata = validated_data.get('metadata', instance.metadata)
         instance.valid_from = validated_data.get('valid_from', instance.valid_from)
         instance.valid_until = validated_data.get('valid_until', instance.valid_until)
-
         instance.save()
 
         return instance
@@ -40,7 +40,6 @@ class AccountSerializer(serializers.ModelSerializer):
         instance.company_id = validated_data.get('company_id', instance.company_id)
         instance.name = validated_data.get('name', instance.name)
         instance.metadata = validated_data.get('metadata', instance.metadata)
-
         instance.save()
 
         return instance
@@ -58,9 +57,8 @@ class AuthUserWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AuthUser
-        fields = ('id', 'company_id', 'email', 'first_name', 'last_name', 'metadata', 'created_at', 'updated_at',
+        fields = ('id', 'company_id', 'email', 'first_name', 'last_name', 'metadata',
                   'password', 'confirm_password',)
-        read_only_fields = ('id', 'created_at', 'updated_at')
 
     def validate_company_id(self, value):
         try:
@@ -100,25 +98,24 @@ class AuthUserWriteSerializer(serializers.ModelSerializer):
         return instance
 
 
-class PlaceReadSerializer(serializers.HyperlinkedModelSerializer):
+class PlaceReadSerializer(gis_serializers.GeoModelSerializer):
     class Meta:
         model = Place
+        geo_field = 'location'
         fields = ('id', 'account', 'uid', 'reference_id', 'name',
                   'location', 'arrival_rssi', 'departure_rssi',
-                  'metadata', 'created_at', 'updated_at', 'is_active')
+                  'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
 
 
 class PlaceWriteSerializer(serializers.ModelSerializer):
     company_id = serializers.CharField(source='account.company_id', required=False)
-    arrival_rssi = serializers.IntegerField(allow_null=True, default=-75)
-    departure_rssi = serializers.IntegerField(allow_null=True, default=-90)
 
     class Meta:
         model = Place
+        geo_field = 'location'
         fields = ('id', 'company_id', 'uid', 'reference_id', 'name',
                   'location', 'arrival_rssi', 'departure_rssi',
-                  'metadata', 'created_at', 'updated_at', 'is_active')
-        read_only_fields = ('id', 'created_at', 'updated_at')
+                  'metadata', 'is_active')
 
     def create(self, validated_data):
         company_id = validated_data.get('account').get('company_id')
@@ -139,8 +136,8 @@ class PlaceWriteSerializer(serializers.ModelSerializer):
         instance.arrival_rssi = validated_data.get('arrival_rssi', instance.arrival_rssi)
         instance.departure_rssi = validated_data.get('departure_rssi', instance.departure_rssi)
         instance.metadata = validated_data.get('name', instance.metadata)
+        instance.updated_by = validated_data.get('user')
         instance.is_active = validated_data.get('is_active', instance.is_active)
-
         instance.save()
 
         return instance
@@ -150,21 +147,20 @@ class MovableReadSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Movable
         fields = ('id', 'account', 'uid', 'reference_id', 'photo',
-                  'first_name', 'last_name', 'arrival_rssi', 'departure_rssi', 'metadata',
-                  'reported_missing', 'created_at', 'updated_at', 'is_active')
+                  'name', 'arrival_rssi', 'departure_rssi', 'metadata',
+                  'reported_missing', 'created_at', 'updated_at', 'updated_by', 'is_active')
 
 
 class MovableWriteSerializer(serializers.ModelSerializer):
     company_id = serializers.CharField(source='account.company_id', required=True)
-    arrival_rssi = serializers.IntegerField(allow_null=True, default=-75)
-    departure_rssi = serializers.IntegerField(allow_null=True, default=-90)
+    arrival_rssi = serializers.IntegerField(default=-75)
+    departure_rssi = serializers.IntegerField(default=-90)
 
     class Meta:
         model = Movable
         fields = ('id', 'company_id', 'uid', 'reference_id', 'photo',
-                  'first_name', 'last_name', 'arrival_rssi', 'departure_rssi', 'metadata',
-                  'reported_missing', 'created_at', 'updated_at', 'is_active')
-        read_only_fields = ('id', 'created_at', 'updated_at')
+                  'name', 'arrival_rssi', 'departure_rssi', 'metadata',
+                  'reported_missing', 'created_at', 'updated_at', 'updated_by', 'is_active')
 
     def validate_company_id(self, value):
         try:
@@ -188,14 +184,13 @@ class MovableWriteSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.reference_id = validated_data.get('reference_id', instance.reference_id)
         instance.photo = validated_data.get('photo', instance.photo)
-        instance.first_name = validated_data.get('first_name', instance.first_name)
-        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.name = validated_data.get('name', instance.name)
         instance.arrival_rssi = validated_data.get('arrival_rssi', instance.arrival_rssi)
         instance.departure_rssi = validated_data.get('departure_rssi', instance.departure_rssi)
         instance.metadata = validated_data.get('name', instance.metadata)
         instance.reported_missing = validated_data.get('reported_missing', instance.reported_missing)
+        instance.updated_by = validated_data.get('user')
         instance.is_active = validated_data.get('is_active', instance.is_active)
-
         instance.save()
 
         return instance
@@ -290,7 +285,6 @@ class SightingWriteSerializer(serializers.ModelSerializer):
 
         instance.comment = validated_data.get('comment', instance.comment)
         instance.is_current = validated_data.get('is_current', instance.is_current)
-
         instance.save()
 
         return instance

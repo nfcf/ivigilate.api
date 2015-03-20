@@ -55,15 +55,14 @@
                                 class="glyphicon glyphicon-eye-open"></span></th>
                         <th>Photo</th>
                         <th st-sort="movable.reference_id">Reference ID</th>
-                        <th st-sort="movable.first_name">First Name</th>
-                        <th st-sort="movable.last_name">Last Name</th>
+                        <th st-sort="movable.name">Name</th>
                         <th st-sort="last_seen_at">Last Seen At</th>
                         <th class="text-center" st-sort="battery">Battery</th>
                         <th st-sort="comment">Comment</th>
                         <th st-sort="confirmed">Confirmed</th>
                     </tr>
                     <tr>
-                        <th colspan="10">
+                        <th colspan="9">
                             <input st-search placeholder="Global Search" class="input-sm form-control" type="search"/>
                         </th>
                     </tr>
@@ -76,8 +75,7 @@
                         <td style="height:56px"><img ng-src="{{ sighting.movable.photo }}" height="40px"
                                                      ng-if="sighting.movable.photo"/></td>
                         <td class="valign-middle">{{ sighting.movable.reference_id }}</td>
-                        <td class="valign-middle">{{ sighting.movable.first_name }}</td>
-                        <td class="valign-middle">{{ sighting.movable.last_name }}</td>
+                        <td class="valign-middle">{{ sighting.movable.name }}</td>
                         <td class="valign-middle">{{ sighting.last_seen_at | relativeDate }}
                             at {{ sighting.location_name }}</td>
                         <td class="valign-middle text-center">{{ sighting.battery }}</td>
@@ -91,7 +89,7 @@
                     </tbody>
                     <tfoot>
                     <tr>
-                        <td colspan="10" class="text-center">
+                        <td colspan="9" class="text-center">
                             <div st-pagination="" st-items-by-page="15" st-displayed-pages="5"></div>
                         </td>
                     </tr>

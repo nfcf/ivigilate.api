@@ -1,10 +1,9 @@
 from django.conf import settings
-from django.db import models
+from django.contrib.gis.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from datetime import datetime, timezone
 from django.utils.translation import ugettext_lazy as _
 from django.core.mail import send_mail
-from geoposition.fields import GeopositionField
 
 
 class Account(models.Model):
@@ -129,6 +128,7 @@ class Event(models.Model):
     metadata = models.TextField(blank=True)
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(editable=False)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
     is_active = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
@@ -146,17 +146,21 @@ class Place(models.Model):
     uid = models.CharField(max_length=36)
     reference_id = models.CharField(max_length=64, blank=True)
     name = models.CharField(max_length=64, blank=True)
-    location = GeopositionField(null=True)
+    location = models.PointField(null=True)
     arrival_rssi = models.IntegerField(default=-75)
     departure_rssi = models.IntegerField(default=-90)
     metadata = models.TextField(blank=True)
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(editable=False)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
     is_active = models.BooleanField(default=True)
-    #objects = models.GeoManager()
+    objects = models.GeoManager()
 
     class Meta:
         unique_together = ('account', 'uid',)
+
+    def location_dict(self):
+        return {'lat': self.location.latitude, 'lon': self.location.longitude}
 
     def save(self, *args, **kwargs):
         now = datetime.now(timezone.utc)
@@ -175,9 +179,8 @@ class Movable(models.Model):
     account = models.ForeignKey(Account)
     uid = models.CharField(max_length=36, unique=True)
     reference_id = models.CharField(max_length=64, blank=True)
-    photo = models.ImageField(upload_to='photos', blank=True, null=True)
-    first_name = models.CharField(max_length=64, blank=True)
-    last_name = models.CharField(max_length=64, blank=True)
+    photo = models.FileField(upload_to='photos', blank=True, null=True)
+    name = models.CharField(max_length=64, blank=True)
     arrival_rssi = models.IntegerField(default=-75, blank=True)
     departure_rssi = models.IntegerField(default=-90, blank=True)
     metadata = models.TextField(blank=True)
@@ -186,11 +189,8 @@ class Movable(models.Model):
     event_occurrences = models.ManyToManyField(Event, through='EventOccurrence', related_name='+')
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(editable=False)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
     is_active = models.BooleanField(default=True)
-
-    def get_full_name(self):
-        full_name = '%s %s' % (self.first_name, self.last_name)
-        return full_name.strip()
 
     def save(self, *args, **kwargs):
         now = datetime.now(timezone.utc)
@@ -202,7 +202,7 @@ class Movable(models.Model):
         super(Movable, self).save(*args, **kwargs)
 
     def __str__(self):
-        return '%s: uid=%s, name=%s' % (self.account.company_id, self.uid, self.get_full_name())
+        return '%s: uid=%s, name=%s' % (self.account.company_id, self.uid, self.name)
 
 
 class Sighting(models.Model):
@@ -210,7 +210,7 @@ class Sighting(models.Model):
     watcher_uid = models.CharField(max_length=36, db_index=True)
     first_seen_at = models.DateTimeField(editable=False)
     last_seen_at = models.DateTimeField(editable=False)
-    location = GeopositionField()
+    location = models.PointField()
     rssi = models.IntegerField(null=True, blank=True)
     battery = models.IntegerField(null=True, blank=True)
     metadata = models.TextField(blank=True)
@@ -221,7 +221,7 @@ class Sighting(models.Model):
     commented_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
     commented_at = models.DateTimeField(null=True)
     is_current = models.BooleanField(default=True)
-    #objects = models.GeoManager()
+    objects = models.GeoManager()
 
     def get_location_name(self):
         location_name = None
