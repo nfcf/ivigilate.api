@@ -3,6 +3,45 @@ from rest_framework import serializers
 from rest_framework_gis import serializers as gis_serializers
 from ivigilate.models import *
 
+class Base64ImageField(serializers.ImageField):
+    def to_internal_value(self, data):
+        from django.core.files.base import ContentFile
+        import base64
+        import six
+        import uuid
+
+        # Check if this is a base64 string
+        if isinstance(data, six.string_types):
+            # Check if the base64 string is in the "data:" format
+            if 'data:' in data and ';base64,' in data:
+                # Break out the header from the base64 content
+                header, data = data.split(';base64,')
+
+            # Try to decode the file. Return validation error if it fails.
+            try:
+                decoded_file = base64.b64decode(data)
+            except TypeError:
+                self.fail('invalid_image')
+
+            # Generate file name:
+            file_name = str(uuid.uuid4())[:12] # 12 characters are more than enough.
+            # Get the file name extension:
+            file_extension = self.get_file_extension(file_name, decoded_file)
+
+            complete_file_name = "%s.%s" % (file_name, file_extension, )
+
+            data = ContentFile(decoded_file, name=complete_file_name)
+
+        return super(Base64ImageField, self).to_internal_value(data)
+
+    def get_file_extension(self, file_name, decoded_file):
+        import imghdr
+
+        extension = imghdr.what(file_name, decoded_file)
+        extension = "jpg" if extension == "jpeg" else extension
+
+        return extension
+
 class LicenseSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = License
@@ -99,6 +138,7 @@ class AuthUserWriteSerializer(serializers.ModelSerializer):
 
 
 class PlaceReadSerializer(gis_serializers.GeoModelSerializer):
+    account = serializers.HyperlinkedIdentityField(view_name='account-detail')
     class Meta:
         model = Place
         geo_field = 'location'
@@ -147,20 +187,19 @@ class MovableReadSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Movable
         fields = ('id', 'account', 'uid', 'reference_id', 'photo',
-                  'name', 'arrival_rssi', 'departure_rssi', 'metadata',
-                  'reported_missing', 'created_at', 'updated_at', 'updated_by', 'is_active')
+                  'name', 'metadata', 'reported_missing',
+                  'created_at', 'updated_at', 'updated_by', 'is_active')
 
 
 class MovableWriteSerializer(serializers.ModelSerializer):
-    company_id = serializers.CharField(source='account.company_id', required=True)
-    arrival_rssi = serializers.IntegerField(default=-75)
-    departure_rssi = serializers.IntegerField(default=-90)
+    company_id = serializers.CharField(source='account.company_id', required=False)
+    #photo = Base64ImageField(allow_empty_file=True, max_length=None, use_url=True, allow_null=True, write_only=True)
 
     class Meta:
         model = Movable
         fields = ('id', 'company_id', 'uid', 'reference_id', 'photo',
-                  'name', 'arrival_rssi', 'departure_rssi', 'metadata',
-                  'reported_missing', 'created_at', 'updated_at', 'updated_by', 'is_active')
+                  'name', 'metadata', 'reported_missing',
+                  'created_at', 'updated_at', 'is_active')
 
     def validate_company_id(self, value):
         try:
@@ -185,9 +224,7 @@ class MovableWriteSerializer(serializers.ModelSerializer):
         instance.reference_id = validated_data.get('reference_id', instance.reference_id)
         instance.photo = validated_data.get('photo', instance.photo)
         instance.name = validated_data.get('name', instance.name)
-        instance.arrival_rssi = validated_data.get('arrival_rssi', instance.arrival_rssi)
-        instance.departure_rssi = validated_data.get('departure_rssi', instance.departure_rssi)
-        instance.metadata = validated_data.get('name', instance.metadata)
+        instance.metadata = validated_data.get('metadata', instance.metadata)
         instance.reported_missing = validated_data.get('reported_missing', instance.reported_missing)
         instance.updated_by = validated_data.get('user')
         instance.is_active = validated_data.get('is_active', instance.is_active)
@@ -202,13 +239,13 @@ class SightingReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sighting
-        fields = ('id', 'movable', 'first_seen_at', 'last_seen_at',
+        fields = ('id', 'movable', 'watcher_uid', 'first_seen_at', 'last_seen_at',
                   'location', 'location_name', 'rssi', 'battery', 'metadata', 'confirmed',
                   'confirmed_by', 'confirmed_at', 'comment', 'commented_by', 'commented_at', 'is_current')
 
 class SightingWriteSerializer(serializers.ModelSerializer):
     movable_uid = serializers.CharField(source='movable.uid', required=True)
-    location = serializers.CharField(allow_blank=True, required=False)
+    location = serializers.CharField(allow_null=True, required=False)
     battery = serializers.IntegerField(allow_null=True, required=False)
     rssi = serializers.IntegerField(allow_null=True, required=False)
     confirmed = serializers.BooleanField(default=False)

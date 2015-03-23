@@ -15,7 +15,8 @@
 
         vm.error = undefined;
         vm.sighting = undefined;
-        vm.image = undefined;
+        vm.imagePreview = undefined;
+        vm.imageToUpload = undefined;
 
         activate();
 
@@ -23,7 +24,7 @@
             var user = Authentication.getAuthenticatedUser();
             if (user) {
                 vm.sighting = data;
-                vm.image = vm.sighting.movable.photo;
+                vm.imagePreview = vm.sighting.movable.photo;
             }
             else {
                 $location.url('/');
@@ -35,41 +36,40 @@
                 var fileReader = new FileReader();
                 fileReader.onload = function (e) {
                     $scope.$apply(function () {
-                        vm.image = fileReader.result;
+                        vm.imagePreview = fileReader.result;
+                        vm.imageToUpload = files[0];
                     });
                 };
                 fileReader.readAsDataURL(files[0]);
             } else {
-                vm.image = null;
+                vm.imagePreview = null;
             }
 
         }
 
         function save() {
-            Movables.upload(vm.sighting.movable, vm.image).then(successFn, errorFn, progressFn);
+            vm.sighting.movable.photo = undefined;
+            Movables.update(vm.sighting.movable, vm.imageToUpload).then(movableSuccessFn, movableErrorFn, movableProgressFn);
 
-            function successFn(data, status, headers, config) {
-                vm.sightings.movable.photo = data;
+            function movableSuccessFn(data, status, headers, config) {
+                vm.sighting.movable_uid = vm.sighting.movable.uid;
+                Sightings.update(vm.sighting).then(sightingSuccessFn, sightingErrorFn);
+
+                function sightingSuccessFn(data, status, headers, config) {
+                    $modalInstance.close(vm.sighting);
+                }
+
+                function sightingErrorFn(data, status, headers, config) {
+                    vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
+                }
             }
 
-            function errorFn(data, status, headers, config) {
+            function movableErrorFn(data, status, headers, config) {
                 vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
             }
 
-            function progressFn(evt) {
+            function movableProgressFn(evt) {
                 //Do nothing for now...
-            }
-
-            Movables.update(vm.sighting.movable);
-
-            Sightings.add(vm.sighting).then(successFn, errorFn);
-
-            function successFn(data, status, headers, config) {
-                $modalInstance.close(vm.sighting);
-            }
-
-            function errorFn(data, status, headers, config) {
-                vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
             }
         }
 

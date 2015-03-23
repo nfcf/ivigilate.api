@@ -6,43 +6,47 @@
             <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
             <div class="row">
                 <div class="col-md-2">
-                    <label for="fromDate">From</label>
+                    <label for="filterDate">Date</label>
+                </div>
+                <div class="col-md-3">
+                    <label for="filterPlace">Place</label>
                 </div>
                 <div class="col-md-2">
-                    <label for="toDate">To</label>
+                    <label for="filterSchedule">Schedule</label>
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-2">
                     <div class="input-group">
-                        <input id="fromDate" type="text" class="form-control input-sm" datepicker-popup="yyyy-MM-dd"
-                               datepicker-options="vm.datepickerOptions" max-date="vm.fromDateMax"
+                        <input id="filterDate" type="text" class="form-control input-sm" datepicker-popup="yyyy-MM-dd"
+                               datepicker-options="vm.datepickerOptions" max-date="vm.filterDateMax"
                                show-button-bar="false"
-                               is-open="vm.fromDateIsOpen" ng-model="vm.fromDate" placeholder="YYYY-MM-DD" readonly/>
+                               is-open="vm.filterDateIsOpen" ng-model="vm.filterDate" placeholder="YYYY-MM-DD"
+                               readonly/>
                         <span class="input-group-btn">
                             <button type="button" class="btn btn-sm btn-default"
-                                    ng-click="vm.openDatePicker($event, 'fromDateIsOpen')">
-                                <i class="glyphicon glyphicon-calendar"></i>
-                            </button>
-                        </span>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="input-group">
-                        <input id="toDate" type="text" class="form-control input-sm" datepicker-popup="yyyy-MM-dd"
-                               datepicker-options="vm.datepickerOptions" max-date="vm.toDateMax" show-button-bar="false"
-                               is-open="vm.toDateIsOpen" ng-model="vm.toDate" placeholder="YYYY-MM-DD" readonly/>
-                        <span class="input-group-btn">
-                            <button type="button" class="btn btn-sm btn-default"
-                                    ng-click="vm.openDatePicker($event, 'toDateIsOpen')">
+                                    ng-click="vm.openDatePicker($event, 'filterDateIsOpen')">
                                 <i class="glyphicon glyphicon-calendar"></i></button>
                         </span>
                     </div>
                 </div>
-                <div class="col-md-8">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <ui-select multiple ng-model="vm.filterPlaces" theme="select2" ng-disabled="disabled" style="width: 100%">
+                            <ui-select-match placeholder="Select place...">{{$item.name}}</ui-select-match>
+                            <ui-select-choices
+                                    repeat="place in vm.places | propsFilter: {name: $select.search, reference_id: $select.search}">
+                                <div ng-bind-html="place.name | highlight: $select.search"></div>
+                                <small ng-bind-html="place.reference_id | highlight: $select.search"/>
+                            </ui-select-choices>
+                        </ui-select>
+                    </div>
+                </div>
+                <div class="col-md-7">
                     <div class="input-group pull-right">
                         <button ng-click="vm.addSighting()" class="btn btn-success btn-sm">
-                            <span class="glyphicon glyphicon-plus"></span> Add</button>
+                            <span class="glyphicon glyphicon-plus"></span> Add
+                        </button>
                     </div>
                 </div>
             </div>
@@ -56,7 +60,7 @@
                         <th>Photo</th>
                         <th st-sort="movable.reference_id">Reference ID</th>
                         <th st-sort="movable.name">Name</th>
-                        <th st-sort="last_seen_at">Last Seen At</th>
+                        <th st-sort="last_seen_at">Last Seen</th>
                         <th class="text-center" st-sort="battery">Battery</th>
                         <th st-sort="comment">Comment</th>
                         <th st-sort="confirmed">Confirmed</th>

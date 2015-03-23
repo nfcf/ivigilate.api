@@ -28,8 +28,16 @@
             return $http.get('/api/v1/sightings/' + id + '/');
         }
 
-        function list(toDate) {
-            return $http.get('/api/v1/sightings/', {params: {toDate: toDate}});
+        function list(filterDate, filterPlaces) {
+            var filterPlacesUids = undefined;
+            if (filterPlaces != null && filterPlaces.length > 0) {
+                filterPlacesUids = [];
+                filterPlaces.forEach(function(place) {
+                    filterPlacesUids.push(place.uid);
+                })
+            }
+            return $http.get('/api/v1/sightings/',
+                {params: {filterDate: filterDate, filterPlaces: filterPlacesUids !== undefined ? filterPlacesUids : undefined}});
         }
 
         function add(sighting) {

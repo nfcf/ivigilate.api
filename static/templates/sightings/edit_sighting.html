@@ -1,69 +1,62 @@
-<form role="form" ng-submit="vm.save()">
-    <div class="modal-header">
-        <button ng-click="vm.cancel()" class="close">×</button>
-        <h3 class="modal-title">Edit Sighting</h3>
-    </div>
-    <div class="modal-body">
-        <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
+<div class="modal-header">
+    <button ng-click="vm.cancel()" class="close">×</button>
+    <h3 class="modal-title">Edit Sighting</h3>
+</div>
+<div class="modal-body">
+    <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
 
-        <div class="row">
-            <div class="col-sm-12 col-md-4">
-                <div>
-                    <label for="photo">Photo</label>
-                </div>
-                <div class="text-center">
-                    <img ng-src="{{ vm.image }}" height="128px"/>
-                </div>
-                <br />
-                <div class="col-sm-6 col-sm-offset-2">
-                    <input type="file" id="photo" ng-file-select ng-model="vm.image"
-                           ng-file-change="vm.fileChanged($files)" ng-capture="camera" allow-dir="false"
-                           accept="image/*">
+    <div class="row">
+        <div class="col-sm-12 col-md-4">
+            <div>
+                <label for="photo">Photo</label>
+            </div>
+            <div class="text-center">
+                <img ng-src="{{ vm.imagePreview }}" height="128px"/>
+            </div>
+            <br/>
 
-                    <!--<div ng-file-drop ng-file-select ng-model="vm.image" class="drop-box" drag-over-class="dragover"
-                         ng-capture="'camera'" allow-dir="false" accept="image/*">Drop an image here or click to upload</div>
-                    <div ng-no-file-drop>File Drag/Drop is not supported for this browser</div>-->
+            <div class="col-sm-6 col-sm-offset-2">
+                <input type="file" id="photo" ng-file-select ng-model="vm.imagePreview"
+                       ng-file-change="vm.fileChanged($files)" ng-capture="camera" allow-dir="false"
+                       accept="image/*">
+
+                <!--<div ng-file-drop ng-file-select ng-model="vm.image" class="drop-box" drag-over-class="dragover"
+                     ng-capture="'camera'" allow-dir="false" accept="image/*">Drop an image here or click to upload</div>
+                <div ng-no-file-drop>File Drag/Drop is not supported for this browser</div>-->
+            </div>
+        </div>
+        <div class="col-sm-12 col-md-8">
+            <div class="col-sm-12">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" class="form-control" id="name"
+                           ng-model="vm.sighting.movable.name" placeholder="Name"/>
                 </div>
             </div>
-            <div class="col-sm-12 col-md-8">
-                <div class="col-sm-6 col-md-6">
-                    <div class="form-group">
-                        <label for="first_name">First Name</label>
-                        <input type="text" class="form-control" id="first_name"
-                               ng-model="vm.sighting.movable.first_name" placeholder="First Name"/>
-                    </div>
-                </div>
-                <div class="col-sm-6 col-md-6">
-                    <div class="form-group">
-                        <label for="last_name">Last Name</label>
-                        <input type="text" class="form-control" id="last_name" ng-model="vm.sighting.movable.last_name"
-                               placeholder="Last Name"/>
-                    </div>
-                </div>
-                <div class="col-md-12">
-                    <div class="form-group">
-                        <label for="comment">Comment</label>
+            <div class="col-sm-12">
+                <div class="form-group">
+                    <label for="comment">Comment</label>
                         <textarea type="text" class="form-control" id="comment" ng-model="vm.sighting.comment"
                                   required/>
-                    </div>
                 </div>
-                <div class="col-sm-6 col-md-6">
-                    <div class="form-group">
-                        <label><input type="checkbox" id="is_active" ng-model="vm.sighting.movable.is_active"/> Is Movable Active?</label>
-                    </div>
+            </div>
+            <div class="col-sm-6 col-md-6">
+                <div class="form-group">
+                    <label><input type="checkbox" id="is_active" ng-model="vm.sighting.movable.is_active"/> Is Movable
+                        Active?</label>
                 </div>
-                <div class="col-sm-6 col-md-6">
-                    <div class="form-group">
-                        <label><input type="checkbox" id="is_confirmed" ng-model="vm.sighting.is_confirmed"/> Confirm Sighting</label>
-                    </div>
+            </div>
+            <div class="col-sm-6 col-md-6">
+                <div class="form-group">
+                    <label><input type="checkbox" id="is_confirmed" ng-model="vm.sighting.is_confirmed"/> Confirm
+                        Sighting</label>
                 </div>
             </div>
         </div>
-
     </div>
+</div>
 
-    <div class="modal-footer">
-        <button ng-click="vm.cancel()" class="btn btn-default">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save</button>
-    </div>
-</form>
+<div class="modal-footer">
+    <button ng-click="vm.cancel()" class="btn btn-default">Cancel</button>
+    <button ng-click="vm.save()" class="btn btn-primary">Save</button>
+</div>

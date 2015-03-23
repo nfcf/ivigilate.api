@@ -5,9 +5,9 @@
         .module('ivigilate.sightings.controllers')
         .controller('SightingsController', SightingsController);
 
-    SightingsController.$inject = ['$location', '$scope', '$filter', '$interval', 'Authentication', 'Sightings', 'dialogs'];
+    SightingsController.$inject = ['$location', '$scope', '$filter', '$interval', 'Authentication', 'Places', 'Sightings', 'dialogs'];
 
-    function SightingsController($location, $scope, $filter, $interval, Authentication, Sightings, dialogs) {
+    function SightingsController($location, $scope, $filter, $interval, Authentication, Places, Sightings, dialogs) {
         var vm = this;
         vm.refresh = refresh;
         vm.addSighting = addSighting;
@@ -15,8 +15,11 @@
         vm.openDatePicker = openDatePicker;
 
         vm.sightings = undefined;
-        vm.fromDate = vm.toDate = vm.fromDateMax = vm.toDateMax = $filter('date')(new Date(), 'yyyy-MM-dd');
-        vm.fromDateIsOpen = vm.toDateIsOpen = false;
+        vm.filterDate = vm.filterDateMax = $filter('date')(new Date(), 'yyyy-MM-dd');
+        vm.filterDateIsOpen = false;
+
+        vm.places = undefined;
+        vm.filterPlaces = [];
 
         vm.datepickerOptions = {
             showWeeks: false,
@@ -28,21 +31,26 @@
         function activate() {
             var user = Authentication.getAuthenticatedUser();
             if (user) {
-                $interval(refresh, 10000);
+                Places.list().then(placesSuccessFn, placesErrorFn);
 
-                $scope.$watch('vm.fromDate', function () {
-                    vm.fromDate = $filter('date')(vm.fromDate, 'yyyy-MM-dd');
-                    refreshSightingsWithFromDate();
-                });
+                function placesSuccessFn(data, status, headers, config) {
+                    vm.places = data.data;
+                }
 
-                $scope.$watch('vm.toDate', function () {
-                    vm.toDate = $filter('date')(vm.toDate, 'yyyy-MM-dd');
-                    vm.fromDateMax = vm.toDate;
-                    if (vm.toDate < vm.fromDate) {
-                        vm.fromDate = vm.toDate;
-                    }
+                function placesErrorFn(data, status, headers, config) {
+                    vm.error = 'Failed to get Places with error: ' + JSON.stringify(data.data);
+                }
+
+                $scope.$watch('vm.filterDate', function () {
+                    vm.filterDate = $filter('date')(vm.filterDate, 'yyyy-MM-dd');
                     refresh();
                 });
+
+                $scope.$watch('vm.filterPlaces', function () {
+                    refresh();
+                });
+
+                $interval(refresh, 10000);
             }
             else {
                 $location.url('/');
@@ -50,8 +58,8 @@
         }
 
         function refresh() {
-            if (vm.toDate) {
-                Sightings.list(vm.toDate + ' 23:59:59').then(successFn, errorFn);
+            if (vm.filterDate) {
+                Sightings.list(vm.filterDate + ' 23:59:59', vm.filterPlaces).then(successFn, errorFn);
             }
 
             function successFn(data, status, headers, config) {

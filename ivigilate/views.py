@@ -189,7 +189,7 @@ class MovableViewSet(viewsets.ModelViewSet):
         return MovableWriteSerializer
 
     def get_permissions(self):
-        if self.request.method in ['HEAD', 'OPTIONS','POST']:
+        if self.request.method in ['HEAD', 'OPTIONS', 'POST']:
             return (permissions.AllowAny(),)
         return (permissions.IsAuthenticated(), )
 
@@ -213,10 +213,15 @@ class MovableViewSet(viewsets.ModelViewSet):
     def update(self, request, pk=None):
         user = request.user if not isinstance(request.user, AnonymousUser) else None
         instance = self.queryset.get(id=pk)
+        #if self.request.FILES.get('file'):
+        #    instance.photo = self.request.FILES.get('file')
+
         serializer = self.get_serializer_class()(instance, data=request.data)
 
         if serializer.is_valid():
             if serializer.save(user=user):
+                if 'photo' in serializer.validated_data:
+                    del serializer.validated_data['photo']
                 return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -238,14 +243,18 @@ class SightingViewSet(viewsets.ModelViewSet):
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         if account:
-            toDate = datetime.now(timezone.utc)
-            if request.query_params is not None and request.query_params.get('toDate') is not None:
-                toDate = request.query_params.get('toDate')
-            queryset = self.queryset.raw('SELECT * ' + \
+            filterDate = datetime.now(timezone.utc)
+            filterPlaces = None
+            if request.query_params is not None and request.query_params.get('filterDate') is not None:
+                filterDate = request.query_params.get('filterDate')
+            if request.query_params is not None and request.query_params.get('filterPlaces') is not None:
+                filterPlaces = request.query_params.getlist('filterPlaces')
+            queryset = self.queryset.raw('SELECT s.* ' + \
                                          'FROM ivigilate_sighting s JOIN ivigilate_movable m ON s.movable_id = m.id ' + \
-                                         'WHERE m.account_id = %s AND s.last_seen_at <= %s AND s.id IN (' + \
+                                         'WHERE m.account_id = %s AND s.last_seen_at <= %s ' + \
+                                         'AND (%s OR s.watcher_uid = ANY(%s)) AND s.id IN (' + \
 	                                     ' SELECT MAX(id) FROM ivigilate_sighting GROUP BY movable_id' + \
-                                         ') ORDER BY s.last_seen_at DESC', [account.id, toDate])
+                                         ') ORDER BY s.last_seen_at DESC', [account.id, filterDate, filterPlaces is None, filterPlaces])
             #page = self.paginate_queryset(queryset)
             #serializer = self.get_pagination_serializer(page)
             serializer = self.get_serializer_class()(queryset, many=True, context={'request': request})
@@ -257,7 +266,7 @@ class SightingViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         try:
-            queryset = self.queryset.get(id=pk,movable__account=account)
+            queryset = self.queryset.get(id=pk, movable__account=account)
         except Sighting.DoesNotExist:
             return Response('Sighting does not exist or is not associated with the current logged on account.'
                             , status=status.HTTP_400_BAD_REQUEST)

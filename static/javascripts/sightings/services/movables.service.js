@@ -13,8 +13,7 @@
             destroy: destroy,
             get: get,
             list: list,
-            update: update,
-            upload: upload
+            update: update
         };
         return Movables;
 
@@ -36,11 +35,13 @@
             return $http.put('/api/v1/movables/' + movable.id + '/', movable);
         }
 
-        function upload(movable, image) {
+        function update(movable, image) {
             return $upload.upload({
                 url: '/api/v1/movables/' + movable.id + '/',
+                method: 'PUT',
                 fields: movable,
-                file: image
+                file: image,
+                fileFormDataName: 'photo'
             });
         }
     }
