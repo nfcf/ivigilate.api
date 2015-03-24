@@ -206,8 +206,8 @@ class Movable(models.Model):
 class Sighting(models.Model):
     movable = models.ForeignKey(Movable)
     watcher_uid = models.CharField(max_length=36, db_index=True)
-    first_seen_at = models.DateTimeField(editable=False)
-    last_seen_at = models.DateTimeField(editable=False)
+    first_seen_at = models.DateTimeField()
+    last_seen_at = models.DateTimeField()
     location = models.PointField(null=True, blank=True)
     rssi = models.IntegerField(null=True, blank=True)
     battery = models.IntegerField(null=True, blank=True)
@@ -238,8 +238,10 @@ class Sighting(models.Model):
     def save(self, *args, **kwargs):
         now = datetime.now(timezone.utc)
         if not self.id:
-            self.first_seen_at = now
-            self.last_seen_at = now
+            if not self.first_seen_at:
+                self.first_seen_at = now
+            if not self.last_seen_at:
+                self.last_seen_at = now
         else:
             self.last_seen_at = now
             if self.confirmed and self.confirmed_by and not self.confirmed_at:

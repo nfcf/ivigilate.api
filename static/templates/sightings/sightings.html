@@ -9,7 +9,7 @@
                     <label for="filterDate">Date</label>
                 </div>
                 <div class="col-md-3">
-                    <label for="filterPlace">Place</label>
+                    <label for="filterPlace">Place(s)</label>
                 </div>
                 <div class="col-md-2">
                     <label for="filterSchedule">Schedule</label>
@@ -33,7 +33,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <ui-select multiple ng-model="vm.filterPlaces" theme="select2" ng-disabled="disabled" style="width: 100%">
-                            <ui-select-match placeholder="Select place...">{{$item.name}}</ui-select-match>
+                            <ui-select-match placeholder="Select place(s)...">{{$item.name}}</ui-select-match>
                             <ui-select-choices
                                     repeat="place in vm.places | propsFilter: {name: $select.search, reference_id: $select.search}">
                                 <div ng-bind-html="place.name | highlight: $select.search"></div>
@@ -55,7 +55,7 @@
                 <table st-table="vm.displayedSightings" st-safe-src="vm.sightings" class="table table-striped">
                     <thead>
                     <tr>
-                        <th st-sort="wasRecentlySeen" st-sort-default="true"><span
+                        <th st-sort="satisfyFilter" st-sort-default="true"><span
                                 class="glyphicon glyphicon-eye-open"></span></th>
                         <th>Photo</th>
                         <th st-sort="movable.reference_id">Reference ID</th>
@@ -73,8 +73,8 @@
                     </thead>
                     <tbody>
                     <tr ng-repeat="sighting in vm.displayedSightings"
-                        ng-class="{'danger': !sighting.wasRecentlySeen}">
-                        <td class="valign-middle text-center"><input type="checkbox" ng-model="sighting.wasRecentlySeen"
+                        ng-class="{'danger': !sighting.satisfyFilter}">
+                        <td class="valign-middle text-center"><input type="checkbox" ng-model="sighting.satisfyFilter"
                                                                      disabled></td>
                         <td style="height:56px"><img ng-src="{{ sighting.movable.photo }}" height="40px"
                                                      ng-if="sighting.movable.photo"/></td>
@@ -82,7 +82,7 @@
                         <td class="valign-middle">{{ sighting.movable.name }}</td>
                         <td class="valign-middle">{{ sighting.last_seen_at | relativeDate }}
                             at {{ sighting.location_name }}</td>
-                        <td class="valign-middle text-center">{{ sighting.battery }}</td>
+                        <td class="valign-middle text-center">{{ sighting.battery || 'N/A' }}</td>
                         <td class="valign-middle">{{ sighting.comment }}</td>
                         <td class="valign-middle text-center"><input type="checkbox" ng-model="sighting.confirmed"
                                                                      disabled></td>

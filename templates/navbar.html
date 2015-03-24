@@ -16,6 +16,7 @@
 
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-right">
+                <li ng-cloak ng-if="!!vm.user"><a href="/sightings">Sightings</a></li>
                 <li ng-cloak ng-if="!!vm.user"><a href="/places">Places</a></li>
                 <li ng-cloak ng-if="!!vm.user" class="dropdown">
                     <a class="dropdown-toggle" href="">

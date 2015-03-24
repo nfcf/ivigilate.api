@@ -247,13 +247,13 @@ class SightingViewSet(viewsets.ModelViewSet):
             filterPlaces = None
             if request.query_params is not None and request.query_params.get('filterDate') is not None:
                 filterDate = request.query_params.get('filterDate')
-            if request.query_params is not None and request.query_params.get('filterPlaces') is not None:
-                filterPlaces = request.query_params.getlist('filterPlaces')
+            #if request.query_params is not None and request.query_params.get('filterPlaces') is not None:
+            #    filterPlaces = request.query_params.getlist('filterPlaces')
             queryset = self.queryset.raw('SELECT s.* ' + \
                                          'FROM ivigilate_sighting s JOIN ivigilate_movable m ON s.movable_id = m.id ' + \
                                          'WHERE m.account_id = %s AND s.last_seen_at <= %s ' + \
-                                         'AND (%s OR s.watcher_uid = ANY(%s)) AND s.id IN (' + \
-	                                     ' SELECT MAX(id) FROM ivigilate_sighting GROUP BY movable_id' + \
+                                         'AND (%s OR s.watcher_uid = ANY(%s)) AND s.last_seen_at IN (' + \
+	                                     ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY movable_id' + \
                                          ') ORDER BY s.last_seen_at DESC', [account.id, filterDate, filterPlaces is None, filterPlaces])
             #page = self.paginate_queryset(queryset)
             #serializer = self.get_pagination_serializer(page)

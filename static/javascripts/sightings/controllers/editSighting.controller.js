@@ -5,9 +5,9 @@
         .module('ivigilate.places.controllers')
         .controller('EditSightingController', EditSightingController);
 
-    EditSightingController.$inject = ['$location', '$scope', '$modalInstance', 'data', 'Authentication', 'Movables', 'Sightings'];
+    EditSightingController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data', 'Authentication', 'Movables', 'Sightings'];
 
-    function EditSightingController($location, $scope, $modalInstance, data, Authentication, Movables, Sightings) {
+    function EditSightingController($location, $scope, $timeout, $modalInstance, data, Authentication, Movables, Sightings) {
         var vm = this;
         vm.fileChanged = fileChanged;
         vm.cancel = cancel;
@@ -36,8 +36,10 @@
                 var fileReader = new FileReader();
                 fileReader.onload = function (e) {
                     $scope.$apply(function () {
-                        vm.imagePreview = fileReader.result;
                         vm.imageToUpload = files[0];
+                        $timeout(function () {
+                            vm.imagePreview = fileReader.result;
+                        }, 250);
                     });
                 };
                 fileReader.readAsDataURL(files[0]);

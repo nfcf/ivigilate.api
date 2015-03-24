@@ -249,13 +249,11 @@ class SightingWriteSerializer(serializers.ModelSerializer):
     battery = serializers.IntegerField(allow_null=True, required=False)
     rssi = serializers.IntegerField(allow_null=True, required=False)
     confirmed = serializers.BooleanField(default=False)
-    is_current = serializers.BooleanField(default=True)
 
     class Meta:
         model = Sighting
-        fields = ('id', 'movable_uid', 'watcher_uid',
-                  'location', 'rssi', 'battery', 'metadata',
-                  'confirmed', 'comment', 'is_current')
+        fields = ('id', 'movable_uid', 'watcher_uid', 'first_seen_at', 'last_seen_at',
+                  'location', 'rssi', 'battery', 'metadata', 'confirmed', 'comment')
 
 
     def validate_movable_uid(self, value):
@@ -285,20 +283,24 @@ class SightingWriteSerializer(serializers.ModelSerializer):
         except Movable.DoesNotExist:
             raise serializers.ValidationError('Invalid Movable UID.')
         watcher_uid = validated_data.get('watcher_uid')
+        first_seen_at = validated_data.get('first_seen_at')
+        last_seen_at = validated_data.get('last_seen_at')
         location = validated_data.get('location')
         rssi = validated_data.get('rssi')
         battery = validated_data.get('battery')
         metadata = validated_data.get('metadata') if validated_data.get('metadata') else ''
         confirmed = validated_data.get('confirmed')
         confirmed_by = validated_data.get('user') if validated_data.get('confirmed') else None
+        if validated_data.get('comment') is None:
+            raise serializers.ValidationError('Comment field cannot be empty.')
         comment = validated_data.get('comment')
         commented_by = validated_data.get('user') if validated_data.get('comment') else None
-        is_current = validated_data.get('is_current')
 
         return Sighting.objects.create(movable=movable, watcher_uid=watcher_uid, location=location,
+                                       first_seen_at=first_seen_at, last_seen_at=last_seen_at,
                                        rssi=rssi, battery=battery, metadata=metadata,
                                        confirmed=confirmed, confirmed_by=confirmed_by, comment=comment,
-                                       commented_by=commented_by, is_current=is_current)
+                                       commented_by=commented_by)
 
     def update(self, instance, validated_data):
         instance.location = validated_data.get('location', instance.location)

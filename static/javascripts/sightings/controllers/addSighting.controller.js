@@ -14,7 +14,6 @@
         vm.save = save;
 
         vm.error = undefined;
-        vm.sighting = undefined;
         vm.movables = undefined;
         vm.movable = undefined;
         vm.places = undefined;
@@ -24,6 +23,7 @@
         vm.seen_at_date = vm.maxDate = $filter('date')(new Date(), 'yyyy-MM-dd');
         vm.seen_at = new Date();
         vm.duration = new Date(0, 0, 1, 0, 0);
+        vm.comment = undefined;
 
         vm.datepickerOptions = {
             showWeeks: false,
@@ -35,7 +35,7 @@
         function activate() {
             var user = Authentication.getAuthenticatedUser();
             if (user) {
-                populateDialog(data);
+                populateDialog();
 
                 $scope.$watch('vm.seen_at_date', function () {
                     var dateParts = (vm.seen_at_date instanceof Date) ? vm.seen_at_date.toISOString().split('-') : vm.seen_at_date.split('-');
@@ -48,8 +48,6 @@
         }
 
         function populateDialog(data) {
-            vm.sighting = data;
-
             Movables.list().then(movablesSuccessFn, movablesErrorFn);
 
             function movablesSuccessFn(data, status, headers, config) {
@@ -78,12 +76,15 @@
         }
 
         function save() {
-            vm.sighting.movable_uid = vm.movable.uid;
-            vm.sighting.watcher_uid = vm.watcher.uid;
-            vm.sighting.first_seen_at = convertToUTC(vm.seen_at);
-            vm.sighting.last_seen_at = convertToUTC(addTime(vm.seen_at, vm.duration.getHours(), vm.duration.getMinutes()));
+            var sighting = {};
+            sighting.movable_uid = vm.movable.uid;
+            sighting.watcher_uid = vm.watcher.uid;
+            sighting.first_seen_at = convertToUTC(vm.seen_at);
+            sighting.last_seen_at = convertToUTC(addTime(vm.seen_at, vm.duration.getHours(), vm.duration.getMinutes()));
+            sighting.comment = vm.comment;
+            sighting.confirmed = true;
 
-            Sightings.add(vm.sighting).then(successFn, errorFn);
+            Sightings.add(sighting).then(successFn, errorFn);
 
             function successFn(data, status, headers, config) {
                 $modalInstance.close(vm.sighting);

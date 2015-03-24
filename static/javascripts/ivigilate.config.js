@@ -28,7 +28,7 @@
 
         $translateProvider.translations('en', {
             just_now: 'just now',
-            seconds_ago: '{time}} seconds ago',
+            seconds_ago: '{{time}} seconds ago',
             a_minute_ago: 'a minute ago',
             minutes_ago: '{{time}} minutes ago',
             an_hour_ago: 'an hour ago',

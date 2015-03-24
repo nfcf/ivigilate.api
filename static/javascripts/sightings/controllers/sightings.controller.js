@@ -33,14 +33,6 @@
             if (user) {
                 Places.list().then(placesSuccessFn, placesErrorFn);
 
-                function placesSuccessFn(data, status, headers, config) {
-                    vm.places = data.data;
-                }
-
-                function placesErrorFn(data, status, headers, config) {
-                    vm.error = 'Failed to get Places with error: ' + JSON.stringify(data.data);
-                }
-
                 $scope.$watch('vm.filterDate', function () {
                     vm.filterDate = $filter('date')(vm.filterDate, 'yyyy-MM-dd');
                     refresh();
@@ -55,6 +47,14 @@
             else {
                 $location.url('/');
             }
+
+            function placesSuccessFn(data, status, headers, config) {
+                vm.places = data.data;
+            }
+
+            function placesErrorFn(data, status, headers, config) {
+                vm.error = 'Failed to get Places with error: ' + JSON.stringify(data.data);
+            }
         }
 
         function refresh() {
@@ -65,7 +65,7 @@
             function successFn(data, status, headers, config) {
                 vm.error = null;
                 vm.sightings = data.data;
-                refreshSightingsWithFromDate();
+                applyFilterToSightings();
             }
 
             function errorFn(data, status, headers, config) {
@@ -89,10 +89,19 @@
             });
         }
 
-        function refreshSightingsWithFromDate() {
+        function applyFilterToSightings() {
             if (vm.sightings) {
+                var filterPlacesUids = undefined;
+                if (vm.filterPlaces != null && vm.filterPlaces.length > 0) {
+                    filterPlacesUids = [];
+                    vm.filterPlaces.forEach(function (place) {
+                        filterPlacesUids.push(place.uid);
+                    })
+                }
+
                 for (var i = 0; i < vm.sightings.length; i++) {
-                    vm.sightings[i].wasRecentlySeen = vm.sightings[i].last_seen_at > vm.fromDate;
+                    vm.sightings[i].satisfyFilter = vm.sightings[i].last_seen_at >= vm.filterDate &&
+                                                    (filterPlacesUids === undefined || filterPlacesUids.indexOf(vm.sightings[i].watcher_uid) >= 0);
                 }
             }
         }
