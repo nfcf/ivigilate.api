@@ -41,6 +41,8 @@
 
                         vm.marker.coords.latitude = vm.map.center.latitude;
                         vm.marker.coords.longitude = vm.map.center.longitude;
+
+                        vm.place.location.coordinates = [vm.marker.coords.longitude, vm.marker.coords.latitude];
                     }
                 }
             }
@@ -65,11 +67,17 @@
 
         function populateDialog(data, user) {
             vm.place = data;
+            if (!vm.place.location) {
+                vm.place.location = {
+                    'type': 'Point',
+                    'coordinates': [-40.70744491, 34.698986644] //Defaults to the middle of the ocean
+                };
+            }
 
             vm.map = {
                 center: {
-                    longitude: vm.place.location ? vm.place.location.coordinates[0] : "-40.70744491",
-                    latitude: vm.place.location ? vm.place.location.coordinates[1] : "34.698986644"
+                    longitude: vm.place.location.coordinates[0],
+                    latitude: vm.place.location.coordinates[1]
                 }, zoom: 8
             };
             vm.marker.coords.latitude = vm.map.center.latitude;

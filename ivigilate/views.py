@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import AnonymousUser
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.generic.base import TemplateView
 from django.utils.decorators import method_decorator
 from rest_framework.response import Response
@@ -275,8 +275,8 @@ class SightingViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request):
-        serializer = self.get_serializer_class()(data=request.data)
         user = request.user if not isinstance(request.user, AnonymousUser) else None
+        serializer = self.get_serializer_class()(data=request.data)
 
         if serializer.is_valid():
             if serializer.save(user=user):
@@ -294,4 +294,3 @@ class SightingViewSet(viewsets.ModelViewSet):
                 return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-

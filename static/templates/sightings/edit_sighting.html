@@ -26,20 +26,27 @@
             </div>
         </div>
         <div class="col-xs-12 col-md-8">
-            <div class="col-xs-12 col-md-4">
+            <div class="col-xs-12 col-md-6">
+                <div class="form-group">
+                    <label for="reference_id">Name</label>
+                    <input type="text" class="form-control" id="reference_id"
+                           ng-model="vm.sighting.movable.reference_id" placeholder="Reference to another system"/>
+                </div>
+            </div>
+            <div class="col-xs-12 col-md-6">
                 <div class="form-group">
                     <label for="name">Name</label>
                     <input type="text" class="form-control" id="name"
                            ng-model="vm.sighting.movable.name" placeholder="Name"/>
                 </div>
             </div>
-            <div class="col-xs-12 col-md-4">
+            <div class="col-xs-12 col-md-6">
                 <div class="form-group">
                     <label for="is_active">Is Active?</label><br/>
                     <toggle-switch id="is_active" ng-model="vm.sighting.movable.is_active"></toggle-switch>
                 </div>
             </div>
-            <div class="col-xs-12 col-md-4">
+            <div class="col-xs-12 col-md-6">
                 <div class="form-group">
                     <label for="reported_missing">Report Missing</label><br/>
                     <toggle-switch id="reported_missing"

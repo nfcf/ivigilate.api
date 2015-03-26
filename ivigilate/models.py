@@ -243,7 +243,8 @@ class Sighting(models.Model):
             if not self.last_seen_at:
                 self.last_seen_at = now
         else:
-            self.last_seen_at = now
+            if not self.last_seen_at:
+                self.last_seen_at = now
             if self.confirmed and self.confirmed_by and not self.confirmed_at:
                 self.confirmed_at = now
             if self.comment and self.commented_by and not self.commented_at:
