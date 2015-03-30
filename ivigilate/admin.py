@@ -37,7 +37,7 @@ class UserCreationForm(forms.ModelForm):
         fields = ('company_id', 'email')
 
     def clean_company_id(self):
-        company_id = self.cleaned_data["company_id"]
+        company_id = self.cleaned_data['company_id']
         try:
             account = Account.objects.get(company_id=company_id)
         except Account.DoesNotExist:
@@ -46,17 +46,17 @@ class UserCreationForm(forms.ModelForm):
 
     def clean_password2(self):
         # Check that the two password entries match
-        password1 = self.cleaned_data.get("password")
-        password2 = self.cleaned_data.get("confirm_password")
+        password1 = self.cleaned_data.get('password')
+        password2 = self.cleaned_data.get('confirm_password')
         if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("Passwords don't match.")
+            raise forms.ValidationError('Passwords don\'t match.')
         return password2
 
     def save(self, commit=True):
         # Save the provided password in hashed format
         user = super(UserCreationForm, self).save(commit=False)
-        user.account = self.cleaned_data["company_id"]
-        user.set_password(self.cleaned_data["password"])
+        user.account = self.cleaned_data['company_id']
+        user.set_password(self.cleaned_data['password'])
         if commit:
             user.save()
         return user
@@ -86,14 +86,14 @@ class AuthUserAdmin(UserAdmin):
     ordering = ('email', 'first_name', 'last_name')
     filter_horizontal = ()
 
-@admin.register(Event)
-class EventAdmin(admin.ModelAdmin):
-    pass
-
 @admin.register(Place)
 class PlaceAdmin(admin.ModelAdmin):
     pass
 
 @admin.register(Movable)
 class MovableAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(Event)
+class EventAdmin(admin.ModelAdmin):
     pass

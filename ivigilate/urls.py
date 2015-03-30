@@ -25,6 +25,7 @@ urlpatterns = patterns('',
     url(r'^api/v1/', include(router.urls)),
     url(r'^api/v1/login/$', views.LoginView.as_view(), name='login'),
     url(r'^api/v1/logout/$', views.LogoutView.as_view(), name='logout'),
+    url(r'^api/v1/sighting/$', views.AutoSightingView.as_view(), name='sighting'),
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),

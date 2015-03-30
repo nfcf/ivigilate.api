@@ -281,10 +281,7 @@ class SightingWriteSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = validated_data.get('user')
         movable_uid = validated_data.get('movable').get('uid')
-        try:
-            movable = Movable.objects.get(uid=movable_uid)
-        except Movable.DoesNotExist:
-            raise serializers.ValidationError('Invalid Movable UID.')
+        movable = Movable.objects.get(uid=movable_uid)
         watcher_uid = validated_data.get('watcher_uid')
         first_seen_at = validated_data.get('first_seen_at')
         last_seen_at = validated_data.get('last_seen_at')

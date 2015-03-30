@@ -294,3 +294,55 @@ class SightingViewSet(viewsets.ModelViewSet):
                 return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AutoSightingView(views.APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request, format=None):
+        data = json.loads(request.body.decode('utf-8'))
+
+        company_id = data.get('company_id', None)
+        account = None
+        watcher_uid = data.get('watcher_uid', None)
+        movable_uid = data.get('movable_uid', None)
+        movable = None
+        rssi = data.get('rssi', None)
+        battery = data.get('battery', None)
+
+        try:
+            account = Account.objects.get(company_id=company_id)
+        except Account.DoesNotExist:
+            return Response('Invalid Company ID.', status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            movable = Movable.objects.get(uid=movable_uid)
+        except Movable.DoesNotExist:
+            movable = Movable.objects.create(account=account, uid=movable_uid)
+
+        if '@' in watcher_uid:
+            try:
+                AuthUser.objects.get(email=watcher_uid)
+            except AuthUser.DoesNotExist:
+                return Response('Invalid Watcher UID (couldn\'t find corresponding user).', status=status.HTTP_400_BAD_REQUEST)
+        else:
+            try:
+                Place.objects.get(uid=watcher_uid)
+            except Place.DoesNotExist:
+                Place.objects.create(account=account, uid=watcher_uid)
+
+        sightings = Sighting.objects.filter(movable=movable, watcher_uid=watcher_uid, is_current=True).order_by('-last_seen_at')
+        if sightings:
+            sighting = sightings[0]
+            sighting.last_seen_at = None #this forces the datetime update
+            sighting.rssi = rssi
+            sighting.battery = battery
+            sighting.save()
+        else:
+            sighting = Sighting.objects.create(movable=movable, watcher_uid=watcher_uid, rssi=rssi, battery=battery)
+
+        if sighting:
+            serialized = SightingReadSerializer(sighting, context={'request': request})
+            return Response(serialized.data)
+        else:
+            return Response('Failed to create sighting.', status=status.HTTP_400_BAD_REQUEST)

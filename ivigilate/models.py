@@ -22,11 +22,13 @@ class Account(models.Model):
     def __str__(self):
         return '%s - %s' % (self.company_id, self.name)
 
+
 #class Geofence(models.Model):
-    #account_id = models.ForeignKey(Account)
+    #account = models.ForeignKey(Account)
     #geometry = GeopositionField()
     #radius_in_meters = models.DecimalField()
     #objects = models.GeoManager()
+
 
 class License(models.Model):
     TYPE = (
@@ -48,6 +50,7 @@ class License(models.Model):
         return "%s: type=%s, movables=%s, users=%s, from=%s, until=%s)" % \
                (self.account.company_id, self.type, self.max_movables,
                 self.max_users, self.valid_from.strftime('%Y-%m-%d'), self.valid_until.strftime('%Y-%m-%d'))
+
 
 class AuthUserManager(BaseUserManager):
     use_in_migrations = True
@@ -86,7 +89,7 @@ class AuthUser(AbstractBaseUser, PermissionsMixin):
     metadata = models.TextField(blank=True)
 
     is_staff = models.BooleanField(_('staff status'), default=False,
-        help_text=_('Designates whether the user can log into this admin site.'))
+        help_text=_('Designates whether the user can log into the admin site.'))
     is_active = models.BooleanField(_('active'), default=True,
         help_text=_('Designates whether this user should be treated as '
                     'active. Unselect this instead of deleting accounts.'))
@@ -119,26 +122,6 @@ class AuthUser(AbstractBaseUser, PermissionsMixin):
         else:
             self.updated_at = now
         super(AuthUser, self).save(*args, **kwargs)
-
-
-class Event(models.Model):
-    account = models.ForeignKey(Account)
-    reference_id = models.CharField(max_length=64)
-    name = models.CharField(max_length=64)
-    metadata = models.TextField(blank=True)
-    created_at = models.DateTimeField(editable=False)
-    updated_at = models.DateTimeField(editable=False)
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
-    is_active = models.BooleanField(default=True)
-
-    def save(self, *args, **kwargs):
-        now = datetime.now(timezone.utc)
-        if not self.id:
-            self.created_at = now
-            self.updated_at = now
-        else:
-            self.updated_at = now
-        super(Event, self).save(*args, **kwargs)
 
 
 class Place(models.Model):
@@ -183,8 +166,6 @@ class Movable(models.Model):
     name = models.CharField(max_length=64, blank=True)
     metadata = models.TextField(blank=True)
     reported_missing = models.BooleanField(default=False)
-    event_limits = models.ManyToManyField(Event, through='EventLimit', related_name='+')
-    event_occurrences = models.ManyToManyField(Event, through='EventOccurrence', related_name='+')
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(editable=False)
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
@@ -235,6 +216,9 @@ class Sighting(models.Model):
                 pass
         return location_name
 
+    def get_duration(self):
+        return (self.last_seen_at - self.first_seen_at).seconds
+
     def save(self, *args, **kwargs):
         now = datetime.now(timezone.utc)
         if not self.id:
@@ -251,9 +235,10 @@ class Sighting(models.Model):
                 self.commented_at = now
         super(Sighting, self).save(*args, **kwargs)
 
+
 class Schedule(models.Model):
     account = models.ForeignKey(Account)
-    group_id = models.CharField(max_length=64)
+    class_id = models.CharField(max_length=64)
     reference_id = models.CharField(max_length=64)
     name = models.CharField(max_length=64)
     starts_at = models.DateTimeField()
@@ -261,25 +246,42 @@ class Schedule(models.Model):
     metadata = models.TextField(blank=True)
     places = models.ManyToManyField(Place)
     movables = models.ManyToManyField(Movable)
-    events = models.ManyToManyField(Event)
-    sightings = models.ManyToManyField(Sighting)
 
-class EventTrigger(models.Model):
-    event = models.ForeignKey(Event)
-    movable = models.ForeignKey(Movable, null=True)
-    #depends_on = models.ForeignKey(EventTrigger)
-    is_occurring_after_X_seconds_since_last = models.IntegerField(default=0)
-    is_going_on_for_longer_than_X_seconds = models.IntegerField(default=0)
-    is_closed = models.BooleanField(default=False)
-    has_battery_level_below = models.IntegerField(default=0)
-    has_comment = models.BooleanField(default=False)
-    occurred_in_at_least_X_places = models.IntegerField(default=0) #for guard tours
+
+class Event(models.Model):
+    account = models.ForeignKey(Account)
+    reference_id = models.CharField(max_length=64, blank=True)
+    name = models.CharField(max_length=64)
+    movables = models.ManyToManyField(Movable, blank=True)
+    places = models.ManyToManyField(Place, blank=True)
+
+    sighting_is_current = models.BooleanField(default=True)
+    sighting_duration_in_seconds = models.IntegerField(default=0)
+    sighting_has_battery_below = models.IntegerField(default=0)
+    sighting_has_comment = models.BooleanField(default=False)
+
+    metadata = models.TextField(blank=True) #event actions: SMS, Email, REST call
+    created_at = models.DateTimeField(editable=False)
+    updated_at = models.DateTimeField(editable=False)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
+    is_active = models.BooleanField(default=True)
+
+    def save(self, *args, **kwargs):
+        now = datetime.now(timezone.utc)
+        if not self.id:
+            self.created_at = now
+            self.updated_at = now
+        else:
+            self.updated_at = now
+        super(Event, self).save(*args, **kwargs)
+
 
 class EventOccurrence(models.Model):
     event = models.ForeignKey(Event)
     movable = models.ForeignKey(Movable)
-    places = models.ManyToManyField(Place) #for guard tours
-    duration = models.TimeField()
+    schedule = models.ForeignKey(Schedule, null=True)
+    sightings = models.ManyToManyField(Sighting)
+    duration_in_seconds = models.IntegerField(default=0)
     occurred_at = models.DateTimeField(editable=False)
 
     def save(self, *args, **kwargs):
@@ -289,12 +291,12 @@ class EventOccurrence(models.Model):
 
         super(EventOccurrence, self).save(*args, **kwargs)
 
+
 class EventLimit(models.Model):
     event = models.ForeignKey(Event)
     movable = models.ForeignKey(Movable)
     occurrence_date_limit = models.DateTimeField()
     occurrence_count_limit = models.IntegerField()
-    occurrence_count = models.IntegerField(default=0) #not normalized but to make showing this on the UI easier
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(editable=False)
     is_active = models.BooleanField(default=True)
@@ -308,27 +310,4 @@ class EventLimit(models.Model):
             self.updated_at = now
         super(EventLimit, self).save(*args, **kwargs)
 
-class EventAction(models.Model):
-    TYPE = (
-        ('T', 'Trigger'),
-        ('L', 'Limit'),
-    )
 
-    event = models.ForeignKey(Event)
-    type = models.CharField(max_length=1, choices=TYPE)
-    #email
-    #SMS
-    #REST call
-    metadata = models.TextField(blank=True)
-    created_at = models.DateTimeField(editable=False)
-    updated_at = models.DateTimeField(editable=False)
-    is_active = models.BooleanField(default=True)
-
-    def save(self, *args, **kwargs):
-        now = datetime.now(timezone.utc)
-        if not self.id:
-            self.created_at = now
-            self.updated_at = now
-        else:
-            self.updated_at = now
-        super(EventAction, self).save(*args, **kwargs)

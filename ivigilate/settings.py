@@ -28,6 +28,7 @@ INSTALLED_APPS = (
     'django.contrib.gis',
     'rest_framework',
     'rest_framework_gis',
+    'django_cron',
     'django_twilio',
     'compressor',
     'ivigilate',
@@ -57,6 +58,10 @@ REST_FRAMEWORK = {
     ],
     'PAGINATE_BY': 100
 }
+
+CRON_CLASSES = [
+    "ivigilate.cron.RulesEngineJob",
+]
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
