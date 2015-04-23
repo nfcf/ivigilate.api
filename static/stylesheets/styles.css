@@ -37,9 +37,9 @@ a, th { cursor: pointer; }
 .st-sort-descent:before {content: '\25BC';}
 
 .background-cover {
-    background: url('../images/header.jpg') no-repeat center center fixed;
+    /*background: url('../images/header.jpg') no-repeat center center fixed;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
-    background-size: cover;
+    background-size: cover;*/
 }

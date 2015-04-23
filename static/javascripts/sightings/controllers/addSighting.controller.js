@@ -77,8 +77,8 @@
 
         function save() {
             var sighting = {};
-            sighting.movable_uid = vm.movable.uid;
-            sighting.watcher_uid = vm.watcher.uid;
+            sighting.movable = vm.movable.id;
+            sighting.place = vm.place.id;
             sighting.first_seen_at = convertToUTC(vm.seen_at);
             sighting.last_seen_at = convertToUTC(addTime(vm.seen_at, vm.duration.getHours(), vm.duration.getMinutes()));
             sighting.comment = vm.comment;

@@ -21,6 +21,8 @@
         vm.places = undefined;
         vm.filterPlaces = [];
 
+        vm.filterShowAll = false;
+
         vm.datepickerOptions = {
             showWeeks: false,
             startingDay: 1
@@ -42,6 +44,10 @@
                     refresh();
                 });
 
+                $scope.$watch('vm.filterShowAll', function () {
+                    refresh();
+                });
+
                 $interval(refresh, 10000);
             }
             else {
@@ -59,7 +65,7 @@
 
         function refresh() {
             if (vm.filterDate) {
-                Sightings.list(vm.filterDate + ' 23:59:59', vm.filterPlaces).then(successFn, errorFn);
+                Sightings.list(vm.filterDate, vm.filterPlaces, vm.filterShowAll).then(successFn, errorFn);
             }
 
             function successFn(data, status, headers, config) {
@@ -91,17 +97,17 @@
 
         function applyFilterToSightings() {
             if (vm.sightings) {
-                var filterPlacesUids = undefined;
+                var filterPlacesIds = undefined;
                 if (vm.filterPlaces != null && vm.filterPlaces.length > 0) {
-                    filterPlacesUids = [];
+                    filterPlacesIds = [];
                     vm.filterPlaces.forEach(function (place) {
-                        filterPlacesUids.push(place.uid);
+                        filterPlacesIds.push(place.id);
                     })
                 }
 
                 for (var i = 0; i < vm.sightings.length; i++) {
                     vm.sightings[i].satisfyFilter = vm.sightings[i].last_seen_at >= vm.filterDate &&
-                                                    (filterPlacesUids === undefined || filterPlacesUids.indexOf(vm.sightings[i].watcher_uid) >= 0);
+                                                    (filterPlacesIds === undefined || filterPlacesIds.indexOf(vm.sightings[i].place.id) >= 0);
                 }
             }
         }

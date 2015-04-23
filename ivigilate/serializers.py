@@ -233,18 +233,20 @@ class MovableWriteSerializer(serializers.ModelSerializer):
         return instance
 
 
-class SightingReadSerializer(serializers.ModelSerializer):
+class SightingReadSerializer(gis_serializers.GeoModelSerializer):
     movable = MovableReadSerializer()
+    place = PlaceReadSerializer()
+    user = serializers.HyperlinkedIdentityField(view_name='authuser-detail')
     location_name = serializers.CharField(source='get_location_name', read_only=True)
 
     class Meta:
         model = Sighting
-        fields = ('id', 'movable', 'watcher_uid', 'first_seen_at', 'last_seen_at',
+        geo_field = 'location'
+        fields = ('id', 'movable', 'place', 'user', 'first_seen_at', 'last_seen_at',
                   'location', 'location_name', 'rssi', 'battery', 'metadata', 'confirmed',
                   'confirmed_by', 'confirmed_at', 'comment', 'commented_by', 'commented_at', 'is_current')
 
-class SightingWriteSerializer(serializers.ModelSerializer):
-    movable_uid = serializers.CharField(source='movable.uid', required=True)
+class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
     first_seen_at = serializers.DateTimeField(allow_null=True, required=False)
     last_seen_at = serializers.DateTimeField(allow_null=True, required=False)
     location = serializers.CharField(allow_null=True, required=False)
@@ -254,67 +256,32 @@ class SightingWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sighting
-        fields = ('id', 'movable_uid', 'watcher_uid', 'first_seen_at', 'last_seen_at',
+        geo_field = 'location'
+        fields = ('id', 'movable', 'place', 'first_seen_at', 'last_seen_at',
                   'location', 'rssi', 'battery', 'metadata', 'confirmed', 'comment')
-
-
-    def validate_movable_uid(self, value):
-        try:
-            Movable.objects.get(uid=value)
-        except Movable.DoesNotExist:
-            raise serializers.ValidationError('Invalid Movable UID.')
-        return value
-
-    def validate_watcher_uid(self, value):
-        if '@' in value:
-            try:
-                AuthUser.objects.get(email=value)
-            except AuthUser.DoesNotExist:
-                raise serializers.ValidationError('Invalid Watcher UID (couldn\'t find corresponding user).')
-        else:
-            try:
-                Place.objects.get(uid=value)
-            except Place.DoesNotExist:
-                raise serializers.ValidationError('Invalid Watcher UID (couldn\'t find corresponding place).')
-        return value
 
     def create(self, validated_data):
         user = validated_data.get('user')
-        movable_uid = validated_data.get('movable').get('uid')
-        movable = Movable.objects.get(uid=movable_uid)
-        watcher_uid = validated_data.get('watcher_uid')
+        movable = validated_data.get('movable')
+        place = validated_data.get('place')
         first_seen_at = validated_data.get('first_seen_at')
         last_seen_at = validated_data.get('last_seen_at')
         location = validated_data.get('location')
-        if not location:
-            try:
-                place = Place.objects.filter(uid=watcher_uid)[0]
-                location = place.location
-            except Place.DoesNotExist:
-                pass
         rssi = validated_data.get('rssi')
         battery = validated_data.get('battery')
         metadata = validated_data.get('metadata', '')
         confirmed = validated_data.get('confirmed')
         confirmed_by = user if validated_data.get('confirmed') else None
-        if user and not validated_data.get('comment'):
-            raise serializers.ValidationError('Comment field cannot be empty.')
         comment = validated_data.get('comment', '')
         commented_by = user if validated_data.get('comment') else None
 
-        sighting = None
-        if not user: #Check for existing and current sightings
-            sighting = Sighting.objects.filter(movable=movable, watcher_uid=watcher_uid, is_current=True).order_by('-last_seen_at')[0]
+        if not location and place:
+            location = place.location
 
-        if sighting:
-            sighting.last_seen_at = last_seen_at
-            sighting.location = location
-            sighting.rssi = rssi
-            sighting.battery = battery
-            sighting.save()
-            return sighting
-        else:
-            return Sighting.objects.create(movable=movable, watcher_uid=watcher_uid, location=location,
+        if not validated_data.get('comment'):
+            raise serializers.ValidationError('Comment field cannot be empty.')
+
+        return Sighting.objects.create(movable=movable, place=place, user=user, location=location,
                                        first_seen_at=first_seen_at, last_seen_at=last_seen_at,
                                        rssi=rssi, battery=battery, metadata=metadata,
                                        confirmed=confirmed, confirmed_by=confirmed_by, comment=comment,
@@ -325,7 +292,7 @@ class SightingWriteSerializer(serializers.ModelSerializer):
 
         instance.rssi = validated_data.get('rssi', instance.rssi)
         instance.battery = validated_data.get('battery', instance.battery)
-        instance.metadata = validated_data.get('name', instance.metadata)
+        instance.metadata = validated_data.get('metadata', instance.metadata)
         instance.confirmed = validated_data.get('confirmed', instance.confirmed)
         confirmed_by_user_email = validated_data.get('confirmed_by_user_email')
         try:

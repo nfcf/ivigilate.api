@@ -16,6 +16,7 @@
         vm.place = undefined;
         vm.map = undefined;
         vm.showMap = false;
+        vm.defaultZoomLevel = 15;
         vm.marker = {
             id: 1,
             coords: {
@@ -37,7 +38,7 @@
                     if (places && places.length > 0) {
                         vm.map.center.latitude = places[0].geometry.location.lat();
                         vm.map.center.longitude = places[0].geometry.location.lng();
-                        vm.map.center.zoom = 15;
+                        vm.map.center.zoom = vm.defaultZoomLevel;
 
                         vm.marker.coords.latitude = vm.map.center.latitude;
                         vm.marker.coords.longitude = vm.map.center.longitude;
@@ -78,7 +79,8 @@
                 center: {
                     longitude: vm.place.location.coordinates[0],
                     latitude: vm.place.location.coordinates[1]
-                }, zoom: 8
+                },
+                zoom: vm.defaultZoomLevel
             };
             vm.marker.coords.latitude = vm.map.center.latitude;
             vm.marker.coords.longitude = vm.map.center.longitude;

@@ -186,7 +186,8 @@ class Movable(models.Model):
 
 class Sighting(models.Model):
     movable = models.ForeignKey(Movable)
-    watcher_uid = models.CharField(max_length=36, db_index=True)
+    place = models.ForeignKey(Place, null=True)
+    user = models.ForeignKey(AuthUser, null=True)
     first_seen_at = models.DateTimeField()
     last_seen_at = models.DateTimeField()
     location = models.PointField(null=True, blank=True)
@@ -204,16 +205,10 @@ class Sighting(models.Model):
 
     def get_location_name(self):
         location_name = None
-        if '@' in self.watcher_uid:
-            try:
-                location_name = AuthUser.objects.get(email=self.watcher_uid).get_full_name()
-            except AuthUser.DoesNotExist:
-                pass
-        else:
-            try:
-                location_name = Place.objects.get(uid=self.watcher_uid).name
-            except Place.DoesNotExist:
-                pass
+        if self.place:
+            location_name = self.place.name
+        elif self.user:
+            location_name = self.user.get_full_name()
         return location_name
 
     def get_duration(self):

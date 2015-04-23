@@ -28,16 +28,22 @@
             return $http.get('/api/v1/sightings/' + id + '/');
         }
 
-        function list(filterDate, filterPlaces) {
-            var filterPlacesUids = undefined;
+        function list(filterDate, filterPlaces, filterShowAll) {
+            var filterPlacesIds = undefined;
             if (filterPlaces != null && filterPlaces.length > 0) {
-                filterPlacesUids = [];
+                filterPlacesIds = [];
                 filterPlaces.forEach(function(place) {
-                    filterPlacesUids.push(place.uid);
+                    filterPlacesIds.push(place.id);
                 })
             }
             return $http.get('/api/v1/sightings/',
-                {params: {filterDate: filterDate, filterPlaces: filterPlacesUids !== undefined ? filterPlacesUids : undefined}});
+                {
+                    params: {
+                        filterDate: filterDate,
+                        filterPlaces: filterPlacesIds !== undefined ? filterPlacesIds : undefined,
+                        filterShowAll: filterShowAll}
+                }
+            );
         }
 
         function add(sighting) {

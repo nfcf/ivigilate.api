@@ -220,7 +220,7 @@ class MovableViewSet(viewsets.ModelViewSet):
 
         if serializer.is_valid():
             if serializer.save(user=user):
-                if 'photo' in serializer.validated_data:
+                if 'photo' in serializer.validated_data: #delete this field from the response as it isn't serializable
                     del serializer.validated_data['photo']
                 return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
 
@@ -236,27 +236,56 @@ class SightingViewSet(viewsets.ModelViewSet):
         return SightingWriteSerializer
 
     def get_permissions(self):
-        if self.request.method in ['HEAD', 'OPTIONS','POST']:
+        if self.request.method in ['HEAD', 'OPTIONS']:
             return (permissions.AllowAny(),)
         return (permissions.IsAuthenticated(), )
 
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         if account:
-            filterDate = datetime.now(timezone.utc)
-            filterPlaces = None
-            if request.query_params is not None and request.query_params.get('filterDate') is not None:
-                filterDate = request.query_params.get('filterDate')
-            #if request.query_params is not None and request.query_params.get('filterPlaces') is not None:
-            #    filterPlaces = request.query_params.getlist('filterPlaces')
-            queryset = self.queryset.raw('SELECT s.* ' + \
-                                         'FROM ivigilate_sighting s JOIN ivigilate_movable m ON s.movable_id = m.id ' + \
-                                         'WHERE m.account_id = %s AND s.last_seen_at <= %s ' + \
-                                         'AND (%s OR s.watcher_uid = ANY(%s)) AND s.last_seen_at IN (' + \
-	                                     ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY movable_id' + \
-                                         ') ORDER BY s.last_seen_at DESC', [account.id, filterDate, filterPlaces is None, filterPlaces])
-            #page = self.paginate_queryset(queryset)
+            filterDate = str(datetime.now(timezone.utc).date())
+            filterPlaces = []
+            filterShowAll = False
+            if request.query_params is not None:
+                if request.query_params.get('filterDate') is not None:
+                    filterDate = request.query_params.get('filterDate')
+                if request.query_params.get('filterPlaces') is not None:
+                    filterPlaces = request.query_params.getlist('filterPlaces')
+                if request.query_params.get('filterShowAll') is not None:
+                    filterShowAll = request.query_params.get('filterShowAll') in ['True', 'true', '1']
+
+            filteredQuery = 'SELECT s.* ' + \
+                            'FROM ivigilate_sighting s JOIN ivigilate_movable m ON s.movable_id = m.id ' + \
+                            'WHERE m.account_id = %s AND s.first_seen_at >= %s AND s.last_seen_at <= %s ' + \
+                            'AND (%s OR s.place_id = ANY(%s)) AND s.last_seen_at IN (' + \
+	                        ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY movable_id' + \
+                            ') ORDER BY s.last_seen_at DESC'
+            filteredQueryParams = [account.id, filterDate + ' 00:00:00', filterDate + ' 23:59:59',
+                                   len(filterPlaces) == 0, [int(p) for p in filterPlaces]]
+
+            showAllQuery = '(SELECT s.* ' + \
+                           'FROM ivigilate_sighting s JOIN ivigilate_movable m ON s.movable_id = m.id ' + \
+                           'WHERE m.account_id = %s AND s.first_seen_at >= %s AND s.last_seen_at <= %s ' + \
+                           'AND (%s OR s.place_id = ANY(%s)) AND s.last_seen_at IN (' + \
+	                       ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY movable_id' + \
+                           ') ORDER BY s.last_seen_at DESC)' + \
+                           ' UNION ' + \
+                           '(SELECT s.* ' + \
+                           'FROM ivigilate_sighting s JOIN ivigilate_movable m ON s.movable_id = m.id ' + \
+                           'WHERE m.account_id = %s AND s.last_seen_at <= %s ' + \
+                           'AND s.last_seen_at IN (' + \
+	                       ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY movable_id' + \
+                           ') ORDER BY s.last_seen_at DESC)'
+            showAllQueryParams = [account.id, filterDate + ' 00:00:00', filterDate + ' 23:59:59',
+                                  len(filterPlaces) == 0, [int(p) for p in filterPlaces],
+                                  account.id, filterDate + ' 23:59:59']
+
+            queryset = self.queryset.raw(showAllQuery if filterShowAll else filteredQuery,
+                                         showAllQueryParams if filterShowAll else filteredQueryParams)
+            print(queryset.query)
+
             #serializer = self.get_pagination_serializer(page)
+            #page = self.paginate_queryset(queryset)
             serializer = self.get_serializer_class()(queryset, many=True, context={'request': request})
             return Response(serializer.data)
         else:
@@ -280,6 +309,10 @@ class SightingViewSet(viewsets.ModelViewSet):
 
         if serializer.is_valid():
             if serializer.save(user=user):
+                if 'movable' in serializer.validated_data: #delete this field from the response as it isn't serializable
+                    del serializer.validated_data['movable']
+                if 'place' in serializer.validated_data:
+                    del serializer.validated_data['place']
                 return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -305,6 +338,8 @@ class AutoSightingView(views.APIView):
         company_id = data.get('company_id', None)
         account = None
         watcher_uid = data.get('watcher_uid', None)
+        place = None
+        user = None
         movable_uid = data.get('movable_uid', None)
         movable = None
         rssi = data.get('rssi', None)
@@ -322,24 +357,26 @@ class AutoSightingView(views.APIView):
 
         if '@' in watcher_uid:
             try:
-                AuthUser.objects.get(email=watcher_uid)
+                user = AuthUser.objects.get(email=watcher_uid)
             except AuthUser.DoesNotExist:
                 return Response('Invalid Watcher UID (couldn\'t find corresponding user).', status=status.HTTP_400_BAD_REQUEST)
         else:
             try:
-                Place.objects.get(uid=watcher_uid)
+                place = Place.objects.get(uid=watcher_uid)
             except Place.DoesNotExist:
                 Place.objects.create(account=account, uid=watcher_uid)
 
-        sightings = Sighting.objects.filter(movable=movable, watcher_uid=watcher_uid, is_current=True).order_by('-last_seen_at')
+        sightings = Sighting.objects.filter(movable=movable, place=place, user=user, is_current=True).order_by('-last_seen_at')
         if sightings:
             sighting = sightings[0]
             sighting.last_seen_at = None #this forces the datetime update
             sighting.rssi = rssi
             sighting.battery = battery
             sighting.save()
+            #Need to check for events for this sighting
         else:
-            sighting = Sighting.objects.create(movable=movable, watcher_uid=watcher_uid, rssi=rssi, battery=battery)
+            sighting = Sighting.objects.create(movable=movable, place=place, user=user, rssi=rssi, battery=battery)
+            #Need to check for sightings that need closing and check for events on both the old and the new one
 
         if sighting:
             serialized = SightingReadSerializer(sighting, context={'request': request})

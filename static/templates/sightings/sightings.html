@@ -5,26 +5,26 @@
         <div class="well">
             <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
             <div class="row">
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <label for="filterDate">Date</label>
                 </div>
                 <div class="col-md-3">
                     <label for="filterPlace">Place(s)</label>
                 </div>
-                <div class="col-md-2">
-                    <label for="filterSchedule">Schedule</label>
+                <div class="col-md-5">
+                    <label for="filterShowAll">Show All</label>
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <div class="input-group">
-                        <input id="filterDate" type="text" class="form-control input-sm" datepicker-popup="yyyy-MM-dd"
+                        <input id="filterDate" type="text" class="form-control" datepicker-popup="yyyy-MM-dd"
                                datepicker-options="vm.datepickerOptions" max-date="vm.filterDateMax"
                                show-button-bar="false"
                                is-open="vm.filterDateIsOpen" ng-model="vm.filterDate" placeholder="YYYY-MM-DD"
                                readonly/>
                         <span class="input-group-btn">
-                            <button type="button" class="btn btn-sm btn-default"
+                            <button type="button" class="btn btn-default"
                                     ng-click="vm.openDatePicker($event, 'filterDateIsOpen')">
                                 <i class="glyphicon glyphicon-calendar"></i></button>
                         </span>
@@ -42,15 +42,20 @@
                         </ui-select>
                     </div>
                 </div>
-                <div class="col-md-7">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <toggle-switch id="filterShowAll" ng-model="vm.filterShowAll" class="bootstrap-switch-small"></toggle-switch>
+                    </div>
+                </div>
+                <div class="col-md-3">
                     <div class="input-group pull-right">
-                        <button ng-click="vm.addSighting()" class="btn btn-success btn-sm">
+                        <button ng-click="vm.addSighting()" class="btn btn-success">
                             <span class="glyphicon glyphicon-plus"></span> Add
                         </button>
                     </div>
                 </div>
             </div>
-            <hr/>
+
             <div class="table-responsive">
                 <table st-table="vm.displayedSightings" st-safe-src="vm.sightings" class="table table-striped">
                     <thead>
@@ -94,7 +99,7 @@
                     <tfoot>
                     <tr>
                         <td colspan="9" class="text-center">
-                            <div st-pagination="" st-items-by-page="15" st-displayed-pages="5"></div>
+                            <div st-pagination="" st-items-by-page="10" st-displayed-pages="5"></div>
                         </td>
                     </tr>
                     </tfoot>
