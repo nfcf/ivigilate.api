@@ -55,7 +55,7 @@
                     </div>
                 </div>
             </div>
-
+            <hr/>
             <div class="table-responsive">
                 <table st-table="vm.displayedSightings" st-safe-src="vm.sightings" class="table table-striped">
                     <thead>
@@ -79,8 +79,7 @@
                     <tbody>
                     <tr ng-repeat="sighting in vm.displayedSightings"
                         ng-class="{'danger': !sighting.satisfyFilter}">
-                        <td class="valign-middle text-center"><input type="checkbox" ng-model="sighting.satisfyFilter"
-                                                                     disabled></td>
+                        <td class="valign-middle text-center"></td>
                         <td style="height:56px"><img ng-src="{{ sighting.movable.photo }}" height="40px"
                                                      ng-if="sighting.movable.photo"/></td>
                         <td class="valign-middle">{{ sighting.movable.reference_id }}</td>
