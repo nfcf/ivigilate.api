@@ -282,7 +282,7 @@ class SightingViewSet(viewsets.ModelViewSet):
 
             queryset = self.queryset.raw(showAllQuery if filterShowAll else filteredQuery,
                                          showAllQueryParams if filterShowAll else filteredQueryParams)
-            print(queryset.query)
+            #print(queryset.query)
 
             #serializer = self.get_pagination_serializer(page)
             #page = self.paginate_queryset(queryset)

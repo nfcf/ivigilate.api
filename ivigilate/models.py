@@ -23,13 +23,6 @@ class Account(models.Model):
         return '%s - %s' % (self.company_id, self.name)
 
 
-#class Geofence(models.Model):
-    #account = models.ForeignKey(Account)
-    #geometry = GeopositionField()
-    #radius_in_meters = models.DecimalField()
-    #objects = models.GeoManager()
-
-
 class License(models.Model):
     TYPE = (
         ('SAM', 'School Attendance Management'),
@@ -140,7 +133,7 @@ class Place(models.Model):
     objects = models.GeoManager()
 
     class Meta:
-        unique_together = ('account', 'uid',)
+        unique_together = ('account', 'uid', 'reference_id')
 
     def location_dict(self):
         return {'lat': self.location.latitude, 'lon': self.location.longitude}
@@ -160,7 +153,7 @@ class Place(models.Model):
 
 class Movable(models.Model):
     account = models.ForeignKey(Account)
-    uid = models.CharField(max_length=36, unique=True)
+    uid = models.CharField(max_length=36)
     reference_id = models.CharField(max_length=64, blank=True)
     photo = models.FileField(upload_to='photos', blank=True, null=True)
     name = models.CharField(max_length=64, blank=True)
@@ -170,6 +163,9 @@ class Movable(models.Model):
     updated_at = models.DateTimeField(editable=False)
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
     is_active = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ('account', 'uid', 'reference_id')
 
     def save(self, *args, **kwargs):
         now = datetime.now(timezone.utc)
@@ -231,18 +227,6 @@ class Sighting(models.Model):
         super(Sighting, self).save(*args, **kwargs)
 
 
-class Schedule(models.Model):
-    account = models.ForeignKey(Account)
-    class_id = models.CharField(max_length=64)
-    reference_id = models.CharField(max_length=64)
-    name = models.CharField(max_length=64)
-    starts_at = models.DateTimeField()
-    ends_at = models.DateTimeField()
-    metadata = models.TextField(blank=True)
-    places = models.ManyToManyField(Place)
-    movables = models.ManyToManyField(Movable)
-
-
 class Event(models.Model):
     account = models.ForeignKey(Account)
     reference_id = models.CharField(max_length=64, blank=True)
@@ -250,7 +234,13 @@ class Event(models.Model):
     movables = models.ManyToManyField(Movable, blank=True)
     places = models.ManyToManyField(Place, blank=True)
 
+    schedule_days_of_week = models.PositiveSmallIntegerField(default=0) #used as a Binary (single byte) field for easy logical operations
+    #schedule_specific_date = models.DateTimeField()
+    schedule_start_time = models.TimeField()
+    schedule_end_time = models.TimeField()
+
     sighting_is_current = models.BooleanField(default=True)
+    sighting_is_confirmed = models.BooleanField(default=False)
     sighting_duration_in_seconds = models.IntegerField(default=0)
     sighting_has_battery_below = models.IntegerField(default=0)
     sighting_has_comment = models.BooleanField(default=False)
@@ -274,26 +264,27 @@ class Event(models.Model):
 class EventOccurrence(models.Model):
     event = models.ForeignKey(Event)
     movable = models.ForeignKey(Movable)
-    schedule = models.ForeignKey(Schedule, null=True)
-    sightings = models.ManyToManyField(Sighting)
-    duration_in_seconds = models.IntegerField(default=0)
+    sighting = models.ForeignKey(Sighting)
     occurred_at = models.DateTimeField(editable=False)
 
     def save(self, *args, **kwargs):
         now = datetime.now(timezone.utc)
         if not self.id:
             self.occurred_at = now
-
         super(EventOccurrence, self).save(*args, **kwargs)
 
 
 class EventLimit(models.Model):
     event = models.ForeignKey(Event)
     movable = models.ForeignKey(Movable)
+
     occurrence_date_limit = models.DateTimeField()
     occurrence_count_limit = models.IntegerField()
+
+    metadata = models.TextField(blank=True) #event limit actions: SMS, Email, REST call
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(editable=False)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
     is_active = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
