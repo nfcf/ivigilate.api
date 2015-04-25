@@ -54,7 +54,8 @@
             Movables.update(vm.sighting.movable, vm.imageToUpload).then(movableSuccessFn, movableErrorFn, movableProgressFn);
 
             function movableSuccessFn(data, status, headers, config) {
-                vm.sighting.movable_uid = vm.sighting.movable.uid;
+                vm.sighting.movable = vm.sighting.movable.id;
+                vm.sighting.place = vm.sighting.place.id;
                 Sightings.update(vm.sighting).then(sightingSuccessFn, sightingErrorFn);
 
                 function sightingSuccessFn(data, status, headers, config) {

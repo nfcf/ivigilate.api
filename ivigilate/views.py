@@ -317,6 +317,11 @@ class SightingViewSet(viewsets.ModelViewSet):
 
         if serializer.is_valid():
             if serializer.save(user=user):
+                # remove fields from the response as they aren't serializable nor needed
+                if 'movable' in serializer.validated_data:
+                    del serializer.validated_data['movable']
+                if 'place' in serializer.validated_data:
+                    del serializer.validated_data['place']
                 return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
