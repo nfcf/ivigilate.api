@@ -2,6 +2,8 @@ from django.contrib.auth import update_session_auth_hash
 from rest_framework import serializers
 from rest_framework_gis import serializers as gis_serializers
 from ivigilate.models import *
+from ivigilate.utils import get_file_extension
+
 
 class Base64ImageField(serializers.ImageField):
     def to_internal_value(self, data):
@@ -24,9 +26,9 @@ class Base64ImageField(serializers.ImageField):
                 self.fail('invalid_image')
 
             # Generate file name:
-            file_name = str(uuid.uuid4())[:12] # 12 characters are more than enough.
+            file_name = str(uuid.uuid4())[:12]  # 12 characters are more than enough.
             # Get the file name extension:
-            file_extension = self.get_file_extension(file_name, decoded_file)
+            file_extension = get_file_extension(file_name, decoded_file)
 
             complete_file_name = "%s.%s" % (file_name, file_extension, )
 
@@ -34,13 +36,6 @@ class Base64ImageField(serializers.ImageField):
 
         return super(Base64ImageField, self).to_internal_value(data)
 
-    def get_file_extension(self, file_name, decoded_file):
-        import imghdr
-
-        extension = imghdr.what(file_name, decoded_file)
-        extension = "jpg" if extension == "jpeg" else extension
-
-        return extension
 
 class LicenseSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -49,7 +44,7 @@ class LicenseSerializer(serializers.HyperlinkedModelSerializer):
         read_only_fields = ()
         write_only_fields = ('metadata',)
 
-    def create(selfself, validated_data):
+    def create(self, validated_data):
         return License.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
@@ -70,9 +65,9 @@ class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
         fields = ('id', 'company_id', 'name', 'metadata', 'created_at', 'licenses')
-        read_only_fields = ('created_at')
+        read_only_fields = 'created_at'
 
-    def create(selfself, validated_data):
+    def create(self, validated_data):
         return Account.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
@@ -83,11 +78,14 @@ class AccountSerializer(serializers.ModelSerializer):
 
         return instance
 
+
 class AuthUserReadSerializer(serializers.ModelSerializer):
     company_id = serializers.CharField(source='account.company_id', required=True)
+
     class Meta:
         model = AuthUser
         fields = ('id', 'company_id', 'email', 'first_name', 'last_name', 'metadata', 'created_at', 'updated_at',)
+
 
 class AuthUserWriteSerializer(serializers.ModelSerializer):
     company_id = serializers.CharField(source='account.company_id', required=True)
@@ -139,6 +137,7 @@ class AuthUserWriteSerializer(serializers.ModelSerializer):
 
 class PlaceReadSerializer(gis_serializers.GeoModelSerializer):
     account = serializers.HyperlinkedIdentityField(view_name='account-detail')
+
     class Meta:
         model = Place
         geo_field = 'location'
@@ -193,7 +192,6 @@ class MovableReadSerializer(serializers.HyperlinkedModelSerializer):
 
 class MovableWriteSerializer(serializers.ModelSerializer):
     company_id = serializers.CharField(source='account.company_id', required=False)
-    #photo = Base64ImageField(allow_empty_file=True, max_length=None, use_url=True, allow_null=True, write_only=True)
 
     class Meta:
         model = Movable
@@ -245,6 +243,7 @@ class SightingReadSerializer(gis_serializers.GeoModelSerializer):
         fields = ('id', 'movable', 'place', 'user', 'first_seen_at', 'last_seen_at',
                   'location', 'location_name', 'rssi', 'battery', 'metadata', 'confirmed',
                   'confirmed_by', 'confirmed_at', 'comment', 'commented_by', 'commented_at', 'is_current')
+
 
 class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
     first_seen_at = serializers.DateTimeField(allow_null=True, required=False)

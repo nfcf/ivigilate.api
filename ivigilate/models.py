@@ -70,22 +70,24 @@ class AuthUserManager(BaseUserManager):
             raise ValueError('The email address must be set')
         return self._create_user(None, email, password, True, True, **extra_fields)
 
+
 class AuthUser(AbstractBaseUser, PermissionsMixin):
     account = models.ForeignKey(Account, null=True, blank=True)
     email = models.EmailField(_('email address'), unique=True,
-        help_text=_('Required.'),
-        error_messages={
-            'unique': _('The given email address has already been registered.'),
-        })
+                              help_text=_('Required.'),
+                              error_messages={
+                                                'unique': _('The given email address has already been registered.')
+                                             }
+                             )
     first_name = models.CharField(_('first name'), max_length=30, blank=True)
     last_name = models.CharField(_('last name'), max_length=30, blank=True)
     metadata = models.TextField(blank=True)
 
     is_staff = models.BooleanField(_('staff status'), default=False,
-        help_text=_('Designates whether the user can log into the admin site.'))
+                                   help_text=_('Designates whether the user can log into the admin site.'))
     is_active = models.BooleanField(_('active'), default=True,
-        help_text=_('Designates whether this user should be treated as '
-                    'active. Unselect this instead of deleting accounts.'))
+                                    help_text=_('Designates whether this user should be treated as '
+                                                'active. Unselect this instead of deleting accounts.'))
     created_at = models.DateTimeField(_('created at'), editable=False)
     updated_at = models.DateTimeField(_('updated at'), editable=False)
 
@@ -234,8 +236,8 @@ class Event(models.Model):
     movables = models.ManyToManyField(Movable, blank=True)
     places = models.ManyToManyField(Place, blank=True)
 
-    schedule_days_of_week = models.PositiveSmallIntegerField(default=0) #used as a Binary (single byte) field for easy logical operations
-    #schedule_specific_date = models.DateTimeField()
+    schedule_days_of_week = models.PositiveSmallIntegerField(default=0)  # used as an 8bit field for easy logical ops
+    # schedule_specific_date = models.DateTimeField()
     schedule_start_time = models.TimeField()
     schedule_end_time = models.TimeField()
 
@@ -245,7 +247,7 @@ class Event(models.Model):
     sighting_has_battery_below = models.IntegerField(default=0)
     sighting_has_comment = models.BooleanField(default=False)
 
-    metadata = models.TextField(blank=True) #event actions: SMS, Email, REST call
+    metadata = models.TextField(blank=True) # event actions: SMS, Email, REST call
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(editable=False)
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
@@ -281,7 +283,7 @@ class EventLimit(models.Model):
     occurrence_date_limit = models.DateTimeField()
     occurrence_count_limit = models.IntegerField()
 
-    metadata = models.TextField(blank=True) #event limit actions: SMS, Email, REST call
+    metadata = models.TextField(blank=True) # event limit actions: SMS, Email, REST call
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(editable=False)
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
@@ -295,5 +297,3 @@ class EventLimit(models.Model):
         else:
             self.updated_at = now
         super(EventLimit, self).save(*args, **kwargs)
-
-

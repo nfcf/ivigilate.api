@@ -9,9 +9,11 @@ from ivigilate.models import *
 class AccountAdmin(admin.ModelAdmin):
     pass
 
+
 @admin.register(License)
 class LicenseAdmin(admin.ModelAdmin):
     pass
+
 
 class UserChangeForm(forms.ModelForm):
     password = ReadOnlyPasswordHashField()
@@ -26,6 +28,7 @@ class UserChangeForm(forms.ModelForm):
         # This is done here, rather than on the field, because the
         # field does not have access to the initial value
         return self.initial["password"]
+
 
 class UserCreationForm(forms.ModelForm):
     company_id = forms.CharField(label='Company ID')
@@ -61,6 +64,7 @@ class UserCreationForm(forms.ModelForm):
             user.save()
         return user
 
+
 @admin.register(AuthUser)
 class AuthUserAdmin(UserAdmin):
     form = UserChangeForm
@@ -69,10 +73,10 @@ class AuthUserAdmin(UserAdmin):
     list_display = ('email', 'first_name', 'last_name')
     list_filter = ('is_staff',)
     fieldsets = (
-        (None, {'fields': [('account', 'email', 'password'),]}),
+        (None, {'fields': [('account', 'email', 'password'), ]}),
         (('Personal info'), {'fields': ('first_name', 'last_name', 'metadata')}),
         (('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',
-                                   'groups', 'user_permissions')}),
+                                      'groups', 'user_permissions')}),
         (('Important dates'), {'fields': ('last_login', )}),
         )
 
@@ -86,13 +90,16 @@ class AuthUserAdmin(UserAdmin):
     ordering = ('email', 'first_name', 'last_name')
     filter_horizontal = ()
 
+
 @admin.register(Place)
 class PlaceAdmin(admin.ModelAdmin):
     pass
 
+
 @admin.register(Movable)
 class MovableAdmin(admin.ModelAdmin):
     pass
+
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
