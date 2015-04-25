@@ -5,6 +5,10 @@ from datetime import datetime, timezone, timedelta
 from django.conf import settings
 import json
 import re
+import logging
+
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 
 class RulesEngineJob(CronJobBase):
@@ -72,7 +76,7 @@ class RulesEngineJob(CronJobBase):
                         if event.places:
                             sightings = Sighting.objects.filter(watcher_uid__in=event.places.values('uid'))
                         if sightings:
-                            a = sightings[0]#################
+                            a = sightings[0]  #################
         except Exception as ex:
             print(str(ex))
 

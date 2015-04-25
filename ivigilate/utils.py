@@ -1,4 +1,7 @@
+import logging
 
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 def get_file_extension(file_name, decoded_file):
     import imghdr

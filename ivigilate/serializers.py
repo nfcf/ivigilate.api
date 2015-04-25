@@ -3,7 +3,10 @@ from rest_framework import serializers
 from rest_framework_gis import serializers as gis_serializers
 from ivigilate.models import *
 from ivigilate.utils import get_file_extension
+import logging
 
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 class Base64ImageField(serializers.ImageField):
     def to_internal_value(self, data):

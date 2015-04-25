@@ -9,7 +9,10 @@ from ivigilate.permissions import IsAccountOwner
 from rest_framework import permissions, viewsets, status, views
 from django.shortcuts import get_object_or_404
 import json
+import logging
 
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 class IndexView(TemplateView):
     template_name = 'index.html'
@@ -25,8 +28,8 @@ class AccountViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.request.method in ['HEAD', 'OPTIONS']:
-            return (permissions.AllowAny(),)
-        return (permissions.IsAuthenticated(),)
+            return (permissions.AllowAny(), )
+        return (permissions.IsAuthenticated(), )
 
     def list(self, request):
         if request.user and request.user.is_staff:
@@ -36,11 +39,9 @@ class AccountViewSet(viewsets.ModelViewSet):
             serializer = self.get_pagination_serializer(page)
             return Response(serializer.data)
         else:
+            logger.critical('The user \'%s\' tried to access the accounts list without admin permissions.', request.user)
             return Response('You do not have permissions to access this list.',
                             status=status.HTTP_400_BAD_REQUEST)
-
-    # def create(self, request):
-    #    pass
 
     def retrieve(self, request, pk=None):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
@@ -68,8 +69,8 @@ class AuthUserViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.request.method in ['HEAD', 'OPTIONS', 'POST']:
-            return (permissions.AllowAny(),)
-        return (permissions.IsAuthenticated(),)
+            return (permissions.AllowAny(), )
+        return (permissions.IsAuthenticated(), )
 
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
@@ -137,8 +138,8 @@ class PlaceViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.request.method in ['HEAD', 'OPTIONS', 'POST']:
-            return permissions.AllowAny()
-        return permissions.IsAuthenticated()
+            return (permissions.AllowAny(), )
+        return (permissions.IsAuthenticated(), )
 
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
@@ -181,8 +182,8 @@ class MovableViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.request.method in ['HEAD', 'OPTIONS', 'POST']:
-            return permissions.AllowAny()
-        return permissions.IsAuthenticated()
+            return (permissions.AllowAny(), )
+        return (permissions.IsAuthenticated(), )
 
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
@@ -228,8 +229,8 @@ class SightingViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.request.method in ['HEAD', 'OPTIONS']:
-            return permissions.AllowAny()
-        return permissions.IsAuthenticated()
+            return (permissions.AllowAny(), )
+        return (permissions.IsAuthenticated(), )
 
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
@@ -322,7 +323,7 @@ class SightingViewSet(viewsets.ModelViewSet):
 
 
 class AutoSightingView(views.APIView):
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.AllowAny, )
 
     def post(self, request, format=None):
         data = json.loads(request.body.decode('utf-8'))

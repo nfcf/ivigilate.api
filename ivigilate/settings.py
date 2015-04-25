@@ -63,24 +63,21 @@ CRON_CLASSES = [
     "ivigilate.cron.RulesEngineJob",
 ]
 
-# Database
-# https://docs.djangoproject.com/en/1.7/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        #'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        # 'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'ivigilate',
         'USER': 'postgres',
         'PASSWORD': '123',
         'HOST': ''
     }
 }
+
 GEOS_LIBRARY_PATH = r'C:\OSGeo4W\bin\geos_c.dll'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
@@ -113,9 +110,9 @@ SITE_ID = 1
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-#Move this out of here (into virtualenv) when swapping to final set of credentials
-#http://django-twilio.readthedocs.org/en/latest/install.html
-#http://docs.python-guide.org/en/latest/dev/virtualenvs/
+# Move this out of here (into virtualenv) when swapping to final set of credentials
+# http://django-twilio.readthedocs.org/en/latest/install.html
+# http://docs.python-guide.org/en/latest/dev/virtualenvs/
 TWILIO_ACCOUNT_SID = 'AC1b8158faf55b96ed86dee884e1d94beb'
 TWILIO_AUTH_TOKEN = '3941cff26f237a3540627a5f52ca6e85'
 TWILIO_DEFAULT_CALLERID = '14158438604'
@@ -127,3 +124,64 @@ if DEBUG:
     EMAIL_HOST_PASSWORD = ''
     EMAIL_USE_TLS = False
     DEFAULT_FROM_EMAIL = 'testing@example.com'
+
+LOG_LEVEL = 'DEBUG' if DEBUG else 'INFO'
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
+    'handlers': {
+        'null': {
+            'level': 'DEBUG',
+            'class': 'django.utils.log.NullHandler',
+        },
+        'console':{
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        # I always add this handler to facilitate separating loggings
+        'log_file':{
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/ivigilate.log'),
+            'maxBytes': 16777216, # 16megabytes
+            'formatter': 'verbose'
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
+        }
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'ivigilate': {
+            'handlers': ['log_file'],
+            'level': LOG_LEVEL,
+            'propagate': True,
+        },
+    },
+    # you can also shortcut 'loggers' and just configure logging for EVERYTHING at once
+    'root': {
+        'handlers': ['console', 'mail_admins'],
+        'level': 'WARNING'
+    },
+}
