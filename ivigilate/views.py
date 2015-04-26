@@ -7,12 +7,12 @@ from rest_framework.response import Response
 from ivigilate.serializers import *
 from ivigilate.permissions import IsAccountOwner
 from rest_framework import permissions, viewsets, status, views
-from django.shortcuts import get_object_or_404
-import json
-import logging
+from ivigilate.utils import check_for_events, close_sighting
+import json, logging
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
+
 
 class IndexView(TemplateView):
     template_name = 'index.html'
@@ -334,14 +334,15 @@ class AutoSightingView(views.APIView):
         data = json.loads(request.body.decode('utf-8'))
 
         company_id = data.get('company_id', None)
-        account = None
+        # account = None
         watcher_uid = data.get('watcher_uid', None)
         place = None
         user = None
         movable_uid = data.get('movable_uid', None)
-        movable = None
+        # movable = None
         rssi = data.get('rssi', None)
         battery = data.get('battery', None)
+        metadata = data.get('metadata', None)
 
         try:
             account = Account.objects.get(company_id=company_id)
@@ -363,23 +364,37 @@ class AutoSightingView(views.APIView):
             try:
                 place = Place.objects.get(uid=watcher_uid)
             except Place.DoesNotExist:
-                Place.objects.create(account=account, uid=watcher_uid)
+                place = Place.objects.create(account=account, uid=watcher_uid, metadata=metadata)
 
-        sightings = Sighting.objects.filter(movable=movable, place=place, user=user, is_current=True).\
-                    order_by('-last_seen_at')
-        if sightings:
-            sighting = sightings[0]
-            sighting.last_seen_at = None  # this forces the datetime update
-            sighting.rssi = rssi
-            sighting.battery = battery
-            sighting.save()
-            # Need to check for events for this sighting
-        else:
-            sighting = Sighting.objects.create(movable=movable, place=place, user=user, rssi=rssi, battery=battery)
-            # Need to check for sightings that need closing and check for events on both the old and the new one
+        if movable.account != account:
+            if movable.reported_missing:
+                dummy = 2  # do something...
+            else:
+                return Response('Ignored sighting as the movable doesn\'t belong to this account.')
 
-        if sighting:
-            serialized = SightingReadSerializer(sighting, context={'request': request})
-            return Response(serialized.data)
-        else:
-            return Response('Failed to create sighting.', status=status.HTTP_400_BAD_REQUEST)
+        previous_sightings = Sighting.objects.filter(is_current=True, movable=movable).order_by('-last_seen_at')[:1]
+        new_sighting = None
+        if previous_sightings:
+            previous_sighting = previous_sightings[0]
+            if (previous_sighting.place == place and previous_sighting.user == user) or \
+                    ((previous_sighting.place != place or previous_sighting.user != user) and
+                     previous_sighting.rssi >= rssi):
+                logger.debug('Updating previous sighting \'%s\' as the movable didn\'t change places.',
+                             previous_sighting)
+                new_sighting = previous_sighting
+                new_sighting.last_seen_at = None  # this forces the datetime update
+                new_sighting.rssi = rssi
+                new_sighting.battery = battery
+                new_sighting.save()
+            else:  # if (previous_sighting.place != place or previous_sighting.user != user) and previous_sighting.rssi < rssi:
+                close_sighting(previous_sighting, place, user)
+
+        if not new_sighting:
+            # check if belongs to account
+            new_sighting = Sighting.objects.create(movable=movable, place=place, user=user, rssi=rssi, battery=battery)
+            logger.debug('Created new sighting \'%s\'.', new_sighting)
+
+        check_for_events(new_sighting)
+
+        serialized = SightingReadSerializer(new_sighting, context={'request': request})
+        return Response(serialized.data)

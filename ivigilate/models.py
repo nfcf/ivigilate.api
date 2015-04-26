@@ -4,6 +4,19 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from datetime import datetime, timezone
 from django.utils.translation import ugettext_lazy as _
 from django.core.mail import send_mail
+from django.db.models import Lookup
+
+
+class BitwiseAnd(Lookup):
+    lookup_name = 'bwand'
+
+    def as_sql(self, qn, connection):
+        lhs, lhs_params = self.process_lhs(qn, connection)
+        rhs, rhs_params = self.process_rhs(qn, connection)
+        params = lhs_params + rhs_params
+        return '%s & %s > 0' % (lhs, rhs), params
+
+models.PositiveSmallIntegerField.register_lookup(BitwiseAnd)
 
 
 class Account(models.Model):
@@ -228,6 +241,10 @@ class Sighting(models.Model):
                 self.commented_at = now
         super(Sighting, self).save(*args, **kwargs)
 
+    def __str__(self):
+        return "%s: movable=%s, location_name=%s, last_seen_at=%s)" % \
+               (self.id, self.movable.name, self.get_location_name(), self.last_seen_at)
+
 
 class Event(models.Model):
     account = models.ForeignKey(Account)
@@ -235,6 +252,7 @@ class Event(models.Model):
     name = models.CharField(max_length=64)
     movables = models.ManyToManyField(Movable, blank=True)
     places = models.ManyToManyField(Place, blank=True)
+    users = models.ManyToManyField(AuthUser, blank=True)
 
     schedule_days_of_week = models.PositiveSmallIntegerField(default=0)  # used as an 8bit field for easy logical ops
     # schedule_specific_date = models.DateTimeField()
@@ -242,10 +260,10 @@ class Event(models.Model):
     schedule_end_time = models.TimeField()
 
     sighting_is_current = models.BooleanField(default=True)
-    sighting_is_confirmed = models.BooleanField(default=False)
     sighting_duration_in_seconds = models.IntegerField(default=0)
-    sighting_has_battery_below = models.IntegerField(default=0)
-    sighting_has_comment = models.BooleanField(default=False)
+    sighting_has_battery_below = models.IntegerField(default=100)
+    sighting_has_comment = models.NullBooleanField(default=None)
+    sighting_has_been_confirmed = models.NullBooleanField(default=None)
 
     metadata = models.TextField(blank=True) # event actions: SMS, Email, REST call
     created_at = models.DateTimeField(editable=False)
@@ -261,6 +279,10 @@ class Event(models.Model):
         else:
             self.updated_at = now
         super(Event, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return "%s: reference_id=%s, name=%s)" % \
+               (self.account.company_id, self.reference_id, self.name)
 
 
 class EventOccurrence(models.Model):

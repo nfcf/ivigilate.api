@@ -1,88 +1,38 @@
 from django_cron import CronJobBase, Schedule
-from twilio.rest import TwilioRestClient
-from ivigilate.models import Sighting, Event, EventOccurrence
+from ivigilate.models import Sighting
 from datetime import datetime, timezone, timedelta
-from django.conf import settings
-import json
-import re
+from ivigilate.utils import close_sighting
+from time import sleep
 import logging
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
 
-class RulesEngineJob(CronJobBase):
+class CloseSightingsJob(CronJobBase):
     RUN_EVERY_MINS = 1
     RETRY_AFTER_FAILURE_MINS = 1
 
-    schedule = Schedule(run_every_mins=RUN_EVERY_MINS)
-    code = 'ivigilate.rules_engine_job'    # a unique code
-
-    def close_sightings(self):
-        sightings = Sighting.objects.filter(is_current=True)
-        if sightings:
-            now = datetime.now(timezone.utc)
-            for sighting in sightings:
-                if (now - sighting.last_seen_at).seconds > 30:
-                    sighting.is_current = False
-                    sighting.save()
-
-    def send_twilio_message(self, to, msg):
-        client = TwilioRestClient(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-        message = client.messages.create(
-            body = msg, #"Hello again! Yet another test...",  # Message body, if any
-            to = to, #"+353831457316", #,+351967560446",
-            from_ = settings.TWILIO_DEFAULT_CALLERID,
-        )
-
-
-    def event_checking(self):
-        try:
-            print('executing...')
-            now = datetime.now(timezone.utc)
-            events = Event.objects.filter(is_active=True)
-            if events:
-                for event in events:
-                    filter_date = now - timedelta(seconds=event.sighting_duration_in_seconds + 60)
-                    metadata = json.loads(event.metadata)
-                    #trigger_is_current = metadata['trigger']['is_current'] in ['true', 'True','1']
-                    #trigger_duration = int(metadata['trigger']['duration'])
-                    actions = metadata['actions']
-
-                    if event.movables:
-                        for movable in event.movables.all():
-                            sightings = Sighting.objects.filter(last_seen_at__gte=filter_date, movable=movable).order_by('-last_seen_at')
-                            if sightings and event.places:
-                                sightings = sightings.filter(watcher_uid__in=event.places.values('uid'))
-                            if sightings:
-                                total_duration = 0
-                                for sighting in sightings.all():
-                                    total_duration += sighting.get_duration()
-
-                                print('pre check')
-                                if sightings[0].is_current == event.sighting_is_current and \
-                                                total_duration > event.sighting_duration_in_seconds and \
-                                                sightings[0].battery <= event.sighting_has_battery_below:
-                                    #create an EventOccurrence here, regarding of having actions or not
-                                    occurrence = EventOccurrence.objects.create(event=event,movable=movable,duration_in_seconds=total_duration)
-                                    occurrence.sightings.add(*sightings)
-                                    if actions:
-                                        for action in actions:
-                                            if action['type'] == 'SMS':
-                                                for to in re.split(',|;', action['recipients']):
-                                                    self.send_twilio_message(to, event.name)
-
-                    else:
-                        if event.places:
-                            sightings = Sighting.objects.filter(watcher_uid__in=event.places.values('uid'))
-                        if sightings:
-                            a = sightings[0]  #################
-        except Exception as ex:
-            print(str(ex))
-
-
+    schedule = Schedule(run_every_mins=RUN_EVERY_MINS, retry_after_failure_mins=RETRY_AFTER_FAILURE_MINS)
+    code = 'ivigilate.close_sightings_job'  # a unique code
 
     def do(self):
-        self.close_sightings()
-        self.event_checking()
+        FILTER_OLD_NUMBER_OF_SECONDS = 10
+        NUMBER_OF_TIMES_TO_RUN = 3  # since cron only runs every minute...trying to minimize the interval
+        iteration = 1
+        try:
+            while iteration <= NUMBER_OF_TIMES_TO_RUN:
+                logger.debug('Starting CloseSightingsJob iteration %s...', iteration)
+                now = datetime.now(timezone.utc)
+                filter_datetime = now - timedelta(seconds=FILTER_OLD_NUMBER_OF_SECONDS)
+                sightings = Sighting.objects.filter(is_current=True, last_seen_at__lt=filter_datetime)
+                if sightings:
+                    logger.debug('Found %s sighting(s) that need closing.', len(sightings))
+                    for sighting in sightings:
+                        close_sighting(sighting)
+                logger.debug('Finished CloseSightingsJob iteration %s...', iteration)
+                iteration +=1
+                sleep(10)
+        except Exception as ex:
+            logger.exception('CloseSightingsJob failed with exception:')
 

@@ -60,7 +60,7 @@ REST_FRAMEWORK = {
 }
 
 CRON_CLASSES = [
-    "ivigilate.cron.RulesEngineJob",
+    "ivigilate.cron.CloseSightingsJob",
 ]
 
 DATABASES = {
@@ -181,7 +181,7 @@ LOGGING = {
     },
     # you can also shortcut 'loggers' and just configure logging for EVERYTHING at once
     'root': {
-        'handlers': ['console', 'mail_admins'],
+        'handlers': ['console', 'log_file', 'mail_admins'],
         'level': 'WARNING'
     },
 }

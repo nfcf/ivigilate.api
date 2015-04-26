@@ -71,7 +71,7 @@
             function successFn(data, status, headers, config) {
                 vm.error = null;
                 vm.sightings = data.data;
-                applyFilterToSightings();
+                applyFilterAndLocalTimeToSightings();
             }
 
             function errorFn(data, status, headers, config) {
@@ -93,7 +93,7 @@
             });
         }
 
-        function applyFilterToSightings() {
+        function applyFilterAndLocalTimeToSightings() {
             if (vm.sightings) {
                 var filterPlacesIds = undefined;
                 if (vm.filterPlaces != null && vm.filterPlaces.length > 0) {
@@ -104,7 +104,9 @@
                 }
 
                 for (var i = 0; i < vm.sightings.length; i++) {
-                    vm.sightings[i].satisfyFilter = vm.sightings[i].last_seen_at >= vm.filterDate &&
+                    vm.sightings[i].first_seen_at = convertUTCDateToLocalDate(new Date(vm.sightings[i].first_seen_at));
+                    vm.sightings[i].last_seen_at = convertUTCDateToLocalDate(new Date(vm.sightings[i].last_seen_at));
+                    vm.sightings[i].satisfyFilter = vm.sightings[i].last_seen_at >= new Date(vm.filterDate) &&
                                                     (filterPlacesIds === undefined || filterPlacesIds.indexOf(vm.sightings[i].place.id) >= 0);
                 }
             }
@@ -116,5 +118,15 @@
             vm[isOpen] = !vm[isOpen];
         }
 
+        function convertUTCDateToLocalDate(date) {
+            var newDate = new Date(date.getTime()+date.getTimezoneOffset()*60*1000);
+
+            var offset = date.getTimezoneOffset() / 60;
+            var hours = date.getHours();
+
+            newDate.setHours(hours - offset);
+
+            return newDate;
+        }
     }
 })();

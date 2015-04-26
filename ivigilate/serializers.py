@@ -2,7 +2,7 @@ from django.contrib.auth import update_session_auth_hash
 from rest_framework import serializers
 from rest_framework_gis import serializers as gis_serializers
 from ivigilate.models import *
-from ivigilate.utils import get_file_extension
+from ivigilate.utils import get_file_extension, check_for_events
 import logging
 
 logger = logging.getLogger(__name__)
@@ -284,11 +284,13 @@ class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
         if not validated_data.get('comment'):
             raise serializers.ValidationError('Comment field cannot be empty.')
 
-        return Sighting.objects.create(movable=movable, place=place, user=user, location=location,
-                                       first_seen_at=first_seen_at, last_seen_at=last_seen_at,
-                                       rssi=rssi, battery=battery, metadata=metadata,
-                                       confirmed=confirmed, confirmed_by=confirmed_by, comment=comment,
-                                       commented_by=commented_by)
+        sighting = Sighting.objects.create(movable=movable, place=place, user=user, location=location,
+                                            first_seen_at=first_seen_at, last_seen_at=last_seen_at,
+                                            rssi=rssi, battery=battery, metadata=metadata,
+                                            confirmed=confirmed, confirmed_by=confirmed_by, comment=comment,
+                                            commented_by=commented_by)
+        check_for_events(sighting)
+        return sighting
 
     def update(self, instance, validated_data):
         instance.location = validated_data.get('location', instance.location)
@@ -311,7 +313,6 @@ class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
             raise serializers.ValidationError('Invalid Commented by User.')
 
         instance.comment = validated_data.get('comment', instance.comment)
-        instance.is_current = validated_data.get('is_current', instance.is_current)
         instance.save()
 
         return instance
