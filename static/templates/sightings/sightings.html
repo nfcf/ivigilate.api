@@ -82,7 +82,7 @@
                         <td class="valign-middle text-center"></td>
                         <td style="height:56px"><img ng-src="{{ sighting.movable.photo }}" height="40px"
                                                      ng-if="sighting.movable.photo"/></td>
-                        <td class="valign-middle">{{ sighting.movable.reference_id }}</td>
+                        <td class="valign-middle">{{ sighting.movable.reference_id || sighting.movable.uid }}</td>
                         <td class="valign-middle">{{ sighting.movable.name }}</td>
                         <td class="valign-middle">{{ sighting.last_seen_at | relativeDate }}
                             at {{ sighting.location_name }}</td>

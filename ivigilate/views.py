@@ -39,7 +39,8 @@ class AccountViewSet(viewsets.ModelViewSet):
             serializer = self.get_pagination_serializer(page)
             return Response(serializer.data)
         else:
-            logger.critical('The user \'%s\' tried to access the accounts list without admin permissions.', request.user)
+            logger.critical('The user \'%s\' tried to access the accounts list without admin permissions.',
+                            request.user)
             return Response('You do not have permissions to access this list.',
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -206,13 +207,13 @@ class MovableViewSet(viewsets.ModelViewSet):
         user = request.user if not isinstance(request.user, AnonymousUser) else None
         instance = self.queryset.get(id=pk)
         # if self.request.FILES.get('file'):
-        #    instance.photo = self.request.FILES.get('file')
+        # instance.photo = self.request.FILES.get('file')
 
         serializer = self.get_serializer_class()(instance, data=request.data)
 
         if serializer.is_valid():
             if serializer.save(user=user):
-                if 'photo' in serializer.validated_data: #delete this field from the response as it isn't serializable
+                if 'photo' in serializer.validated_data:  #delete this field from the response as it isn't serializable
                     del serializer.validated_data['photo']
                 return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
 
@@ -250,7 +251,7 @@ class SightingViewSet(viewsets.ModelViewSet):
                             'FROM ivigilate_sighting s JOIN ivigilate_movable m ON s.movable_id = m.id ' + \
                             'WHERE m.account_id = %s AND s.first_seen_at >= %s AND s.last_seen_at <= %s ' + \
                             'AND (%s OR s.place_id = ANY(%s)) AND s.last_seen_at IN (' + \
-	                        ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY movable_id' + \
+                            ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY movable_id' + \
                             ') ORDER BY s.last_seen_at DESC'
             filteredQueryParams = [account.id, filter_date + ' 00:00:00', filter_date + ' 23:59:59',
                                    len(filter_places) == 0, [int(p) for p in filter_places]]
@@ -259,14 +260,14 @@ class SightingViewSet(viewsets.ModelViewSet):
                            'FROM ivigilate_sighting s JOIN ivigilate_movable m ON s.movable_id = m.id ' + \
                            'WHERE m.account_id = %s AND s.first_seen_at >= %s AND s.last_seen_at <= %s ' + \
                            'AND (%s OR s.place_id = ANY(%s)) AND s.last_seen_at IN (' + \
-	                       ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY movable_id' + \
+                           ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY movable_id' + \
                            ') ORDER BY s.last_seen_at DESC)' + \
                            ' UNION ' + \
                            '(SELECT s.* ' + \
                            'FROM ivigilate_sighting s JOIN ivigilate_movable m ON s.movable_id = m.id ' + \
                            'WHERE m.account_id = %s AND s.last_seen_at <= %s ' + \
                            'AND s.last_seen_at IN (' + \
-	                       ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY movable_id' + \
+                           ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY movable_id' + \
                            ') ORDER BY s.last_seen_at DESC)'
             showAllQueryParams = [account.id, filter_date + ' 00:00:00', filter_date + ' 23:59:59',
                                   len(filter_places) == 0, [int(p) for p in filter_places],
@@ -327,22 +328,19 @@ class SightingViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AutoSightingView(views.APIView):
+class AddSightingView(views.APIView):
     permission_classes = (permissions.AllowAny, )
 
     def post(self, request, format=None):
         data = json.loads(request.body.decode('utf-8'))
 
         company_id = data.get('company_id', None)
-        # account = None
         watcher_uid = data.get('watcher_uid', None)
         place = None
         user = None
         movable_uid = data.get('movable_uid', None)
-        # movable = None
         rssi = data.get('rssi', None)
         battery = data.get('battery', None)
-        metadata = data.get('metadata', None)
 
         try:
             account = Account.objects.get(company_id=company_id)
@@ -364,7 +362,8 @@ class AutoSightingView(views.APIView):
             try:
                 place = Place.objects.get(uid=watcher_uid)
             except Place.DoesNotExist:
-                place = Place.objects.create(account=account, uid=watcher_uid, metadata=metadata)
+                return Response('Invalid Watcher UID (couldn\'t find corresponding place).',
+                                status=status.HTTP_400_BAD_REQUEST)
 
         if movable.account != account:
             if movable.reported_missing:
@@ -378,7 +377,7 @@ class AutoSightingView(views.APIView):
             previous_sighting = previous_sightings[0]
             if (previous_sighting.place == place and previous_sighting.user == user) or \
                     ((previous_sighting.place != place or previous_sighting.user != user) and
-                     previous_sighting.rssi >= rssi):
+                             previous_sighting.rssi >= rssi):
                 logger.debug('Updating previous sighting \'%s\' as the movable didn\'t change places.',
                              previous_sighting)
                 new_sighting = previous_sighting
@@ -398,3 +397,47 @@ class AutoSightingView(views.APIView):
 
         serialized = SightingReadSerializer(new_sighting, context={'request': request})
         return Response(serialized.data)
+
+
+class AutoUpdateView(views.APIView):
+    permission_classes = (permissions.AllowAny, )
+
+    def post(self, request, format=None):
+        data = json.loads(request.body.decode('utf-8'))
+
+        company_id = data.get('company_id', None)
+        watcher_uid = data.get('watcher_uid', None)
+        metadata = data.get('metadata', None)
+
+        try:
+            account = Account.objects.get(company_id=company_id)
+        except Account.DoesNotExist:
+            return Response('Invalid Company ID.', status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            place = Place.objects.get(uid=watcher_uid)
+            try:
+                full_metadata = json.loads(place.metadata)
+            except Exception as ex:
+                full_metadata = dict()
+                full_metadata['auto_update'] = None
+            full_metadata['device'] = json.loads(metadata)
+
+            place.metadata = json.dumps(full_metadata)
+            place.save()
+        except Place.DoesNotExist:
+            full_metadata = dict()
+            full_metadata['device'] = metadata
+            full_metadata['auto_update'] = None
+            Place.objects.create(account=account,
+                                 uid=watcher_uid,
+                                 metadata=json.dumps(full_metadata))
+
+        # check for updates by comparing last_update_date in the metadata field
+        if 'auto_update' in full_metadata and \
+                full_metadata['auto_update'] and \
+                'date' in full_metadata['auto_update'] and \
+                full_metadata['device']['last_update_date'] < full_metadata['auto_update']['date']:
+            return Response(full_metadata['auto_update'], status=status.HTTP_412_PRECONDITION_FAILED)
+
+        return Response(status=status.HTTP_200_OK)
