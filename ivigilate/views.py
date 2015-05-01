@@ -249,8 +249,8 @@ class SightingViewSet(viewsets.ModelViewSet):
 
             filteredQuery = 'SELECT s.* ' + \
                             'FROM ivigilate_sighting s JOIN ivigilate_movable m ON s.movable_id = m.id ' + \
-                            'WHERE m.account_id = %s AND s.first_seen_at >= %s AND s.last_seen_at <= %s ' + \
-                            'AND (%s OR s.place_id = ANY(%s)) AND s.last_seen_at IN (' + \
+                            'WHERE m.account_id = %s AND s.last_seen_at BETWEEN %s AND %s ' + \
+                            'AND (%s OR s.place_id = ANY(%s::integer[])) AND s.last_seen_at IN (' + \
                             ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY movable_id' + \
                             ') ORDER BY s.last_seen_at DESC'
             filteredQueryParams = [account.id, filter_date + ' 00:00:00', filter_date + ' 23:59:59',

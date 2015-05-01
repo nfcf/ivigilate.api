@@ -17,14 +17,14 @@ class CloseSightingsJob(CronJobBase):
     code = 'ivigilate.close_sightings_job'  # a unique code
 
     def do(self):
-        FILTER_OLD_NUMBER_OF_SECONDS = 10
+        NUMBER_OF_SECONDS_TO_BE_CONSIDERED_OLD = 10
         NUMBER_OF_TIMES_TO_RUN = 3  # since cron only runs every minute...trying to minimize the interval
         iteration = 1
         try:
             while iteration <= NUMBER_OF_TIMES_TO_RUN:
                 logger.debug('Starting CloseSightingsJob iteration %s...', iteration)
                 now = datetime.now(timezone.utc)
-                filter_datetime = now - timedelta(seconds=FILTER_OLD_NUMBER_OF_SECONDS)
+                filter_datetime = now - timedelta(seconds=NUMBER_OF_SECONDS_TO_BE_CONSIDERED_OLD)
                 sightings = Sighting.objects.filter(is_current=True, last_seen_at__lt=filter_datetime)
                 if sightings:
                     logger.debug('Found %s sighting(s) that need closing.', len(sightings))

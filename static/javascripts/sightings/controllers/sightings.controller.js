@@ -48,7 +48,7 @@
                     refresh();
                 });
 
-                $interval(refresh, 10000);
+                $interval(refresh, 15000);
             }
             else {
                 $location.url('/');
@@ -104,9 +104,9 @@
                 }
 
                 for (var i = 0; i < vm.sightings.length; i++) {
-                    vm.sightings[i].first_seen_at = convertUTCDateToLocalDate(new Date(vm.sightings[i].first_seen_at));
-                    vm.sightings[i].last_seen_at = convertUTCDateToLocalDate(new Date(vm.sightings[i].last_seen_at));
-                    vm.sightings[i].satisfyFilter = vm.sightings[i].last_seen_at >= new Date(vm.filterDate) &&
+                    //vm.sightings[i].first_seen_at = convertUTCDateToLocalDate(new Date(vm.sightings[i].first_seen_at));
+                    //vm.sightings[i].last_seen_at = convertUTCDateToLocalDate(new Date(vm.sightings[i].last_seen_at));
+                    vm.sightings[i].satisfyFilter = new Date(vm.sightings[i].last_seen_at) >= new Date(vm.filterDate) &&
                                                     (filterPlacesIds === undefined || filterPlacesIds.indexOf(vm.sightings[i].place.id) >= 0);
                 }
             }

@@ -147,7 +147,7 @@ class PlaceReadSerializer(gis_serializers.GeoModelSerializer):
         geo_field = 'location'
         fields = ('id', 'account', 'uid', 'reference_id', 'name',
                   'location', 'arrival_rssi', 'departure_rssi',
-                  'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
+                  'created_at', 'updated_at', 'updated_by', 'is_active')
 
 
 class PlaceWriteSerializer(serializers.ModelSerializer):
