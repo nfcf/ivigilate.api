@@ -40,6 +40,20 @@
                            ng-model="vm.sighting.movable.name" placeholder="Name"/>
                 </div>
             </div>
+            <div class="col-xs-12">
+                <div class="form-group">
+                    <label>Event Trigger(s)</label>
+                        <ui-select multiple ng-model="vm.sighting.movable.events"
+                                   theme="select2" ng-disabled="disabled" style="width: 100%">
+                            <ui-select-match placeholder="Select event trigger(s)...">{{$item.name}}</ui-select-match>
+                            <ui-select-choices
+                                    repeat="event in vm.events | propsFilter: {name: $select.search, reference_id: $select.search}">
+                                <div ng-bind-html="event.name | highlight: $select.search"></div>
+                                <small ng-bind-html="event.reference_id | highlight: $select.search"/>
+                            </ui-select-choices>
+                        </ui-select>
+                </div>
+            </div>
             <div class="col-xs-12 col-md-6">
                 <div class="form-group">
                     <label for="is_active">Is Active?</label><br/>
@@ -56,31 +70,11 @@
             <div class="col-xs-12">
                 <hr />
             </div>
-            <div class="col-xs-12 col-md-6">
-                <div class="form-group">
-                    <label for="first_seen_at">First seen at</label>
-                    <input type="text" class="form-control" id="first_seen_at"
-                           value="{{ vm.sighting.first_seen_at | date:'yyyy-MM-dd HH:mm:ss' }}" ng-readonly/>
-                </div>
-            </div>
-            <div class="col-xs-12 col-md-6">
-                <div class="form-group">
-                    <label for="last_seen_at">Last seen at</label>
-                    <input type="text" class="form-control" id="last_seen_at"
-                           value="{{ vm.sighting.last_seen_at | date:'yyyy-MM-dd HH:mm:ss' }}" ng-readonly/>
-                </div>
-            </div>
             <div class="col-xs-12">
                 <div class="form-group">
                     <label for="comment">Comment</label>
                         <textarea type="text" class="form-control" id="comment" ng-model="vm.sighting.comment"
                                   required/>
-                </div>
-            </div>
-            <div class="col-xs-6 col-md-6">
-                <div class="form-group">
-                    <label><input type="checkbox" id="confirmed" ng-model="vm.sighting.confirmed"/> Confirm
-                        Sighting</label>
                 </div>
             </div>
         </div>

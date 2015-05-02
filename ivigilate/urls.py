@@ -9,6 +9,7 @@ router.register(r'users', views.AuthUserViewSet)
 router.register(r'places', views.PlaceViewSet)
 router.register(r'movables', views.MovableViewSet)
 router.register(r'sightings', views.SightingViewSet)
+router.register(r'events', views.EventViewSet)
 
 urlpatterns = patterns('',
     url(r'^user/password/reset/$',

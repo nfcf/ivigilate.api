@@ -22,6 +22,7 @@
             'ivigilate.layout',
             'ivigilate.settings',
             'ivigilate.places',
+            'ivigilate.events',
             'ivigilate.sightings'
         ]);
 

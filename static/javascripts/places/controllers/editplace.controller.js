@@ -3,11 +3,13 @@
 
     angular
         .module('ivigilate.places.controllers')
-        .controller('PlaceController', PlaceController);
+        .controller('EditPlaceController', EditPlaceController);
 
-    PlaceController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data', 'Authentication', 'Places', 'uiGmapGoogleMapApi'];
+    EditPlaceController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data',
+                                    'Authentication', 'Places', 'uiGmapGoogleMapApi'];
 
-    function PlaceController($location, $scope, $timeout, $modalInstance, data, Authentication, Places, uiGmapGoogleMapApi) {
+    function EditPlaceController($location, $scope, $timeout, $modalInstance, data,
+                                 Authentication, Places, uiGmapGoogleMapApi) {
         var vm = this;
         vm.cancel = cancel;
         vm.save = save;

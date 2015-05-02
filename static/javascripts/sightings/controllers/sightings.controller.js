@@ -12,6 +12,7 @@
         vm.refresh = refresh;
         vm.addSighting = addSighting;
         vm.editSighting = editSighting;
+        vm.confirmSighting = confirmSighting;
         vm.openDatePicker = openDatePicker;
 
         vm.sightings = undefined;
@@ -71,7 +72,7 @@
             function successFn(data, status, headers, config) {
                 vm.error = null;
                 vm.sightings = data.data;
-                applyFilterAndLocalTimeToSightings();
+                applyFilterAndPreventTimesInTheFutureToSightings();
             }
 
             function errorFn(data, status, headers, config) {
@@ -93,7 +94,23 @@
             });
         }
 
-        function applyFilterAndLocalTimeToSightings() {
+        function confirmSighting(sighting) {
+            var sightingToSend = JSON.parse(JSON.stringify(sighting));
+            sightingToSend.movable = sightingToSend.movable.id;  // Required for the REST serializer
+            sightingToSend.place = sightingToSend.place.id;  // Required for the REST serializer
+            Sightings.update(sightingToSend).then(successFn, errorFn);
+
+            function successFn(data, status, headers, config) {
+                // Do nothing...
+            }
+
+            function errorFn(data, status, headers, config) {
+                vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
+                sighting.confirmed = !sighting.confirmed;
+            }
+        }
+
+        function applyFilterAndPreventTimesInTheFutureToSightings() {
             if (vm.sightings) {
                 var filterPlacesIds = undefined;
                 if (vm.filterPlaces != null && vm.filterPlaces.length > 0) {
@@ -103,11 +120,15 @@
                     })
                 }
 
+                var now = new Date();
                 for (var i = 0; i < vm.sightings.length; i++) {
+                    if (new Date(vm.sightings[i].last_seen_at) > now) {
+                        vm.sightings[i].last_seen_at = now;
+                    }
                     //vm.sightings[i].first_seen_at = convertUTCDateToLocalDate(new Date(vm.sightings[i].first_seen_at));
                     //vm.sightings[i].last_seen_at = convertUTCDateToLocalDate(new Date(vm.sightings[i].last_seen_at));
                     vm.sightings[i].satisfyFilter = new Date(vm.sightings[i].last_seen_at) >= new Date(vm.filterDate) &&
-                                                    (filterPlacesIds === undefined || filterPlacesIds.indexOf(vm.sightings[i].place.id) >= 0);
+                    (filterPlacesIds === undefined || filterPlacesIds.indexOf(vm.sightings[i].place.id) >= 0);
                 }
             }
         }
@@ -119,7 +140,7 @@
         }
 
         function convertUTCDateToLocalDate(date) {
-            var newDate = new Date(date.getTime()+date.getTimezoneOffset()*60*1000);
+            var newDate = new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000);
 
             var offset = date.getTimezoneOffset() / 60;
             var hours = date.getHours();

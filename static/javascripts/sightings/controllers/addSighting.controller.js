@@ -22,7 +22,7 @@
         vm.datepickerOpen = false;
         vm.seen_at_date = vm.maxDate = $filter('date')(new Date(), 'yyyy-MM-dd');
         vm.seen_at = new Date();
-        vm.duration = new Date(0, 0, 1, 0, 0);
+        vm.duration = new Date(0, 0, 0, 0, 15);
         vm.comment = undefined;
 
         vm.datepickerOptions = {
@@ -79,8 +79,8 @@
             var sighting = {};
             sighting.movable = vm.movable.id;
             sighting.place = vm.place.id;
-            sighting.first_seen_at = convertToUTC(vm.seen_at);
-            sighting.last_seen_at = convertToUTC(addTime(vm.seen_at, vm.duration.getHours(), vm.duration.getMinutes()));
+            sighting.first_seen_at = vm.seen_at;
+            sighting.last_seen_at = addTime(vm.seen_at, vm.duration.getHours(), vm.duration.getMinutes());
             sighting.comment = vm.comment;
             sighting.confirmed = true;
 

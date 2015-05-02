@@ -6,7 +6,7 @@ from django.utils.decorators import method_decorator
 from rest_framework.response import Response
 from ivigilate.serializers import *
 from ivigilate.permissions import IsAccountOwner
-from rest_framework import permissions, viewsets, status, views
+from rest_framework import permissions, viewsets, status, views, mixins
 from ivigilate.utils import check_for_events, close_sighting
 import json, logging
 
@@ -129,7 +129,8 @@ class LogoutView(views.APIView):
         return Response({}, status=status.HTTP_204_NO_CONTENT)
 
 
-class PlaceViewSet(viewsets.ModelViewSet):
+class PlaceViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
+                   mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = Place.objects.all()
 
     def get_serializer_class(self):
@@ -138,7 +139,7 @@ class PlaceViewSet(viewsets.ModelViewSet):
         return PlaceWriteSerializer
 
     def get_permissions(self):
-        if self.request.method in ['HEAD', 'OPTIONS', 'POST']:
+        if self.request.method in ['HEAD', 'OPTIONS']:
             return (permissions.AllowAny(), )
         return (permissions.IsAuthenticated(), )
 
@@ -173,7 +174,8 @@ class PlaceViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class MovableViewSet(viewsets.ModelViewSet):
+class MovableViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
+                     mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = Movable.objects.all()
 
     def get_serializer_class(self):
@@ -182,7 +184,7 @@ class MovableViewSet(viewsets.ModelViewSet):
         return MovableWriteSerializer
 
     def get_permissions(self):
-        if self.request.method in ['HEAD', 'OPTIONS', 'POST']:
+        if self.request.method in ['HEAD', 'OPTIONS']:
             return (permissions.AllowAny(), )
         return (permissions.IsAuthenticated(), )
 
@@ -213,7 +215,16 @@ class MovableViewSet(viewsets.ModelViewSet):
 
         if serializer.is_valid():
             if serializer.save(user=user):
-                if 'photo' in serializer.validated_data:  #delete this field from the response as it isn't serializable
+                # work around to handle the M2M field as DRF doesn't handle them well...
+                events = self.request.DATA.get('events', None)
+                if events:
+                    movable = Movable.objects.get(uid=serializer.validated_data['uid'])
+                    for event in movable.events.all():
+                        movable.events.remove(event)
+                    for id in json.loads(events):
+                        movable.events.add(id)
+                # delete this field from the response as it isn't serializable
+                if 'photo' in serializer.validated_data:
                     del serializer.validated_data['photo']
                 return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
 
@@ -441,3 +452,49 @@ class AutoUpdateView(views.APIView):
             return Response(full_metadata['auto_update'], status=status.HTTP_412_PRECONDITION_FAILED)
 
         return Response(status=status.HTTP_200_OK)
+
+
+class EventViewSet(viewsets.ModelViewSet):
+    queryset = Event.objects.all()
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return EventReadSerializer
+        return EventWriteSerializer
+
+    def get_permissions(self):
+        if self.request.method in ['HEAD', 'OPTIONS', 'POST']:
+            return (permissions.AllowAny(), )
+        return (permissions.IsAuthenticated(), )
+
+    def list(self, request):
+        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
+        queryset = self.queryset.filter(account=account)
+        # page = self.paginate_queryset(queryset)
+        # serializer = self.get_pagination_serializer(page)
+        serializer = self.get_serializer_class()(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
+        try:
+            queryset = self.queryset.get(id=pk, account=account)
+        except Event.DoesNotExist:
+            return Response('Event does not exist or is not associated with the current logged on account.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer_class()(queryset, many=False, context={'request': request})
+        return Response(serializer.data)
+
+    def update(self, request, pk=None):
+        user = request.user if not isinstance(request.user, AnonymousUser) else None
+        instance = self.queryset.get(id=pk)
+        serializer = self.get_serializer_class()(instance, data=request.data)
+
+        if serializer.is_valid():
+            if serializer.save(user=user):
+                return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+

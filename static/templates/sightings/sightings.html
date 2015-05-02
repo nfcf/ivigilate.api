@@ -88,8 +88,9 @@
                             at {{ sighting.location_name }}</td>
                         <td class="valign-middle text-center">{{ sighting.battery || 'N/A' }}</td>
                         <td class="valign-middle">{{ sighting.comment }}</td>
-                        <td class="valign-middle text-center"><input type="checkbox" ng-model="sighting.confirmed"
-                                                                     disabled></td>
+                        <td class="valign-middle text-center">
+                            <input type="checkbox" ng-model="sighting.confirmed" ng-click="vm.confirmSighting(sighting)">
+                        </td>
                         <td class="valign-middle text-center">
                             <a ng-click="vm.editSighting(sighting)">Edit</a>
                         </td>

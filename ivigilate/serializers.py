@@ -108,17 +108,6 @@ class AuthUserWriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Invalid Company ID.')
         return value
 
-    def create(self, validated_data):
-        company_id = validated_data.get('account').get('company_id')
-        email = validated_data.get('email')
-        password = validated_data.get('password')
-        try:
-            account = Account.objects.get(company_id=company_id)
-        except Account.DoesNotExist:
-            raise serializers.ValidationError('Invalid Company ID.')
-
-        return AuthUser.objects.create_user(account=account, email=email, password=password)
-
     def update(self, instance, validated_data):
         instance.email = validated_data.get('email', instance.email)
         instance.first_name = validated_data.get('first_name', instance.first_name)
@@ -160,18 +149,6 @@ class PlaceWriteSerializer(serializers.ModelSerializer):
                   'location', 'arrival_rssi', 'departure_rssi',
                   'metadata', 'is_active')
 
-    def create(self, validated_data):
-        company_id = validated_data.get('account').get('company_id')
-        try:
-            account = Account.objects.get(company_id=company_id)
-        except Account.DoesNotExist:
-            raise serializers.ValidationError('Invalid Company ID.')
-
-        uid = validated_data.get('uid')
-        metadata = validated_data.get('metadata')
-
-        return Place.objects.create(account=account, uid=uid, metadata=metadata)
-
     def update(self, instance, validated_data):
         instance.reference_id = validated_data.get('reference_id', instance.reference_id)
         instance.name = validated_data.get('name', instance.name)
@@ -186,12 +163,20 @@ class PlaceWriteSerializer(serializers.ModelSerializer):
         return instance
 
 
+class MovableEventSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Event
+        fields = ('id', 'reference_id', 'name')
+
+
 class MovableReadSerializer(serializers.HyperlinkedModelSerializer):
+    events = MovableEventSerializer(many=True, read_only=True)
+
     class Meta:
         model = Movable
-        fields = ('id', 'account', 'uid', 'reference_id', 'photo',
-                  'name', 'metadata', 'reported_missing',
-                  'created_at', 'updated_at', 'updated_by', 'is_active')
+        fields = ('id', 'account', 'uid', 'reference_id', 'name',
+                  'photo', 'reported_missing', 'events',
+                  'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
 
 
 class MovableWriteSerializer(serializers.ModelSerializer):
@@ -199,9 +184,9 @@ class MovableWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Movable
-        fields = ('id', 'company_id', 'uid', 'reference_id', 'photo',
-                  'name', 'metadata', 'reported_missing',
-                  'created_at', 'updated_at', 'is_active')
+        fields = ('id', 'company_id', 'uid', 'reference_id', 'name',
+                  'photo', 'reported_missing',
+                  'metadata', 'created_at', 'updated_at', 'is_active')
 
     def validate_company_id(self, value):
         try:
@@ -210,22 +195,10 @@ class MovableWriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Invalid Company ID.')
         return value
 
-    def create(self, validated_data):
-        company_id = validated_data.get('account').get('company_id')
-        try:
-            account = Account.objects.get(company_id=company_id)
-        except Account.DoesNotExist:
-            raise serializers.ValidationError('Invalid Company ID.')
-
-        uid = validated_data.get('uid')
-        metadata = validated_data.get('metadata')
-
-        return Movable.objects.create(account=account, uid=uid, metadata=metadata)
-
     def update(self, instance, validated_data):
         instance.reference_id = validated_data.get('reference_id', instance.reference_id)
-        instance.photo = validated_data.get('photo', instance.photo)
         instance.name = validated_data.get('name', instance.name)
+        instance.photo = validated_data.get('photo', instance.photo)
         instance.metadata = validated_data.get('metadata', instance.metadata)
         instance.reported_missing = validated_data.get('reported_missing', instance.reported_missing)
         instance.updated_by = validated_data.get('user')
@@ -264,31 +237,16 @@ class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
                   'location', 'rssi', 'battery', 'metadata', 'confirmed', 'comment')
 
     def create(self, validated_data):
-        user = validated_data.get('user')
-        movable = validated_data.get('movable')
-        place = validated_data.get('place')
-        first_seen_at = validated_data.get('first_seen_at')
-        last_seen_at = validated_data.get('last_seen_at')
-        location = validated_data.get('location')
-        rssi = validated_data.get('rssi')
-        battery = validated_data.get('battery')
-        metadata = validated_data.get('metadata', '')
-        confirmed = validated_data.get('confirmed')
-        confirmed_by = user if validated_data.get('confirmed') else None
-        comment = validated_data.get('comment', '')
-        commented_by = user if validated_data.get('comment') else None
+        validated_data['confirmed_by'] = validated_data.get('user') if validated_data.get('confirmed') else None
+        validated_data['commented_by'] = validated_data.get('user') if validated_data.get('comment') else None
 
-        if not location and place:
-            location = place.location
+        if not validated_data.get('location') and validated_data.get('place'):
+            validated_data['location'] = validated_data.get('place').location
 
         if not validated_data.get('comment'):
             raise serializers.ValidationError('Comment field cannot be empty.')
 
-        sighting = Sighting.objects.create(movable=movable, place=place, user=user, location=location,
-                                            first_seen_at=first_seen_at, last_seen_at=last_seen_at,
-                                            rssi=rssi, battery=battery, metadata=metadata,
-                                            confirmed=confirmed, confirmed_by=confirmed_by, comment=comment,
-                                            commented_by=commented_by)
+        sighting = Sighting.objects.create(**validated_data)
         check_for_events(sighting)
         return sighting
 
@@ -313,6 +271,42 @@ class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
             raise serializers.ValidationError('Invalid Commented by User.')
 
         instance.comment = validated_data.get('comment', instance.comment)
+        instance.save()
+
+        return instance
+
+
+class EventReadSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Event
+        fields = ('id', 'account', 'reference_id', 'name',
+                  'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
+
+
+class EventWriteSerializer(serializers.ModelSerializer):
+    company_id = serializers.CharField(source='account.company_id', required=False)
+
+    class Meta:
+        model = Event
+        fields = ('id', 'company_id', 'reference_id', 'name',
+                  'metadata', 'is_active')
+
+    def create(self, validated_data):
+        company_id = validated_data.get('account').get('company_id')
+        try:
+            account = Account.objects.get(company_id=company_id)
+        except Account.DoesNotExist:
+            raise serializers.ValidationError('Invalid Company ID.')
+
+        validated_data['account'] = account
+        return Event.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.reference_id = validated_data.get('reference_id', instance.reference_id)
+        instance.name = validated_data.get('name', instance.name)
+        instance.metadata = validated_data.get('name', instance.metadata)
+        instance.updated_by = validated_data.get('user')
+        instance.is_active = validated_data.get('is_active', instance.is_active)
         instance.save()
 
         return instance
