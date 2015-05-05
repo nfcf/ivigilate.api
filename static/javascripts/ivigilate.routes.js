@@ -24,6 +24,10 @@
       controller: 'PlacesController',
       controllerAs: 'vm',
       templateUrl: '/static/templates/places/places.html'
+    }).when('/events', {
+      controller: 'EventsController',
+      controllerAs: 'vm',
+      templateUrl: '/static/templates/events/events.html'
     }).when('/sightings', {
       controller: 'SightingsController',
       controllerAs: 'vm',

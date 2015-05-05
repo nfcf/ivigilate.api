@@ -43,3 +43,16 @@ a, th { cursor: pointer; }
     -o-background-size: cover;
     background-size: cover;*/
 }
+
+.custom-carousel-indicator
+{
+    text-align: center;
+}
+.custom-carousel-indicator span.active {
+    color:#dcdcdc !important;
+}
+
+.custom-carousel {
+    height: 330px;
+    background-color: mintcream;
+}

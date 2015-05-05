@@ -17,6 +17,7 @@
 
         vm.error = undefined;
         vm.events = [];
+        vm.events_selected = [];
         vm.sighting = undefined;
         vm.imagePreview = undefined;
         vm.imageToUpload = undefined;
@@ -28,6 +29,7 @@
             if (user) {
                 vm.sighting = data;
                 vm.imagePreview = vm.sighting.movable.photo;
+
                 Events.list().then(eventsSuccessFn, eventsErrorFn);
             }
             else {
@@ -36,6 +38,7 @@
 
             function eventsSuccessFn(data, status, headers, config) {
                 vm.events = data.data;
+                vm.events_selected = vm.sighting.movable.events;
             }
 
             function eventsErrorFn(data, status, headers, config) {
@@ -62,6 +65,8 @@
         }
 
         function save() {
+            vm.sighting.movable.events = vm.events_selected;
+
             var movableToSend = JSON.parse(JSON.stringify(vm.sighting.movable));
             for (var i = 0; i < vm.sighting.movable.events.length; i++) {  // Required for the REST serializer
                 movableToSend.events[i] = vm.sighting.movable.events[i].id;

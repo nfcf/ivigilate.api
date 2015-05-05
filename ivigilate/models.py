@@ -246,10 +246,21 @@ class Sighting(models.Model):
                (self.id, self.movable.name, self.get_location_name(), self.last_seen_at)
 
 
+class EventType(models.Model):
+    name = models.CharField(max_length=64)
+    description = models.CharField(max_length=256)
+    sighting_is_current = models.BooleanField(default=True)
+    sighting_duration_in_seconds = models.IntegerField(default=0)
+    sighting_has_battery_below = models.IntegerField(default=100)
+    sighting_has_comment = models.NullBooleanField(default=None)
+    sighting_has_been_confirmed = models.NullBooleanField(default=None)
+
+
 class Event(models.Model):
     account = models.ForeignKey(Account)
     reference_id = models.CharField(max_length=64, blank=True)
     name = models.CharField(max_length=64)
+    event_type = models.ForeignKey(EventType, null=True)
     movables = models.ManyToManyField(Movable, blank=True, related_name='events')
     places = models.ManyToManyField(Place, blank=True)
     users = models.ManyToManyField(AuthUser, blank=True)
@@ -286,7 +297,7 @@ class Event(models.Model):
 
 
 class EventOccurrence(models.Model):
-    event = models.ForeignKey(Event)
+    event = models.ForeignKey(Event, related_name='sighting_previous_event_occurrence')
     movable = models.ForeignKey(Movable)
     sighting = models.ForeignKey(Sighting)
     occurred_at = models.DateTimeField(editable=False)

@@ -42,16 +42,16 @@
             </div>
             <div class="col-xs-12">
                 <div class="form-group">
-                    <label>Event Trigger(s)</label>
-                        <ui-select multiple ng-model="vm.sighting.movable.events"
-                                   theme="select2" ng-disabled="disabled" style="width: 100%">
-                            <ui-select-match placeholder="Select event trigger(s)...">{{$item.name}}</ui-select-match>
-                            <ui-select-choices
-                                    repeat="event in vm.events | propsFilter: {name: $select.search, reference_id: $select.search}">
-                                <div ng-bind-html="event.name | highlight: $select.search"></div>
-                                <small ng-bind-html="event.reference_id | highlight: $select.search"/>
-                            </ui-select-choices>
-                        </ui-select>
+                    <label>Event(s) to watch</label>
+                    <ui-select multiple='true' ng-model="vm.events_selected"
+                               theme="select2" ng-disabled="disabled" style="width: 100%">
+                        <ui-select-match placeholder="Select event(s) to watch...">{{$item.name}}</ui-select-match>
+                        <ui-select-choices
+                                repeat="event in vm.events | propsFilter: {name: $select.search, reference_id: $select.search} track by event.id">
+                            <div ng-bind-html="event.name | highlight: $select.search"></div>
+                            <small ng-bind-html="event.reference_id | highlight: $select.search"/>
+                        </ui-select-choices>
+                    </ui-select>
                 </div>
             </div>
             <div class="col-xs-12 col-md-6">
@@ -68,7 +68,7 @@
                 </div>
             </div>
             <div class="col-xs-12">
-                <hr />
+                <hr/>
             </div>
             <div class="col-xs-12">
                 <div class="form-group">

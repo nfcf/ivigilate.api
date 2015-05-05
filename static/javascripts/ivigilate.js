@@ -15,6 +15,8 @@
             'pascalprecht.translate',
             'ngSanitize',
             'ui.select',
+            'ngTouch',
+            'angular-carousel',
             'ivigilate.config',
             'ivigilate.filters',
             'ivigilate.routes',

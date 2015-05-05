@@ -8,8 +8,8 @@
                 <tr>
                     <th st-sort="reference_id">Reference ID</th>
                     <th st-sort="name" st-sort-default="True">Name</th>
-                    <th st-sort="arrival_rssi">Arrival RSSI</th>
-                    <th st-sort="departure_rssi">Departure RSSI</th>
+                    <th st-sort="arrival_rssi">Arrival Proximity</th>
+                    <th st-sort="departure_rssi">Departure Proximity</th>
                     <th st-sort="is_active">Active?</th>
                     <th></th>
                 </tr>
@@ -25,7 +25,7 @@
                     <td>{{ place.name }}</td>
                     <td>{{ place.arrival_rssi }}</td>
                     <td>{{ place.departure_rssi }}</td>
-                    <td><input type="checkbox" ng-model="place.is_active" disabled></td>
+                    <td><input type="checkbox" ng-model="place.is_active" ng-click="vm.updatePlaceState(place)"></td>
                     <td>
                         <a ng-click="vm.editPlace(place)">Edit</a>
                     </td>

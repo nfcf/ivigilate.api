@@ -1,0 +1,68 @@
+[
+  {
+    "model": "ivigilate.EventType",
+    "pk": 1,
+    "fields": {
+      "name": "Gone out of sight",
+      "description": "Triggered as soon as a movable gets out of the configured place(s) receiver's range.",
+      "sighting_is_current": false,
+      "sighting_duration_in_seconds": 5,
+      "sighting_has_battery_below": 100,
+      "sighting_has_comment": null,
+      "sighting_has_been_confirmed": null
+    }
+  },
+  {
+    "model": "ivigilate.EventType",
+    "pk": 2,
+    "fields": {
+      "name": "Seen at place",
+      "description": "Triggered immediately after a movable is seen at any of the configured places.",
+      "sighting_is_current": true,
+      "sighting_duration_in_seconds": 0,
+      "sighting_has_battery_below": 100,
+      "sighting_has_comment": null,
+      "sighting_has_been_confirmed": null
+    }
+  },
+  {
+    "model": "ivigilate.EventType",
+    "pk": 3,
+    "fields": {
+      "name": "'Seen at place after specific event occurrence",
+      "description": "Triggered immediately after a movable is seen at a place after a specific event occurred.",
+      "sighting_is_current": true,
+      "sighting_duration_in_seconds": 0,
+      "sighting_has_battery_below": 100,
+      "sighting_has_comment": null,
+      "sighting_has_been_confirmed": null
+    }
+  },
+  {
+    "model": "ivigilate.EventType",
+    "pk": 4,
+    "fields": {
+      "name": "Same place for more than X minutes",
+      "description": "Triggered if a movable stays in the same place for more than the configured time.",
+      "sighting_is_current": true,
+      "sighting_duration_in_seconds": 60,
+      "sighting_has_battery_below": 100,
+      "sighting_has_comment": null,
+      "sighting_has_been_confirmed": null
+    }
+  },
+  {
+    "model": "ivigilate.EventType",
+    "pk": 5,
+    "fields": {
+      "name": "Low battery",
+      "description": "Triggered whenever the battery level for a movable goes below 10%.",
+      "sighting_is_current": true,
+      "sighting_duration_in_seconds": 10,
+      "sighting_has_battery_below": 10,
+      "sighting_has_comment": null,
+      "sighting_has_been_confirmed": null
+    }
+  }
+]
+

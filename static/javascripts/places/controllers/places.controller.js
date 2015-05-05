@@ -11,6 +11,7 @@
         var vm = this;
         vm.refresh = refresh;
         vm.editPlace = editPlace;
+        vm.updatePlaceState = updatePlaceState;
 
         vm.places = undefined;
 
@@ -39,12 +40,25 @@
         }
 
         function editPlace(place) {
-            var dlg = dialogs.create('static/templates/places/edit_place.html', 'EditPlaceController as vm', place, 'lg');
+            var dlg = dialogs.create('static/templates/places/editplace.html', 'EditPlaceController as vm', place, 'lg');
             dlg.result.then(function (editedPlace) {
                 for (var k in editedPlace) { //Copy the object attributes to the currently displayed on the table
                     place[k] = editedPlace[k];
                 }
             });
+        }
+
+        function updatePlaceState(place) {
+            Places.update(place).then(successFn, errorFn);
+
+            function successFn(data, status, headers, config) {
+                // Do nothing...
+            }
+
+            function errorFn(data, status, headers, config) {
+                vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
+                place.is_active = !place.is_active;
+            }
         }
     }
 })();

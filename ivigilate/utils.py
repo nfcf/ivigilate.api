@@ -2,6 +2,7 @@ from datetime import datetime, timezone, timedelta
 from twilio.rest import TwilioRestClient
 from ivigilate import settings
 from ivigilate.models import Sighting, Event, EventOccurrence
+from django.db.models import Q
 import math, json, re, logging
 
 logger = logging.getLogger(__name__)
@@ -37,12 +38,12 @@ def check_for_events(sighting, newPlace=None, newUser=None):
     logger.debug('Checking for events associated with sighting \'%s...\'', sighting)
     now = datetime.now(timezone.utc)
     current_week_day_representation = math.pow(2, now.weekday())
-    events = Event.objects.filter(is_active=True,
-                                  movables__id__exact=sighting.movable.id,
-                                  places__id__exact=sighting.place.id,
-                                  schedule_days_of_week__bwand=current_week_day_representation,
-                                  schedule_start_time__lte=now,
-                                  schedule_end_time__gte=now)
+    events = Event.objects.filter(Q(is_active=True),
+                                  Q(movables=None)|Q(movables__id__exact=sighting.movable.id),
+                                  Q(places=None)|Q(places__id__exact=sighting.place.id),
+                                  Q(schedule_days_of_week__bwand=current_week_day_representation),
+                                  Q(schedule_start_time__lte=now),
+                                  Q(schedule_end_time__gte=now))
     if events:
         logger.debug('Found %s event(s) active for sighting \'%s\'.', len(events), sighting)
         for event in events:

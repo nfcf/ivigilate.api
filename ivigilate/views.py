@@ -219,10 +219,15 @@ class MovableViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
                 events = self.request.DATA.get('events', None)
                 if events:
                     movable = Movable.objects.get(uid=serializer.validated_data['uid'])
-                    for event in movable.events.all():
-                        movable.events.remove(event)
-                    for id in json.loads(events):
+
+                    new_list = json.loads(events)
+                    old_list = movable.events.all().values_list('id', flat=True)
+                    to_add_list = list(set(new_list) - set(old_list))
+                    to_remove_list = list(set(old_list) - set(new_list))
+                    for id in to_add_list:
                         movable.events.add(id)
+                    for id in to_remove_list:
+                        movable.events.remove(id)
                 # delete this field from the response as it isn't serializable
                 if 'photo' in serializer.validated_data:
                     del serializer.validated_data['photo']
