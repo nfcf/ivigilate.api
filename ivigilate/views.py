@@ -220,7 +220,7 @@ class MovableViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
                 if events:
                     movable = Movable.objects.get(uid=serializer.validated_data['uid'])
 
-                    new_list = json.loads(events)
+                    new_list = events
                     old_list = movable.events.all().values_list('id', flat=True)
                     to_add_list = list(set(new_list) - set(old_list))
                     to_remove_list = list(set(old_list) - set(new_list))
@@ -498,6 +498,34 @@ class EventViewSet(viewsets.ModelViewSet):
 
         if serializer.is_valid():
             if serializer.save(user=user):
+                event = Event.objects.get(reference_id=serializer.validated_data['reference_id'])
+                # work around to handle the M2M field as DRF doesn't handle them well...
+                movables = self.request.DATA.get('movables', None)
+                if movables:
+                    new_list = movables
+                    old_list = event.movables.all().values_list('id', flat=True)
+                    to_add_list = list(set(new_list) - set(old_list))
+                    to_remove_list = list(set(old_list) - set(new_list))
+                    for id in to_add_list:
+                        event.movables.add(id)
+                    for id in to_remove_list:
+                        event.movables.remove(id)
+                # work around to handle the M2M field as DRF doesn't handle them well...
+                places = self.request.DATA.get('places', None)
+                if places:
+                    new_list = places
+                    old_list = event.places.all().values_list('id', flat=True)
+                    to_add_list = list(set(new_list) - set(old_list))
+                    to_remove_list = list(set(old_list) - set(new_list))
+                    for id in to_add_list:
+                        event.places.add(id)
+                    for id in to_remove_list:
+                        event.places.remove(id)
+
+                # remove fields from the response as they aren't serializable nor needed
+                if 'sighting_previous_event' in serializer.validated_data:
+                    del serializer.validated_data['sighting_previous_event']
+
                 return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

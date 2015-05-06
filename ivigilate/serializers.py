@@ -163,14 +163,14 @@ class PlaceWriteSerializer(serializers.ModelSerializer):
         return instance
 
 
-class MovableEventSerializer(serializers.HyperlinkedModelSerializer):
+class SimpleEventSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Event
         fields = ('id', 'reference_id', 'name')
 
 
 class MovableReadSerializer(serializers.HyperlinkedModelSerializer):
-    events = MovableEventSerializer(many=True, read_only=True)
+    events = SimpleEventSerializer(many=True, read_only=True)
 
     class Meta:
         model = Movable
@@ -288,36 +288,29 @@ class EventPlaceSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'reference_id', 'name')
 
 
-class EventEventOccurrenceSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = EventOccurrence
-        fields = ('id', 'event')
-
-
 class EventReadSerializer(serializers.HyperlinkedModelSerializer):
     movables = EventMovableSerializer(many=True, read_only=True)
     places = EventPlaceSerializer(many=True, read_only=True)
-    sighting_previous_event_occurrence = EventEventOccurrenceSerializer(many=True, read_only=True)
+    sighting_previous_event = SimpleEventSerializer()
 
     class Meta:
         model = Event
         fields = ('id', 'account', 'reference_id', 'name', 'movables', 'places',
                   'schedule_days_of_week', 'schedule_start_time', 'schedule_end_time',
                   'sighting_is_current', 'sighting_duration_in_seconds', 'sighting_has_battery_below',
-                  'sighting_has_comment', 'sighting_has_been_confirmed', 'sighting_previous_event_occurrence',
+                  'sighting_has_comment', 'sighting_has_been_confirmed', 'sighting_previous_event',
                   'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
 
 
 class EventWriteSerializer(serializers.ModelSerializer):
     company_id = serializers.CharField(source='account.company_id', required=False)
-    sighting_previous_event_occurrence = serializers.IntegerField(required=False)
 
     class Meta:
         model = Event
         fields = ('id', 'company_id', 'reference_id', 'name',
                   'schedule_days_of_week', 'schedule_start_time', 'schedule_end_time',
                   'sighting_is_current', 'sighting_duration_in_seconds', 'sighting_has_battery_below',
-                  'sighting_has_comment', 'sighting_has_been_confirmed', 'sighting_previous_event_occurrence',
+                  'sighting_has_comment', 'sighting_has_been_confirmed', 'sighting_previous_event',
                   'metadata', 'is_active')
 
     def create(self, validated_data):
@@ -342,7 +335,7 @@ class EventWriteSerializer(serializers.ModelSerializer):
         instance.sighting_has_battery_below = validated_data.get('sighting_has_battery_below', instance.sighting_has_battery_below)
         instance.sighting_has_comment = validated_data.get('sighting_has_comment', instance.sighting_has_comment)
         instance.sighting_has_been_confirmed = validated_data.get('sighting_has_been_confirmed', instance.sighting_has_been_confirmed)
-        # instance.sighting_previous_event_occurrence = validated_data.get('sighting_previous_event_occurrence', instance.sighting_previous_event_occurrence)
+        instance.sighting_previous_event = validated_data.get('sighting_previous_event')
 
         instance.metadata = validated_data.get('name', instance.metadata)
         instance.updated_by = validated_data.get('user')

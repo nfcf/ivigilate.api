@@ -60,13 +60,20 @@
                 <label for="schedule_days_of_week">Days of week</label><br/><br/><br/>
                 <table class="text-justify" style="width: 100%;">
                     <tr>
-                        <td class="text-center"><input type="checkbox" ng-model="vm.schedule_monday"/></td>
-                        <td class="text-center"><input type="checkbox" ng-model="vm.schedule_tuesday"/></td>
-                        <td class="text-center"><input type="checkbox" ng-model="vm.schedule_wednesday"/></td>
-                        <td class="text-center"><input type="checkbox" ng-model="vm.schedule_thursday"/></td>
-                        <td class="text-center"><input type="checkbox" ng-model="vm.schedule_friday"/></td>
-                        <td class="text-center"><input type="checkbox" ng-model="vm.schedule_saturday"/></td>
-                        <td class="text-center"><input type="checkbox" ng-model="vm.schedule_sunday"/></td>
+                        <td class="text-center">
+                            <input type="checkbox" ng-model="vm.schedule_monday" ng-true-value="1"/></td>
+                        <td class="text-center">
+                            <input type="checkbox" ng-model="vm.schedule_tuesday" ng-true-value="2"/></td>
+                        <td class="text-center">
+                            <input type="checkbox" ng-model="vm.schedule_wednesday" ng-true-value="4"/></td>
+                        <td class="text-center">
+                            <input type="checkbox" ng-model="vm.schedule_thursday" ng-true-value="8"/></td>
+                        <td class="text-center">
+                            <input type="checkbox" ng-model="vm.schedule_friday" ng-true-value="16"/></td>
+                        <td class="text-center">
+                            <input type="checkbox" ng-model="vm.schedule_saturday" ng-true-value="32"/></td>
+                        <td class="text-center">
+                            <input type="checkbox" ng-model="vm.schedule_sunday" ng-true-value="64"/></td>
                     </tr>
                     <tfoot>
                     <td class="text-center">Mon</td>
@@ -136,7 +143,7 @@
         <div class="col-xs-4 col-md-4">
             <div class="form-group">
                 <label>Previous Event Ocurrence</label>
-                <ui-select ng-model="vm.event.sighting_previous_event_occurrence" theme="bootstrap" ng-disabled="disabled">
+                <ui-select ng-model="vm.event.sighting_previous_event" theme="bootstrap" ng-disabled="disabled">
                     <ui-select-match placeholder="Select or search for an event...">
                         {{ $select.selected.name }}
                     </ui-select-match>

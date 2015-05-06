@@ -68,8 +68,9 @@
             vm.sighting.movable.events = vm.events_selected;
 
             var movableToSend = JSON.parse(JSON.stringify(vm.sighting.movable));
+            movableToSend.events = [];
             for (var i = 0; i < vm.sighting.movable.events.length; i++) {  // Required for the REST serializer
-                movableToSend.events[i] = vm.sighting.movable.events[i].id;
+                movableToSend.events.push(vm.sighting.movable.events[i].id);
             }
             movableToSend.photo = undefined;
             Movables.update(movableToSend, vm.imageToUpload).then(movableSuccessFn, movableErrorFn, movableProgressFn);

@@ -33,30 +33,7 @@
             function successFn(data, status, headers, config) {
                 vm.events = data.data;
 
-                for (var i = 0; i < vm.events.length; i++) {
-                    vm.events[i].schedule_days_of_week_string = '';
-                    if (vm.events[i].schedule_days_of_week & Math.pow(2, 0) > 0) {
-                        vm.events[i].schedule_days_of_week_string += 'Mon,';
-                    }
-                    if (vm.events[i].schedule_days_of_week & Math.pow(2, 1) > 0) {
-                        vm.events[i].schedule_days_of_week_string += 'Tue,';
-                    }
-                    if (vm.events[i].schedule_days_of_week & Math.pow(2, 2) > 0) {
-                        vm.events[i].schedule_days_of_week_string += 'Wed,';
-                    }
-                    if (vm.events[i].schedule_days_of_week & Math.pow(2, 3) > 0) {
-                        vm.events[i].schedule_days_of_week_string += 'Thu,';
-                    }
-                    if (vm.events[i].schedule_days_of_week & Math.pow(2, 4) > 0) {
-                        vm.events[i].schedule_days_of_week_string += 'Fri,';
-                    }
-                    if (vm.events[i].schedule_days_of_week & Math.pow(2, 5) > 0) {
-                        vm.events[i].schedule_days_of_week_string += 'Sat,';
-                    }
-                    if (vm.events[i].schedule_days_of_week & Math.pow(2, 6) > 0) {
-                        vm.events[i].schedule_days_of_week_string += 'Sun';
-                    }
-                }
+                generateDaysOfWeekString(vm.events);
             }
 
             function errorFn(data, status, headers, config) {
@@ -70,6 +47,7 @@
                 for (var k in editedPlaceEvent) { //Copy the object attributes to the currently displayed on the table
                     event[k] = editedPlaceEvent[k];
                 }
+                generateDaysOfWeekString(vm.events);
             });
         }
 
@@ -83,6 +61,33 @@
             function errorFn(data, status, headers, config) {
                 vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
                 event.is_active = !event.is_active;
+            }
+        }
+
+        function generateDaysOfWeekString(events) {
+            for (var i = 0; i < events.length; i++) {
+                events[i].schedule_days_of_week_string = '';
+                if ((events[i].schedule_days_of_week & Math.pow(2, 0)) > 0) {
+                    events[i].schedule_days_of_week_string += 'Mon,';
+                }
+                if ((events[i].schedule_days_of_week & Math.pow(2, 1)) > 0) {
+                    events[i].schedule_days_of_week_string += 'Tue,';
+                }
+                if ((events[i].schedule_days_of_week & Math.pow(2, 2)) > 0) {
+                    events[i].schedule_days_of_week_string += 'Wed,';
+                }
+                if ((events[i].schedule_days_of_week & Math.pow(2, 3)) > 0) {
+                    events[i].schedule_days_of_week_string += 'Thu,';
+                }
+                if ((events[i].schedule_days_of_week & Math.pow(2, 4)) > 0) {
+                    events[i].schedule_days_of_week_string += 'Fri,';
+                }
+                if ((events[i].schedule_days_of_week & Math.pow(2, 5)) > 0) {
+                    events[i].schedule_days_of_week_string += 'Sat,';
+                }
+                if ((events[i].schedule_days_of_week & Math.pow(2, 6)) > 0) {
+                    events[i].schedule_days_of_week_string += 'Sun';
+                }
             }
         }
     }
