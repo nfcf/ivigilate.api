@@ -7,16 +7,6 @@
             <div class="row">
                 <div class="col-md-3">
                     <label for="filterDate">Date</label>
-                </div>
-                <div class="col-md-3">
-                    <label for="filterPlace">Place(s)</label>
-                </div>
-                <div class="col-md-5">
-                    <label for="filterShowAll">Show All</label>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-3">
                     <div class="input-group">
                         <input id="filterDate" type="text" class="form-control" datepicker-popup="yyyy-MM-dd"
                                datepicker-options="vm.datepickerOptions" max-date="vm.filterDateMax"
@@ -31,6 +21,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
+                    <label for="filterPlace">Place(s)</label>
                     <div class="form-group">
                         <ui-select multiple ng-model="vm.filterPlaces" theme="select2" ng-disabled="disabled" style="width: 100%">
                             <ui-select-match placeholder="Select place(s)...">{{$item.name}}</ui-select-match>
@@ -43,6 +34,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
+                    <label for="filterShowAll">Show All</label>
                     <div class="form-group">
                         <toggle-switch id="filterShowAll" ng-model="vm.filterShowAll" class="bootstrap-switch-small"></toggle-switch>
                     </div>
@@ -55,7 +47,9 @@
                     </div>
                 </div>
             </div>
+
             <hr/>
+
             <div class="table-responsive">
                 <table st-table="vm.displayedSightings" st-safe-src="vm.sightings" class="table table-striped">
                     <thead>

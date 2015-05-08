@@ -1,5 +1,6 @@
 from datetime import datetime, timezone, timedelta
 from twilio.rest import TwilioRestClient
+from django.core.mail import send_mail
 from ivigilate import settings
 from ivigilate.models import Sighting, Event, EventOccurrence
 from django.db.models import Q
@@ -74,8 +75,12 @@ def check_for_events(sighting, newPlace=None, newUser=None):
                                 logger.debug('Action for event \'%s\': Sending SMS to %s recipient(s).',
                                              event, len(re.split(',|;', action['recipients'])))
                                 for to in re.split(',|;', action['recipients']):
-                                    send_twilio_message(to, event.name)
-
+                                    send_twilio_message(to, action['message'])
+                            elif action['type'] == 'EMAIL':
+                                logger.debug('Action for event \'%s\': Sending EMAIL to %s recipient(s).',
+                                             event, len(re.split(',|;', action['recipients'])))
+                                send_mail(action['subject'], action['body'], settings.DEFAULT_FROM_EMAIL,
+                                          re.split(',|;', action['recipients']), fail_silently=False)
 
 
 
