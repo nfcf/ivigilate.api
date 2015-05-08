@@ -5,15 +5,17 @@
         .module('ivigilate.config')
         .config(config);
 
-    config.$inject = ['$locationProvider', 'uiGmapGoogleMapApiProvider', 'dialogsProvider', '$translateProvider'];
+    config.$inject = ['$locationProvider', '$window', 'uiGmapGoogleMapApiProvider', 'dialogsProvider', '$translateProvider'];
 
     /**
      * @name config
      * @desc Enable HTML5 routing
      */
-    function config($locationProvider, uiGmapGoogleMapApiProvider, dialogsProvider, $translateProvider) {
+    function config($locationProvider, $window, uiGmapGoogleMapApiProvider, dialogsProvider, $translateProvider) {
         $locationProvider.html5Mode(true);
         $locationProvider.hashPrefix('!');
+
+        $window.Stripe.setPublishableKey('YOUR-KEY-COMES-HERE');
 
         uiGmapGoogleMapApiProvider.configure({
             //    key: 'your api key',

@@ -10,6 +10,7 @@
     function EventsController($location, $scope, Authentication, Events, dialogs) {
         var vm = this;
         vm.refresh = refresh;
+        vm.addEvent = addEvent;
         vm.editEvent = editEvent;
         vm.updateEventState = updateEventState;
 
@@ -41,18 +42,33 @@
             }
         }
 
+        function addEvent() {
+            var dlg = dialogs.create('static/templates/events/addeditevent.html', 'AddEditEventController as vm', null, 'lg');
+            dlg.result.then(function (newEvent) {
+                refresh();
+            });
+        }
+
         function editEvent(event) {
-            var dlg = dialogs.create('static/templates/events/editevent.html', 'EditEventController as vm', event, 'lg');
-            dlg.result.then(function (editedPlaceEvent) {
-                for (var k in editedPlaceEvent) { //Copy the object attributes to the currently displayed on the table
-                    event[k] = editedPlaceEvent[k];
+            var dlg = dialogs.create('static/templates/events/addeditevent.html', 'AddEditEventController as vm', event, 'lg');
+            dlg.result.then(function (editedEvent) {
+                if (editedEvent) {
+                    for (var k in editedEvent) { //Copy the object attributes to the currently displayed on the table
+                        event[k] = editedEvent[k];
+                    }
+                    generateDaysOfWeekString(vm.events);
+                } else {
+                    var index = vm.events.indexOf(event);
+                    if (index >= 0) vm.events.splice(index, 1);
                 }
-                generateDaysOfWeekString(vm.events);
             });
         }
 
         function updateEventState(event) {
-            Events.update(event).then(successFn, errorFn);
+            var eventToSend = JSON.parse(JSON.stringify(event));
+            eventToSend.movables = null;
+            eventToSend.places = null;
+            Events.update(eventToSend).then(successFn, errorFn);
 
             function successFn(data, status, headers, config) {
                 // Do nothing...

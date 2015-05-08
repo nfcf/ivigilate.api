@@ -49,7 +49,8 @@
                     refresh();
                 });
 
-                $interval(refresh, 15000);
+                var refreshInterval = $interval(refresh, 15000);
+                $scope.$on('$destroy', function () { $interval.cancel(refreshInterval); });
             }
             else {
                 $location.url('/');
@@ -80,9 +81,9 @@
             }
         }
 
-        function addSighting(sighting) {
-            var dlg = dialogs.create('static/templates/sightings/addsighting.html', 'AddSightingController as vm', sighting, 'lg');
-            dlg.result.then(function (addedSighting) {
+        function addSighting() {
+            var dlg = dialogs.create('static/templates/sightings/addsighting.html', 'AddSightingController as vm', null, 'lg');
+            dlg.result.then(function (newSighting) {
                 refresh();
             });
         }

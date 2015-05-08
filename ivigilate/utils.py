@@ -58,19 +58,23 @@ def check_for_events(sighting, newPlace=None, newUser=None):
                  (not event.sighting_has_been_confirmed and not sighting.confirmed)) and \
                 (not newPlace or newPlace in event.places) and \
                 (not newUser or newUser in event.places):
-                logger.debug('Conditions met for event \'%s\'. ' + \
-                             'Creating EventOccurrence and triggering actions...', event)
-                EventOccurrence.objects.create(event=event, sighting=sighting, movable=sighting.movable)
 
-                metadata = json.loads(event.metadata)
-                actions = metadata['actions']
-                if actions:
-                    for action in actions:
-                        if action['type'] == 'SMS':
-                            logger.debug('Action for event \'%s\': Sending SMS to %s recipient(s).',
-                                         event, len(re.split(',|;', action['recipients'])))
-                            for to in re.split(',|;', action['recipients']):
-                                send_twilio_message(to, event.name)
+                # Make sure we don't trigger the same actions over and over again (only once per sighting)
+                previous_occurrences = EventOccurrence.objects.filter(event=event, sighting=sighting).order_by('id')[:1]
+                if (previous_occurrences is None or len(previous_occurrences) == 0):
+                    logger.debug('Conditions met for event \'%s\'. ' + \
+                                 'Creating EventOccurrence and triggering actions...', event)
+                    EventOccurrence.objects.create(event=event, sighting=sighting, movable=sighting.movable)
+
+                    metadata = json.loads(event.metadata)
+                    actions = metadata['actions']
+                    if actions:
+                        for action in actions:
+                            if action['type'] == 'SMS':
+                                logger.debug('Action for event \'%s\': Sending SMS to %s recipient(s).',
+                                             event, len(re.split(',|;', action['recipients'])))
+                                for to in re.split(',|;', action['recipients']):
+                                    send_twilio_message(to, event.name)
 
 
 

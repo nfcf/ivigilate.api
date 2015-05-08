@@ -140,13 +140,10 @@ class PlaceReadSerializer(gis_serializers.GeoModelSerializer):
 
 
 class PlaceWriteSerializer(serializers.ModelSerializer):
-    company_id = serializers.CharField(source='account.company_id', required=False)
-
     class Meta:
         model = Place
         geo_field = 'location'
-        fields = ('id', 'company_id', 'uid', 'reference_id', 'name',
-                  'location', 'arrival_rssi', 'departure_rssi',
+        fields = ('reference_id', 'name', 'location', 'arrival_rssi', 'departure_rssi',
                   'metadata', 'is_active')
 
     def update(self, instance, validated_data):
@@ -303,25 +300,13 @@ class EventReadSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class EventWriteSerializer(serializers.ModelSerializer):
-    company_id = serializers.CharField(source='account.company_id', required=False)
-
     class Meta:
         model = Event
-        fields = ('id', 'company_id', 'reference_id', 'name',
+        fields = ('id', 'reference_id', 'name',
                   'schedule_days_of_week', 'schedule_start_time', 'schedule_end_time',
                   'sighting_is_current', 'sighting_duration_in_seconds', 'sighting_has_battery_below',
                   'sighting_has_comment', 'sighting_has_been_confirmed', 'sighting_previous_event',
                   'metadata', 'is_active')
-
-    def create(self, validated_data):
-        company_id = validated_data.get('account').get('company_id')
-        try:
-            account = Account.objects.get(company_id=company_id)
-        except Account.DoesNotExist:
-            raise serializers.ValidationError('Invalid Company ID.')
-
-        validated_data['account'] = account
-        return Event.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
         instance.reference_id = validated_data.get('reference_id', instance.reference_id)
@@ -333,12 +318,12 @@ class EventWriteSerializer(serializers.ModelSerializer):
         instance.sighting_is_current = validated_data.get('sighting_is_current', instance.sighting_is_current)
         instance.sighting_duration_in_seconds = validated_data.get('sighting_duration_in_seconds', instance.sighting_duration_in_seconds)
         instance.sighting_has_battery_below = validated_data.get('sighting_has_battery_below', instance.sighting_has_battery_below)
-        instance.sighting_has_comment = validated_data.get('sighting_has_comment', instance.sighting_has_comment)
-        instance.sighting_has_been_confirmed = validated_data.get('sighting_has_been_confirmed', instance.sighting_has_been_confirmed)
+        instance.sighting_has_comment = validated_data.get('sighting_has_comment')
+        instance.sighting_has_been_confirmed = validated_data.get('sighting_has_been_confirmed')
         instance.sighting_previous_event = validated_data.get('sighting_previous_event')
 
-        instance.metadata = validated_data.get('name', instance.metadata)
-        instance.updated_by = validated_data.get('user')
+        instance.metadata = validated_data.get('metadata', instance.metadata)
+        instance.updated_by = validated_data.get('updated_by')
         instance.is_active = validated_data.get('is_active', instance.is_active)
         instance.save()
 

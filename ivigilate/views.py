@@ -164,7 +164,13 @@ class PlaceViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
 
     def update(self, request, pk=None):
         user = request.user if not isinstance(request.user, AnonymousUser) else None
-        instance = self.queryset.get(id=pk)
+        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
+        try:
+            instance = self.queryset.get(id=pk, account=account)
+        except Place.DoesNotExist:
+            return Response('Place does not exist or is not associated with the current logged on account.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
         serializer = self.get_serializer_class()(instance, data=request.data)
 
         if serializer.is_valid():
@@ -452,8 +458,8 @@ class AutoUpdateView(views.APIView):
         # check for updates by comparing last_update_date in the metadata field
         if 'auto_update' in full_metadata and \
                 full_metadata['auto_update'] and \
-                'date' in full_metadata['auto_update'] and \
-                full_metadata['device']['last_update_date'] < full_metadata['auto_update']['date']:
+                        'date' in full_metadata['auto_update'] and \
+                        full_metadata['device']['last_update_date'] < full_metadata['auto_update']['date']:
             return Response(full_metadata['auto_update'], status=status.HTTP_412_PRECONDITION_FAILED)
 
         return Response(status=status.HTTP_200_OK)
@@ -468,7 +474,7 @@ class EventViewSet(viewsets.ModelViewSet):
         return EventWriteSerializer
 
     def get_permissions(self):
-        if self.request.method in ['HEAD', 'OPTIONS', 'POST']:
+        if self.request.method in ['HEAD', 'OPTIONS']:
             return (permissions.AllowAny(), )
         return (permissions.IsAuthenticated(), )
 
@@ -491,36 +497,69 @@ class EventViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer_class()(queryset, many=False, context={'request': request})
         return Response(serializer.data)
 
+    def add_m2m_fields(self, event, movables, places):
+        # work around to handle the M2M field as DRF doesn't handle them well...
+        movables = self.request.DATA.get('movables', None)
+        if movables:
+            new_list = movables
+            old_list = event.movables.all().values_list('id', flat=True)
+            to_add_list = list(set(new_list) - set(old_list))
+            to_remove_list = list(set(old_list) - set(new_list))
+            for id in to_add_list:
+                event.movables.add(id)
+            for id in to_remove_list:
+                event.movables.remove(id)
+        # work around to handle the M2M field as DRF doesn't handle them well...
+        places = self.request.DATA.get('places', None)
+        if places:
+            new_list = places
+            old_list = event.places.all().values_list('id', flat=True)
+            to_add_list = list(set(new_list) - set(old_list))
+            to_remove_list = list(set(old_list) - set(new_list))
+            for id in to_add_list:
+                event.places.add(id)
+            for id in to_remove_list:
+                event.places.remove(id)
+
+
+    def create(self, request):
+        user = request.user if not isinstance(request.user, AnonymousUser) else None
+        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
+        serializer = self.get_serializer_class()(data=request.data)
+
+        if serializer.is_valid():
+            if serializer.save(updated_by=user, account=account):
+                event = Event.objects.get(reference_id=serializer.validated_data['reference_id'])
+                movables = self.request.DATA.get('movables', None)
+                places = self.request.DATA.get('places', None)
+                self.add_m2m_fields(event, movables, places)
+
+                # remove fields from the response as they aren't serializable nor needed
+                if 'sighting_previous_event' in serializer.validated_data:
+                    del serializer.validated_data['sighting_previous_event']
+
+                return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
     def update(self, request, pk=None):
         user = request.user if not isinstance(request.user, AnonymousUser) else None
-        instance = self.queryset.get(id=pk)
+        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
+        try:
+            instance = self.queryset.get(id=pk, account=account)
+        except Event.DoesNotExist:
+            return Response('Event does not exist or is not associated with the current logged on account.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
         serializer = self.get_serializer_class()(instance, data=request.data)
 
         if serializer.is_valid():
-            if serializer.save(user=user):
+            if serializer.save(updated_by=user):
                 event = Event.objects.get(reference_id=serializer.validated_data['reference_id'])
-                # work around to handle the M2M field as DRF doesn't handle them well...
                 movables = self.request.DATA.get('movables', None)
-                if movables:
-                    new_list = movables
-                    old_list = event.movables.all().values_list('id', flat=True)
-                    to_add_list = list(set(new_list) - set(old_list))
-                    to_remove_list = list(set(old_list) - set(new_list))
-                    for id in to_add_list:
-                        event.movables.add(id)
-                    for id in to_remove_list:
-                        event.movables.remove(id)
-                # work around to handle the M2M field as DRF doesn't handle them well...
                 places = self.request.DATA.get('places', None)
-                if places:
-                    new_list = places
-                    old_list = event.places.all().values_list('id', flat=True)
-                    to_add_list = list(set(new_list) - set(old_list))
-                    to_remove_list = list(set(old_list) - set(new_list))
-                    for id in to_add_list:
-                        event.places.add(id)
-                    for id in to_remove_list:
-                        event.places.remove(id)
+                self.add_m2m_fields(event, movables, places)
 
                 # remove fields from the response as they aren't serializable nor needed
                 if 'sighting_previous_event' in serializer.validated_data:

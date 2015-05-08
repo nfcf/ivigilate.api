@@ -259,7 +259,7 @@ class Event(models.Model):
     schedule_start_time = models.TimeField()
     schedule_end_time = models.TimeField()
 
-    sighting_is_current = models.BooleanField(default=True)
+    sighting_is_current = models.BooleanField(default=False)
     sighting_duration_in_seconds = models.IntegerField(default=0)
     sighting_has_battery_below = models.IntegerField(default=100)
     sighting_has_comment = models.NullBooleanField(default=None)

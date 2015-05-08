@@ -1,6 +1,7 @@
 {% load compress %}
 {% load staticfiles %}
 
+    <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
 {% compress js %}
     <script type="text/javascript" src="{% static 'bower_components/jquery/dist/jquery.js' %}"></script>
     <script type="text/javascript" src="{% static 'bower_components/bootstrap/dist/js/bootstrap.js' %}"></script>
@@ -19,6 +20,7 @@
     <script type="text/javascript" src="{% static 'bower_components/angular-ui-select/dist/select.js' %}"></script>
     <script type="text/javascript" src="{% static 'bower_components/angular-touch/angular-touch.js' %}"></script>
     <script type="text/javascript" src="{% static 'bower_components/angular-carousel/dist/angular-carousel.js' %}"></script>
+    <script type="text/javascript" src="{% static 'bower_components/angular-payments/lib/angular-payments.js' %}"></script>
 
     <script type="text/javascript" src="{% static 'bower_components/lodash/dist/lodash.js' %}"></script>
     <script type="text/javascript" src="{% static 'bower_components/ng-lodash/build/ng-lodash.js' %}"></script>
@@ -61,5 +63,5 @@
     <script type="text/javascript" src="{% static 'javascripts/events/events.module.js' %}"></script>
     <script type="text/javascript" src="{% static 'javascripts/events/services/events.service.js' %}"></script>
     <script type="text/javascript" src="{% static 'javascripts/events/controllers/events.controller.js' %}"></script>
-    <script type="text/javascript" src="{% static 'javascripts/events/controllers/editevent.controller.js' %}"></script>
+    <script type="text/javascript" src="{% static 'javascripts/events/controllers/addeditevent.controller.js' %}"></script>
 {% endcompress %}

@@ -17,6 +17,7 @@
             'ui.select',
             'ngTouch',
             'angular-carousel',
+            'angularPayments',
             'ivigilate.config',
             'ivigilate.filters',
             'ivigilate.routes',

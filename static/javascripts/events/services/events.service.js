@@ -13,6 +13,7 @@
             destroy: destroy,
             get: get,
             list: list,
+            add: add,
             update: update
         };
         return Events;
@@ -29,6 +30,10 @@
 
         function list() {
             return $http.get('/api/v1/events/');
+        }
+
+        function add(event) {
+            return $http.post('/api/v1/events/', event);
         }
 
         function update(event) {
