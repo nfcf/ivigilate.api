@@ -4,10 +4,26 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.contrib import admin
 from ivigilate.models import *
+import json
+
 
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
-    pass
+    def save_model(self, request, obj, form, change):
+        if change:
+            account = super().save_model(request, obj, form, change)
+        else:
+            account = obj
+            account.save()
+            try:
+                account_metadata = json.loads(account.metadata)
+                if 'setup' in account_metadata:
+                    license_metadata = dict()
+                    license_metadata['license'] = account_metadata['setup']
+                    license_metadata['license']['description'] = 'Hardware and Setup Costs'
+                    license = License.objects.create(account=account, metadata=license_metadata)
+            except Exception as ex:
+                pass
 
 
 @admin.register(License)

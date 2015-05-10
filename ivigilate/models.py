@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from django.utils.translation import ugettext_lazy as _
 from django.core.mail import send_mail
 from django.db.models import Lookup
@@ -32,30 +32,30 @@ class Account(models.Model):
 
         super(Account, self).save(*args, **kwargs)
 
+    def get_has_license_about_to_expire(self):
+        now = datetime.now(timezone.utc)
+        filter_datetime = now + timedelta(weeks=2)
+        licenses_about_to_expire = self.licenses.filter(valid_until__lt=filter_datetime)
+        return licenses_about_to_expire and len(licenses_about_to_expire) > 0
+
+    def get_has_license_due_for_payment(self):
+        licenses_due_for_payment = self.licenses.filter(valid_until=None)
+        return licenses_due_for_payment and len(licenses_due_for_payment) > 0
+
     def __str__(self):
         return '%s - %s' % (self.company_id, self.name)
 
 
 class License(models.Model):
-    TYPE = (
-        ('SAM', 'School Attendance Management'),
-        ('EAM', 'Event Attendance Management'),
-        ('SAC', 'Simple Attendance Control'),
-        ('AC', 'Absence Control'),
-        ('LF', 'Lost & Found'),
-    )
     account = models.ForeignKey(Account, related_name='licenses')
-    type = models.CharField(max_length=3, choices=TYPE)
-    max_movables = models.IntegerField()
-    max_users = models.IntegerField()
     metadata = models.TextField(blank=True)
-    valid_from = models.DateTimeField()
+    valid_from = models.DateTimeField(null=True, blank=True)
     valid_until = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return "%s: type=%s, movables=%s, users=%s, from=%s, until=%s)" % \
-               (self.account.company_id, self.type, self.max_movables,
-                self.max_users, self.valid_from.strftime('%Y-%m-%d'), self.valid_until.strftime('%Y-%m-%d'))
+        return "%s: from=%s, until=%s" % \
+               (self.account.company_id, self.valid_from.strftime('%Y-%m-%d') if self.valid_from else 'N/D',
+                self.valid_until.strftime('%Y-%m-%d') if self.valid_until else 'N/D')
 
 
 class AuthUserManager(BaseUserManager):

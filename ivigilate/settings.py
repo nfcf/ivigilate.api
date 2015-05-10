@@ -60,6 +60,7 @@ REST_FRAMEWORK = {
 }
 
 CRON_CLASSES = [
+    "ivigilate.cron.RecurringLicensesJob",
     "ivigilate.cron.CloseSightingsJob",
 ]
 
