@@ -3,11 +3,11 @@ from django.contrib.auth.models import AnonymousUser
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.generic.base import TemplateView
 from django.utils.decorators import method_decorator
+from django.db.models import Q
 from rest_framework.response import Response
 from ivigilate.serializers import *
-from ivigilate.permissions import IsAccountOwner
 from rest_framework import permissions, viewsets, status, views, mixins
-from ivigilate.utils import check_for_events, close_sighting
+from ivigilate import utils
 import json, logging
 
 logger = logging.getLogger(__name__)
@@ -22,6 +22,38 @@ class IndexView(TemplateView):
         return super(IndexView, self).dispatch(*args, **kwargs)
 
 
+class LoginView(views.APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request, format=None):
+        data = json.loads(request.body.decode('utf-8'))
+
+        email = data.get('email', None)
+        password = data.get('password', None)
+
+        user = authenticate(email=email, password=password)
+        if user is not None:
+            if user.is_active:
+                login(request, user)
+                serialized = AuthUserReadSerializer(user, context={'request': request})
+                return Response(serialized.data)
+            else:
+                return Response('This user has been disabled.',
+                                status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            return Response('Email/password combination invalid.',
+                            status=status.HTTP_401_UNAUTHORIZED)
+
+
+class LogoutView(views.APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request, format=None):
+        logout(request)
+
+        return Response({}, status=status.HTTP_204_NO_CONTENT)
+
+
 class AccountViewSet(viewsets.ModelViewSet):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
@@ -34,7 +66,7 @@ class AccountViewSet(viewsets.ModelViewSet):
     def list(self, request):
         if request.user and request.user.is_staff:
             # return only the list of active accounts
-            queryset = self.queryset.filter(licenses__valid_until__gt=datetime.now(timezone.utc)).distinct()
+            queryset = self.queryset.filter(Q(licenses__valid_until=None) | Q(licenses__valid_until__gt=datetime.now(timezone.utc))).distinct()
             page = self.paginate_queryset(queryset)
             serializer = self.get_pagination_serializer(page)
             return Response(serializer.data)
@@ -75,7 +107,10 @@ class AuthUserViewSet(viewsets.ModelViewSet):
 
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
-        queryset = self.queryset.filter(account=account)
+        if not isinstance(request.user, AnonymousUser) and account == None:
+            queryset = self.queryset
+        else:
+            queryset = self.queryset.filter(account=account)
         page = self.paginate_queryset(queryset)
         serializer = self.get_pagination_serializer(page)
         return Response(serializer.data)
@@ -97,38 +132,6 @@ class AuthUserViewSet(viewsets.ModelViewSet):
         return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
 
 
-class LoginView(views.APIView):
-    permission_classes = (permissions.AllowAny,)
-
-    def post(self, request, format=None):
-        data = json.loads(request.body.decode('utf-8'))
-
-        email = data.get('email', None)
-        password = data.get('password', None)
-
-        user = authenticate(email=email, password=password)
-        if user is not None:
-            if user.is_active:
-                login(request, user)
-                serialized = AuthUserReadSerializer(user, context={'request': request})
-                return Response(serialized.data)
-            else:
-                return Response('This user has been disabled.',
-                                status=status.HTTP_401_UNAUTHORIZED)
-        else:
-            return Response('Email/password combination invalid.',
-                            status=status.HTTP_401_UNAUTHORIZED)
-
-
-class LogoutView(views.APIView):
-    permission_classes = (permissions.IsAuthenticated,)
-
-    def post(self, request, format=None):
-        logout(request)
-
-        return Response({}, status=status.HTTP_204_NO_CONTENT)
-
-
 class PlaceViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
                    mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = Place.objects.all()
@@ -146,10 +149,7 @@ class PlaceViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         queryset = self.queryset.filter(account=account)
-        # page = self.paginate_queryset(queryset)
-        # serializer = self.get_pagination_serializer(page)
-        serializer = self.get_serializer_class()(queryset, many=True, context={'request': request})
-        return Response(serializer.data)
+        return utils.view_list(request, account, queryset, self.get_serializer_class())
 
     def retrieve(self, request, pk=None):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
@@ -197,8 +197,7 @@ class MovableViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         queryset = self.queryset.filter(account=account)
-        serializer = self.get_serializer_class()(queryset, many=True, context={'request': request})
-        return Response(serializer.data)
+        return utils.view_list(request, account, queryset, self.get_serializer_class())
 
     def retrieve(self, request, pk=None):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
@@ -298,11 +297,7 @@ class SightingViewSet(viewsets.ModelViewSet):
             queryset = self.queryset.raw(showAllQuery if filter_show_all else filteredQuery,
                                          showAllQueryParams if filter_show_all else filteredQueryParams)
             # print(queryset.query)
-
-            # serializer = self.get_pagination_serializer(page)
-            # page = self.paginate_queryset(queryset)
-            serializer = self.get_serializer_class()(queryset, many=True, context={'request': request})
-            return Response(serializer.data)
+            return utils.view_list(request, account, queryset, self.get_serializer_class())
         else:
             return Response('The current logged on user is not associated with any account.',
                             status=status.HTTP_400_BAD_REQUEST)
@@ -408,14 +403,14 @@ class AddSightingView(views.APIView):
                 new_sighting.battery = battery
                 new_sighting.save()
             else:  # if (previous_sighting.place != place or previous_sighting.user != user) and previous_sighting.rssi < rssi:
-                close_sighting(previous_sighting, place, user)
+                utils.close_sighting(previous_sighting, place, user)
 
         if not new_sighting:
             # check if belongs to account
             new_sighting = Sighting.objects.create(movable=movable, place=place, user=user, rssi=rssi, battery=battery)
             logger.debug('Created new sighting \'%s\'.', new_sighting)
 
-        check_for_events(new_sighting)
+        utils.check_for_events(new_sighting)
 
         serialized = SightingReadSerializer(new_sighting, context={'request': request})
         return Response(serialized.data)
@@ -481,10 +476,8 @@ class EventViewSet(viewsets.ModelViewSet):
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         queryset = self.queryset.filter(account=account)
-        # page = self.paginate_queryset(queryset)
-        # serializer = self.get_pagination_serializer(page)
-        serializer = self.get_serializer_class()(queryset, many=True, context={'request': request})
-        return Response(serializer.data)
+        return utils.view_list(request, account, queryset, self.get_serializer_class())
+
 
     def retrieve(self, request, pk=None):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None

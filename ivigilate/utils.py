@@ -1,4 +1,6 @@
 from datetime import datetime, timezone, timedelta
+from rest_framework.response import Response
+from rest_framework import status
 from twilio.rest import TwilioRestClient
 from django.core.mail import send_mail
 from ivigilate import settings
@@ -8,6 +10,17 @@ import math, json, re, logging
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
+
+
+def view_list(request, account, queryset, serializer):
+    if account.get_license_about_to_expire() != None or account.get_license_due_for_payment() == None:
+        serializer_response = serializer(queryset, many=True, context={'request': request})
+        # page = self.paginate_queryset(queryset)
+        # serializer = self.get_pagination_serializer(page)
+        return Response(serializer_response.data)
+    else:
+        return Response('Your license has expired. Please ask the account administrator to renew the subscription.',
+                        status=status.HTTP_401_UNAUTHORIZED)
 
 
 def get_file_extension(file_name, decoded_file):

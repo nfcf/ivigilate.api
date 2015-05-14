@@ -32,15 +32,15 @@ class Account(models.Model):
 
         super(Account, self).save(*args, **kwargs)
 
-    def get_has_license_about_to_expire(self):
+    def get_license_about_to_expire(self):
         now = datetime.now(timezone.utc)
         filter_datetime = now + timedelta(weeks=2)
         licenses_about_to_expire = self.licenses.filter(valid_until__lt=filter_datetime)
-        return licenses_about_to_expire and len(licenses_about_to_expire) > 0
+        return licenses_about_to_expire[0] if len(licenses_about_to_expire) > 0 else None
 
-    def get_has_license_due_for_payment(self):
+    def get_license_due_for_payment(self):
         licenses_due_for_payment = self.licenses.filter(valid_until=None)
-        return licenses_due_for_payment and len(licenses_due_for_payment) > 0
+        return licenses_due_for_payment[0] if len(licenses_due_for_payment) > 0 else None
 
     def __str__(self):
         return '%s - %s' % (self.company_id, self.name)
@@ -61,7 +61,7 @@ class License(models.Model):
 class AuthUserManager(BaseUserManager):
     use_in_migrations = True
 
-    def _create_user(self, account, email, password, is_staff, is_superuser, **extra_fields):
+    def _create_user(self, account, email, password, admin, is_staff, is_superuser, **extra_fields):
         now = datetime.now(timezone.utc)
 
         email = self.normalize_email(email)
@@ -96,6 +96,9 @@ class AuthUser(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(_('last name'), max_length=30, blank=True)
     metadata = models.TextField(blank=True)
 
+    is_account_admin = models.BooleanField(_('account admin status'), default=False,
+                                   help_text=_('Designates whether the user is as account admin.'))
+
     is_staff = models.BooleanField(_('staff status'), default=False,
                                    help_text=_('Designates whether the user can log into the admin site.'))
     is_active = models.BooleanField(_('active'), default=True,
@@ -127,6 +130,8 @@ class AuthUser(AbstractBaseUser, PermissionsMixin):
         if not self.id:
             self.created_at = now
             self.updated_at = now
+            if self.account != None and len(AuthUser.objects.filter(account=self.account, is_account_admin=True)) == 0:
+                self.is_account_admin = True  # an account needs an account admin, so make it the first user to enroll
         else:
             self.updated_at = now
         super(AuthUser, self).save(*args, **kwargs)

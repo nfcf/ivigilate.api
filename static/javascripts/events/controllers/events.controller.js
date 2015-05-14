@@ -21,11 +21,32 @@
         function activate() {
             var user = Authentication.getAuthenticatedUser();
             if (user) {
-                refresh();
+                if (checkLicense(user)) {
+                    refresh();
+                }
             }
             else {
                 $location.url('/');
             }
+        }
+
+        function checkLicense(user) {
+            var result = true;
+            if (user.is_account_admin) {
+                if (user.license_about_to_expire) {
+                    result = false; // let the user know the license will expire on the user.license_about_to_expire.valid_until
+                } else if (user.license_due_for_payment) {
+                    result = false; // redirect the user to payment screen
+                }
+            }
+
+            if (!result) {
+                var dlg = dialogs.create('static/templates/payments/payment.html', 'PaymentController as vm', user, {'size': 'md'});
+                dlg.result.then(function (payment) {
+                    refresh();
+                });
+            }
+            return result;
         }
 
         function refresh() {
@@ -43,14 +64,14 @@
         }
 
         function addEvent() {
-            var dlg = dialogs.create('static/templates/events/addeditevent.html', 'AddEditEventController as vm', null, 'lg');
+            var dlg = dialogs.create('static/templates/events/addeditevent.html', 'AddEditEventController as vm', null, {'size': 'lg'});
             dlg.result.then(function (newEvent) {
                 refresh();
             });
         }
 
         function editEvent(event) {
-            var dlg = dialogs.create('static/templates/events/addeditevent.html', 'AddEditEventController as vm', event, 'lg');
+            var dlg = dialogs.create('static/templates/events/addeditevent.html', 'AddEditEventController as vm', event, {'size': 'lg'});
             dlg.result.then(function (editedEvent) {
                 if (editedEvent) {
                     for (var k in editedEvent) { //Copy the object attributes to the currently displayed on the table

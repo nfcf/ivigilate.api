@@ -82,14 +82,14 @@
         }
 
         function addSighting() {
-            var dlg = dialogs.create('static/templates/sightings/addsighting.html', 'AddSightingController as vm', null, 'lg');
+            var dlg = dialogs.create('static/templates/sightings/addsighting.html', 'AddSightingController as vm', null, {'size': 'lg'});
             dlg.result.then(function (newSighting) {
                 refresh();
             });
         }
 
         function editSighting(sighting) {
-            var dlg = dialogs.create('static/templates/sightings/editsighting.html', 'EditSightingController as vm', sighting, 'lg');
+            var dlg = dialogs.create('static/templates/sightings/editsighting.html', 'EditSightingController as vm', sighting, {'size': 'lg'});
             dlg.result.then(function (editedSighting) {
                 refresh();
             });

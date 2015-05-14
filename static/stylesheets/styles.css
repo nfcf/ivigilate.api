@@ -56,3 +56,7 @@ a, th { cursor: pointer; }
     height: 330px;
     background-color: mintcream;
 }
+
+.ng-invalid {
+    color: red;
+}

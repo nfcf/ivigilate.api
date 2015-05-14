@@ -14,7 +14,7 @@
                         <th st-sort="schedule_days_of_week_string">Days of week</th>
                         <th st-sort="schedule_start_time">Start Time</th>
                         <th st-sort="schedule_end_time">End Time</th>
-                        <th st-sort="is_active">Active?</th>
+                        <th class="text-center" st-sort="is_active">Active?</th>
                         <th class="text-right">
                             <button ng-click="vm.addEvent()" class="btn btn-sm btn-success">
                                 <span class="glyphicon glyphicon-plus"></span> Add
@@ -34,7 +34,7 @@
                         <td>{{ event.schedule_days_of_week_string }}</td>
                         <td>{{ event.schedule_start_time | limitTo:5 }}</td>
                         <td>{{ event.schedule_end_time | limitTo:5 }}</td>
-                        <td>
+                        <td class="text-center">
                             <input type="checkbox" ng-model="event.is_active" ng-click="vm.updateEventState(event)">
                         </td>
                         <td class="text-center">

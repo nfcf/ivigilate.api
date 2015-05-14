@@ -20,7 +20,8 @@
     <script type="text/javascript" src="{% static 'bower_components/angular-ui-select/dist/select.js' %}"></script>
     <script type="text/javascript" src="{% static 'bower_components/angular-touch/angular-touch.js' %}"></script>
     <script type="text/javascript" src="{% static 'bower_components/angular-carousel/dist/angular-carousel.js' %}"></script>
-    <script type="text/javascript" src="{% static 'bower_components/angular-payments/lib/angular-payments.js' %}"></script>
+    <script type="text/javascript" src="{% static 'bower_components/angular-stripe/release/angular-stripe.js' %}"></script>
+    <script type="text/javascript" src="{% static 'bower_components/angular-credit-cards/release/angular-credit-cards.js' %}"></script>
 
     <script type="text/javascript" src="{% static 'bower_components/lodash/dist/lodash.js' %}"></script>
     <script type="text/javascript" src="{% static 'bower_components/ng-lodash/build/ng-lodash.js' %}"></script>
@@ -36,13 +37,16 @@
     <script type="text/javascript" src="{% static 'javascripts/ivigilate.filters.js' %}"></script>
     <script type="text/javascript" src="{% static 'javascripts/ivigilate.routes.js' %}"></script>
 
+    <script type="text/javascript" src="{% static 'javascripts/layout/layout.module.js' %}"></script>
+    <script type="text/javascript" src="{% static 'javascripts/layout/controllers/navbar.controller.js' %}"></script>
+
     <script type="text/javascript" src="{% static 'javascripts/authentication/authentication.module.js' %}"></script>
     <script type="text/javascript" src="{% static 'javascripts/authentication/services/authentication.service.js' %}"></script>
     <script type="text/javascript" src="{% static 'javascripts/authentication/controllers/register.controller.js' %}"></script>
     <script type="text/javascript" src="{% static 'javascripts/authentication/controllers/login.controller.js' %}"></script>
 
-    <script type="text/javascript" src="{% static 'javascripts/layout/layout.module.js' %}"></script>
-    <script type="text/javascript" src="{% static 'javascripts/layout/controllers/navbar.controller.js' %}"></script>
+    <script type="text/javascript" src="{% static 'javascripts/payments/payments.module.js' %}"></script>
+    <script type="text/javascript" src="{% static 'javascripts/payments/controllers/payment.controller.js' %}"></script>
 
     <script type="text/javascript" src="{% static 'javascripts/settings/settings.module.js' %}"></script>
     <script type="text/javascript" src="{% static 'javascripts/settings/services/settings.service.js' %}"></script>

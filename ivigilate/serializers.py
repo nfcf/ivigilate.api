@@ -44,23 +44,7 @@ class Base64ImageField(serializers.ImageField):
 class LicenseSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = License
-        fields = ('type', 'max_movables', 'max_users', 'metadata', 'valid_from', 'valid_until')
-        read_only_fields = ()
-        write_only_fields = ('metadata',)
-
-    def create(self, validated_data):
-        return License.objects.create(**validated_data)
-
-    def update(self, instance, validated_data):
-        instance.type = validated_data.get('type', instance.type)
-        instance.max_movables = validated_data.get('max_movables', instance.max_movables)
-        instance.max_users = validated_data.get('max_users', instance.max_users)
-        instance.metadata = validated_data.get('metadata', instance.metadata)
-        instance.valid_from = validated_data.get('valid_from', instance.valid_from)
-        instance.valid_until = validated_data.get('valid_until', instance.valid_until)
-        instance.save()
-
-        return instance
+        fields = ('metadata', 'valid_from', 'valid_until')
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -84,11 +68,14 @@ class AccountSerializer(serializers.ModelSerializer):
 
 
 class AuthUserReadSerializer(serializers.ModelSerializer):
-    company_id = serializers.CharField(source='account.company_id', required=True)
+    company_id = serializers.CharField(source='account.company_id')
+    license_about_to_expire = LicenseSerializer(source='account.get_license_about_to_expire', read_only=True)
+    license_due_for_payment = LicenseSerializer(source='account.get_license_due_for_payment', read_only=True)
 
     class Meta:
         model = AuthUser
-        fields = ('id', 'company_id', 'email', 'first_name', 'last_name', 'metadata', 'created_at', 'updated_at',)
+        fields = ('id', 'company_id', 'email', 'first_name', 'last_name', 'metadata', 'is_account_admin',
+                  'created_at', 'updated_at', 'license_about_to_expire', 'license_due_for_payment')
 
 
 class AuthUserWriteSerializer(serializers.ModelSerializer):

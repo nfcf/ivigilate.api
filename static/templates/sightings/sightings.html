@@ -20,7 +20,7 @@
                         </span>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label for="filterPlace">Place(s)</label>
                     <div class="form-group">
                         <ui-select multiple ng-model="vm.filterPlaces" theme="select2" ng-disabled="disabled" style="width: 100%">
@@ -39,16 +39,7 @@
                         <toggle-switch id="filterShowAll" ng-model="vm.filterShowAll" class="bootstrap-switch-small"></toggle-switch>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="input-group pull-right">
-                        <button ng-click="vm.addSighting()" class="btn btn-success">
-                            <span class="glyphicon glyphicon-plus"></span> Add
-                        </button>
-                    </div>
-                </div>
             </div>
-
-            <hr/>
 
             <div class="table-responsive">
                 <table st-table="vm.displayedSightings" st-safe-src="vm.sightings" class="table table-striped">
@@ -62,7 +53,12 @@
                         <th st-sort="last_seen_at">Last Seen</th>
                         <th class="text-center" st-sort="battery">Battery</th>
                         <th st-sort="comment">Comment</th>
-                        <th st-sort="confirmed">Confirmed</th>
+                        <th class="text-center" st-sort="confirmed">Confirmed</th>
+                        <th class="text-right">
+                            <button ng-click="vm.addSighting()" class="btn btn-sm btn-success">
+                                <span class="glyphicon glyphicon-plus"></span> Add
+                            </button>
+                        </th>
                     </tr>
                     <tr>
                         <th colspan="9">

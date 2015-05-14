@@ -10,11 +10,8 @@ import json
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
-        if change:
-            account = super().save_model(request, obj, form, change)
-        else:
-            account = obj
-            account.save()
+        account = super().save_model(request, obj, form, change)
+        if not change:
             try:
                 account_metadata = json.loads(account.metadata)
                 if 'setup' in account_metadata:

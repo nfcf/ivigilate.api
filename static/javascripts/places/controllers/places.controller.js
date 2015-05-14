@@ -40,7 +40,7 @@
         }
 
         function editPlace(place) {
-            var dlg = dialogs.create('static/templates/places/editplace.html', 'EditPlaceController as vm', place, 'lg');
+            var dlg = dialogs.create('static/templates/places/editplace.html', 'EditPlaceController as vm', place, {'size': 'lg'});
             dlg.result.then(function (editedPlace) {
                 for (var k in editedPlace) { //Copy the object attributes to the currently displayed on the table
                     place[k] = editedPlace[k];

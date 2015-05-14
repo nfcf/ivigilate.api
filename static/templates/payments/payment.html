@@ -1,0 +1,51 @@
+<div class="modal-header">
+    <button ng-click="vm.skip()" class="close">×</button>
+    <h3 class="modal-title">Subscription</h3>
+</div>
+<div class="modal-body">
+    <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
+
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="form-group">
+                <label for="card_name">Name</label>
+                <input class="form-control" id="card_name" ng-model="vm.payment.card.name" placeholder="Card holder's name"/>
+            </div>
+        </div>
+
+        <div class="col-xs-6">
+            <div class="form-group">
+                <label for="card_number">Card Number</label>
+                <input class="form-control" id="card_number" ng-model="vm.payment.card.number" cc-number cc-format
+                       cc-eager-type/>
+            </div>
+        </div>
+
+        <div class="col-xs-3">
+            <div class="form-group" cc-exp>
+                <label for="exp_month">Exp. Date</label>
+                <input class="form-control" id="exp_month" ng-model="vm.payment.card.exp_month" cc-exp-month
+                       placeholder="MM"/>
+            </div>
+        </div>
+        <div class="col-xs-3">
+            <div class="form-group">
+                <label for="exp_year">&nbsp;</label>
+                <input class="form-control" id="exp_year" ng-model="vm.payment.card.exp_year" cc-exp-year
+                       placeholder="YY"/>
+            </div>
+        </div>
+
+        <div class="col-xs-6">
+            <div class="form-group">
+                <label for="cvc">CVC</label>
+                <input class="form-control" id="cvc" ng-model="vm.payment.card.cvc" cc-cvc/>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="modal-footer">
+    <button ng-click="vm.skip()" class="btn btn-default">Skip</button>
+    <button ng-click="vm.charge()" class="btn btn-primary">Make Payment</button>
+</div>
