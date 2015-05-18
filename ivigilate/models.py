@@ -48,6 +48,10 @@ class Account(models.Model):
 
 class License(models.Model):
     account = models.ForeignKey(Account, related_name='licenses')
+    reference_id = models.CharField(max_length=64, blank=True)
+    amount = models.PositiveIntegerField()
+    currency = models.CharField(max_length=3)
+    description = models.TextField(blank=True)
     metadata = models.TextField(blank=True)
     valid_from = models.DateTimeField(null=True, blank=True)
     valid_until = models.DateTimeField(null=True, blank=True)

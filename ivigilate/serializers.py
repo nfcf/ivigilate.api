@@ -44,7 +44,8 @@ class Base64ImageField(serializers.ImageField):
 class LicenseSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = License
-        fields = ('metadata', 'valid_from', 'valid_until')
+        fields = ('reference_id', 'amount', 'currency', 'description', 'metadata', 'valid_from', 'valid_until')
+        write_only_fields = 'reference_id'
 
 
 class AccountSerializer(serializers.ModelSerializer):

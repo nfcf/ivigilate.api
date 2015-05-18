@@ -27,9 +27,14 @@ class RecurringLicensesJob(CronJobBase):
                         account_metadata = json.loads(account.metadata)
                         if 'plan' in account_metadata:
                             license_metadata = dict()
-                            license_metadata['license'] = account_metadata['plan']
-                            license_metadata['license']['description'] = '%s Month(s) Subscription' % str(account_metadata['plan']['duration_in_months'])
-                            license = License.objects.create(account=account, metadata=license_metadata)
+                            license_metadata['duration_in_months'] = account_metadata['plan']['duration_in_months']
+                            license_metadata['max_users'] = account_metadata['plan']['max_users']
+                            license_metadata['max_movables'] = account_metadata['plan']['max_movables']
+                            license = License.objects.create(account=account,
+                                                             amount=account_metadata['plan']['amount'],
+                                                             currency=account_metadata['plan']['currency'],
+                                                             description='%s Month(s) Subscription' % str(account_metadata['plan']['duration_in_months']),
+                                                             metadata=json.dumps(license_metadata))
                             logger.debug('Generated a new License item for account: \'%s\'.', account)
                         else:
                             logger.warning('No subscription plan metadata information available for account: \'%s\'.', account)

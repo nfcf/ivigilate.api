@@ -33,16 +33,17 @@
         function checkLicense(user) {
             var result = true;
             if (user.is_account_admin) {
-                if (user.license_about_to_expire) {
-                    result = false; // let the user know the license will expire on the user.license_about_to_expire.valid_until
-                } else if (user.license_due_for_payment) {
-                    result = false; // redirect the user to payment screen
+                if (user.license_about_to_expire && user.license_due_for_payment) {
+                    result = false;
                 }
             }
 
             if (!result) {
                 var dlg = dialogs.create('static/templates/payments/payment.html', 'PaymentController as vm', user, {'size': 'md'});
-                dlg.result.then(function (payment) {
+                dlg.result.then(function (license) {
+                    user.license_about_to_expire = null;
+                    user.license_due_for_payment = null;
+                    Authentication.setAuthenticatedUser(user);
                     refresh();
                 });
             }
