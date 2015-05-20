@@ -10,7 +10,7 @@ from ivigilate.serializers import *
 from rest_framework import permissions, viewsets, status, views, mixins
 from ivigilate import utils
 from dateutil.relativedelta import relativedelta
-import json, logging
+import datetime, pytz, json, logging
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
@@ -184,8 +184,14 @@ class MakePaymentView(views.APIView):
             license_metadata = json.loads(license_due_for_payment.metadata)
 
             license_due_for_payment.reference_id = data.get('token_id', None)
-            license_due_for_payment.valid_from = license_about_to_expire.valid_until if license_about_to_expire else datetime.now(timezone.utc)
-            license_due_for_payment.valid_until = license_due_for_payment.valid_from + relativedelta(months=license_metadata['duration_in_months'])
+            license_due_for_payment.valid_from = datetime.datetime.combine(
+                                                    license_about_to_expire.valid_until.date() + relativedelta(days=1) \
+                                                    if license_about_to_expire else datetime.datetime.now(timezone.utc).date(),
+                                                    datetime.time(0, 0, 0, tzinfo=pytz.UTC))
+            license_due_for_payment.valid_until = datetime.datetime.combine(
+                                                    license_due_for_payment.valid_from +
+                                                    relativedelta(months=license_metadata['duration_in_months']),
+                                                    datetime.time(23, 59, 59, tzinfo=pytz.UTC))
 
             stripe.api_key = settings.STRIPE_SECRET_KEY
             try:

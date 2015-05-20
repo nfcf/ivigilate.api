@@ -57,8 +57,9 @@ class License(models.Model):
     valid_until = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return "%s: from=%s, until=%s" % \
-               (self.account.company_id, self.valid_from.strftime('%Y-%m-%d') if self.valid_from else 'N/D',
+        return "%s: %s, from=%s, until=%s" % \
+               (self.account.company_id, self.description,
+                self.valid_from.strftime('%Y-%m-%d') if self.valid_from else 'N/D',
                 self.valid_until.strftime('%Y-%m-%d') if self.valid_until else 'N/D')
 
 

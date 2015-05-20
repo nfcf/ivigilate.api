@@ -5,9 +5,9 @@
         .module('ivigilate.sightings.controllers')
         .controller('SightingsController', SightingsController);
 
-    SightingsController.$inject = ['$location', '$scope', '$filter', '$interval', 'Authentication', 'Places', 'Sightings', 'dialogs'];
+    SightingsController.$inject = ['$location', '$scope', '$filter', '$interval', 'Authentication', 'Places', 'Sightings', 'Payments', 'dialogs'];
 
-    function SightingsController($location, $scope, $filter, $interval, Authentication, Places, Sightings, dialogs) {
+    function SightingsController($location, $scope, $filter, $interval, Authentication, Places, Sightings, Payments, dialogs) {
         var vm = this;
         vm.refresh = refresh;
         vm.addSighting = addSighting;
@@ -34,27 +34,35 @@
         function activate() {
             var user = Authentication.getAuthenticatedUser();
             if (user) {
-                Places.list().then(placesSuccessFn, placesErrorFn);
-
-                $scope.$watch('vm.filterDate', function () {
-                    vm.filterDate = $filter('date')(vm.filterDate, 'yyyy-MM-dd');
-                    refresh();
+                Payments.checkLicense(user).then(function () {
+                    initAndRefresh();
                 });
-
-                $scope.$watch('vm.filterPlaces', function () {
-                    refresh();
-                });
-
-                $scope.$watch('vm.filterShowAll', function () {
-                    refresh();
-                });
-
-                var refreshInterval = $interval(refresh, 15000);
-                $scope.$on('$destroy', function () { $interval.cancel(refreshInterval); });
             }
             else {
                 $location.url('/');
             }
+        }
+
+        function initAndRefresh() {
+            Places.list().then(placesSuccessFn, placesErrorFn);
+
+            $scope.$watch('vm.filterDate', function () {
+                vm.filterDate = $filter('date')(vm.filterDate, 'yyyy-MM-dd');
+                refresh();
+            });
+
+            $scope.$watch('vm.filterPlaces', function () {
+                refresh();
+            });
+
+            $scope.$watch('vm.filterShowAll', function () {
+                refresh();
+            });
+
+            var refreshInterval = $interval(refresh, 15000);
+            $scope.$on('$destroy', function () {
+                $interval.cancel(refreshInterval);
+            });
 
             function placesSuccessFn(data, status, headers, config) {
                 vm.places = data.data;

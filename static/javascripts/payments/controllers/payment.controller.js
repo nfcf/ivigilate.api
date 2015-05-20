@@ -31,7 +31,7 @@
                     var metadata = JSON.parse(vm.license.metadata);
                     vm.title = 'Your license is about to expire...';
                     vm.header = 'Please renew you subscription before ' +
-                    date2str(convertUTCDateToLocalDate(new Date(vm.license.valid_until)), 'yyyy-MM-dd hh:mm');
+                    date2str(new Date(vm.license.valid_until), 'yyyy-MM-dd hh:mm');
                     vm.license.duration = metadata.duration_in_months;
                     vm.license.max_movables = metadata.max_movables;
                     vm.license.max_users = metadata.max_users;
@@ -58,7 +58,6 @@
                 })
                 .then(function (data) {
                     var license = data.data;
-                    console.log('successfully submitted payment for ', license.currency, license.amount);
                     $modalInstance.close(license);
                 })
                 .catch(function (err) {
@@ -73,17 +72,6 @@
 
         function skip() {
             $modalInstance.dismiss('Skip');
-        }
-
-        function convertUTCDateToLocalDate(date) {
-            var newDate = new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000);
-
-            var offset = date.getTimezoneOffset() / 60;
-            var hours = date.getHours();
-
-            newDate.setHours(hours - offset);
-
-            return newDate;
         }
 
         function date2str(x, y) {

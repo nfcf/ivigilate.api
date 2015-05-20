@@ -5,9 +5,9 @@
         .module('ivigilate.places.controllers')
         .controller('PlacesController', PlacesController);
 
-    PlacesController.$inject = ['$location', '$scope', 'Authentication', 'Places', 'dialogs'];
+    PlacesController.$inject = ['$location', '$scope', 'Authentication', 'Places', 'Payments', 'dialogs'];
 
-    function PlacesController($location, $scope, Authentication, Places, dialogs) {
+    function PlacesController($location, $scope, Authentication, Places, Payments, dialogs) {
         var vm = this;
         vm.refresh = refresh;
         vm.editPlace = editPlace;
@@ -20,7 +20,7 @@
         function activate() {
             var user = Authentication.getAuthenticatedUser();
             if (user) {
-                refresh();
+                Payments.checkLicense(user).then(function () { refresh(); });
             }
             else {
                 $location.url('/');

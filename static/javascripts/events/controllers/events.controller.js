@@ -5,9 +5,9 @@
         .module('ivigilate.events.controllers')
         .controller('EventsController', EventsController);
 
-    EventsController.$inject = ['$location', '$scope', 'Authentication', 'Events', 'dialogs'];
+    EventsController.$inject = ['$location', '$scope', 'Authentication', 'Events', 'Payments', 'dialogs'];
 
-    function EventsController($location, $scope, Authentication, Events, dialogs) {
+    function EventsController($location, $scope, Authentication, Events, Payments, dialogs) {
         var vm = this;
         vm.refresh = refresh;
         vm.addEvent = addEvent;
@@ -21,33 +21,11 @@
         function activate() {
             var user = Authentication.getAuthenticatedUser();
             if (user) {
-                if (checkLicense(user)) {
-                    refresh();
-                }
+                Payments.checkLicense(user).then(function () { refresh(); });
             }
             else {
                 $location.url('/');
             }
-        }
-
-        function checkLicense(user) {
-            var result = true;
-            if (user.is_account_admin) {
-                if (user.license_about_to_expire && user.license_due_for_payment) {
-                    result = false;
-                }
-            }
-
-            if (!result) {
-                var dlg = dialogs.create('static/templates/payments/payment.html', 'PaymentController as vm', user, {'size': 'md'});
-                dlg.result.then(function (license) {
-                    user.license_about_to_expire = null;
-                    user.license_due_for_payment = null;
-                    Authentication.setAuthenticatedUser(user);
-                    refresh();
-                });
-            }
-            return result;
         }
 
         function refresh() {
