@@ -8,6 +8,7 @@
             'smart-table',
             'ngPasswordStrength',
             'ui.bootstrap',
+            'ui.bootstrap.showErrors',
             'toggle-switch',
             'angularFileUpload',
             'dialogs.main',

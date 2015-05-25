@@ -5,17 +5,22 @@
         .module('ivigilate.config')
         .config(config);
 
-    config.$inject = ['$locationProvider', 'uiGmapGoogleMapApiProvider', 'dialogsProvider', '$translateProvider', 'stripeProvider'];
+    config.$inject = ['$locationProvider', 'uiGmapGoogleMapApiProvider', 'dialogsProvider', '$translateProvider',
+                        'stripeProvider', 'showErrorsConfigProvider'];
 
     /**
      * @name config
      * @desc Enable HTML5 routing
      */
-    function config($locationProvider, uiGmapGoogleMapApiProvider, dialogsProvider, $translateProvider, stripeProvider) {
+    function config($locationProvider, uiGmapGoogleMapApiProvider, dialogsProvider, $translateProvider,
+                    stripeProvider, showErrorsConfigProvider) {
         $locationProvider.html5Mode(true);
         $locationProvider.hashPrefix('!');
 
         stripeProvider.setPublishableKey('pk_test_oVCmhvKCeq8opChm22KPvc27');
+
+        showErrorsConfigProvider.showSuccess(true);
+        showErrorsConfigProvider.trigger('keypress');
 
         uiGmapGoogleMapApiProvider.configure({
             //    key: 'your api key',

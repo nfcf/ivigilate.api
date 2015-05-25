@@ -52,22 +52,29 @@
         }
 
         function charge(card) {
-            return stripe.card.createToken(card)
-                .then(function (token) {
-                    return Payments.charge(token.id, vm.card.receipt_email);
-                })
-                .then(function (data) {
-                    var license = data.data;
-                    $modalInstance.close(license);
-                })
-                .catch(function (err) {
-                    if (err.type && /^Stripe/.test(err.type)) {
-                        vm.error = 'Stripe error: ' + err.message;
-                    }
-                    else {
-                        vm.error = err.status != 500 ? JSON.stringify(err.data) : err.statusText;
-                    }
-                });
+            $scope.$broadcast('show-errors-check-validity');
+
+            if (vm.paymentForm.$valid) {
+                vm.error = '';
+                return stripe.card.createToken(card)
+                    .then(function (token) {
+                        return Payments.charge(token.id, vm.card.receipt_email);
+                    })
+                    .then(function (data) {
+                        var license = data.data;
+                        $modalInstance.close(license);
+                    })
+                    .catch(function (err) {
+                        if (err.type && /^Stripe/.test(err.type)) {
+                            vm.error = 'Stripe error: ' + err.message;
+                        }
+                        else {
+                            vm.error = err.status != 500 ? JSON.stringify(err.data) : err.statusText;
+                        }
+                    });
+            } else {
+                vm.error = 'There are invalid fields in the form.';
+            }
         }
 
         function skip() {

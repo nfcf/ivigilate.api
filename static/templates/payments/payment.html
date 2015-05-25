@@ -2,6 +2,7 @@
     <button ng-click="vm.skip()" class="close" ng-if="vm.canSkip">×</button>
     <h3 class="modal-title">{{ vm.title }}</h3>
 </div>
+<form name="vm.paymentForm" novalidate>
 <div class="modal-body">
     <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
 
@@ -9,40 +10,43 @@
 
     <div class="row">
         <div class="col-xs-6">
-            <div class="form-group">
-                <label for="receipt_email">Email</label>
-                <input class="form-control" id="receipt_email" ng-model="vm.card.receipt_email"
-                       placeholder="Send receipt to"/>
+            <div class="form-group" show-errors>
+                <label class="control-label" for="receipt_email">Email</label>
+                <input class="form-control" name="receipt_email" type="email" ng-model="vm.card.receipt_email"
+                       placeholder="Send receipt to" required/>
+                <!--<p class="help-block" ng-if="vm.paymentForm.receipt_email.$error.required">The receipt's email is required.</p>-->
             </div>
         </div>
 
         <div class="col-xs-6">
-            <div class="form-group">
-                <label for="card_number">Card Number</label>
-                <input class="form-control" id="card_number" ng-model="vm.card.number" cc-number cc-format
-                       cc-eager-type/>
+            <div class="form-group" show-errors>
+                <label class="control-label" for="card_number">Card Number</label>
+                <input class="form-control" name="card_number" ng-model="vm.card.number" cc-number
+                       cc-format cc-eager-type />
             </div>
         </div>
 
-        <div class="col-xs-3">
-            <div class="form-group" cc-exp>
-                <label for="exp_month">Exp. Date</label>
-                <input class="form-control" id="exp_month" ng-model="vm.card.exp_month" cc-exp-month
-                       placeholder="MM"/>
+        <div cc-exp>
+            <div class="col-xs-3">
+                <div class="form-group" show-errors>
+                    <label class="control-label" for="exp_month">Exp. Month</label>
+                    <input class="form-control" name="exp_month" ng-model="vm.card.exp_month" cc-exp-month
+                           placeholder="MM" />
+                </div>
             </div>
-        </div>
-        <div class="col-xs-3">
-            <div class="form-group">
-                <label for="exp_year">&nbsp;</label>
-                <input class="form-control" id="exp_year" ng-model="vm.card.exp_year" cc-exp-year
-                       placeholder="YY"/>
+            <div class="col-xs-3">
+                <div class="form-group" show-errors>
+                    <label class="control-label" for="exp_year">Exp. Year</label>
+                    <input class="form-control" name="exp_year" ng-model="vm.card.exp_year" cc-exp-year
+                           placeholder="YY" />
+                </div>
             </div>
         </div>
 
         <div class="col-xs-6">
-            <div class="form-group">
-                <label for="cvc">CVC</label>
-                <input class="form-control" id="cvc" ng-model="vm.card.cvc" cc-cvc/>
+            <div class="form-group" show-errors>
+                <label class="control-label" for="cvc">CVC</label>
+                <input class="form-control" name="cvc" ng-model="vm.card.cvc" cc-cvc />
             </div>
         </div>
     </div>
@@ -57,3 +61,4 @@
     <button ng-click="vm.skip()" class="btn btn-default" ng-if="vm.canSkip">Skip</button>
     <button ng-click="vm.charge(vm.card)" class="btn btn-primary">Make Payment</button>
 </div>
+</form>

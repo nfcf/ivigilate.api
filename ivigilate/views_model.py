@@ -181,7 +181,7 @@ class MovableViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
                 if events:
                     movable = Movable.objects.get(uid=serializer.validated_data['uid'])
 
-                    new_list = events
+                    new_list = json.loads(events)
                     old_list = movable.events.all().values_list('id', flat=True)
                     to_add_list = list(set(new_list) - set(old_list))
                     to_remove_list = list(set(old_list) - set(new_list))
