@@ -268,6 +268,7 @@ class Event(models.Model):
     # schedule_specific_date = models.DateTimeField()
     schedule_start_time = models.TimeField()
     schedule_end_time = models.TimeField()
+    schedule_timezone_offset = models.SmallIntegerField(default=0)
 
     sighting_is_current = models.BooleanField(default=False)
     sighting_duration_in_seconds = models.IntegerField(default=0)

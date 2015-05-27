@@ -39,7 +39,7 @@ def check():
                            'os_uname': config.get('DEVICE', 'uname'),
                            'last_update_date': config.get('DEVICE', 'last_update_date')})
     data = json.dumps({'company_id': config.get('BASE', 'company_id'),
-                       'watcher_uid': config.get('DEVICE', 'serial'),
+                       'watcher_uid': config.get('DEVICE', 'hardware') + config.get('DEVICE', 'revision') + config.get('DEVICE', 'serial'),
                        'metadata': metadata})
 
     response = None

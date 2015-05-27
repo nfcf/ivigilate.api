@@ -281,7 +281,7 @@ class EventReadSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Event
         fields = ('id', 'account', 'reference_id', 'name', 'movables', 'places',
-                  'schedule_days_of_week', 'schedule_start_time', 'schedule_end_time',
+                  'schedule_days_of_week', 'schedule_start_time', 'schedule_end_time', 'schedule_timezone_offset',
                   'sighting_is_current', 'sighting_duration_in_seconds', 'sighting_has_battery_below',
                   'sighting_has_comment', 'sighting_has_been_confirmed', 'sighting_previous_event',
                   'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
@@ -291,7 +291,7 @@ class EventWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = ('id', 'reference_id', 'name',
-                  'schedule_days_of_week', 'schedule_start_time', 'schedule_end_time',
+                  'schedule_days_of_week', 'schedule_start_time', 'schedule_end_time', 'schedule_timezone_offset',
                   'sighting_is_current', 'sighting_duration_in_seconds', 'sighting_has_battery_below',
                   'sighting_has_comment', 'sighting_has_been_confirmed', 'sighting_previous_event',
                   'metadata', 'is_active')
@@ -302,6 +302,7 @@ class EventWriteSerializer(serializers.ModelSerializer):
         instance.schedule_days_of_week = validated_data.get('schedule_days_of_week', instance.schedule_days_of_week)
         instance.schedule_start_time = validated_data.get('schedule_start_time', instance.schedule_start_time)
         instance.schedule_end_time = validated_data.get('schedule_end_time', instance.schedule_end_time)
+        instance.schedule_timezone_offset = validated_data.get('schedule_timezone_offset', instance.schedule_timezone_offset)
 
         instance.sighting_is_current = validated_data.get('sighting_is_current', instance.sighting_is_current)
         instance.sighting_duration_in_seconds = validated_data.get('sighting_duration_in_seconds', instance.sighting_duration_in_seconds)

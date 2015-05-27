@@ -30,6 +30,8 @@
                         }, function (skipped) {
                             resolve();
                         });
+                    } else {
+                        resolve();
                     }
                 } else {
                     resolve();

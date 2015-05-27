@@ -28,6 +28,7 @@
         vm.schedule_sunday = 64;
         vm.schedule_start_time = undefined;
         vm.schedule_end_time = undefined;
+        vm.schedule_timezone_offset = undefined;
 
         vm.action_sms_recipients = undefined;
         vm.action_sms_message = undefined;
@@ -49,11 +50,13 @@
         activate();
 
         function activate() {
+            var now = new Date();
             var user = Authentication.getAuthenticatedUser();
             if (user) {
                 if (vm.is_edit) {
                     vm.title = 'Event';
                     vm.event = data;
+                    vm.event.schedule_timezone_offset = Math.abs(now.getTimezoneOffset());
 
                     vm.schedule_monday = vm.event.schedule_days_of_week & Math.pow(2, 0);
                     vm.schedule_tuesday = vm.event.schedule_days_of_week & Math.pow(2, 1);
@@ -64,9 +67,9 @@
                     vm.schedule_sunday = vm.event.schedule_days_of_week & Math.pow(2, 6);
 
                     var start_time_parts = vm.event.schedule_start_time.split(':');
-                    vm.schedule_start_time = new Date(0, 0, 0, start_time_parts[0], start_time_parts[1]);
+                    vm.schedule_start_time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), start_time_parts[0], start_time_parts[1]);
                     var end_time_parts = vm.event.schedule_end_time.split(':');
-                    vm.schedule_end_time = new Date(0, 0, 0, end_time_parts[0], end_time_parts[1]);
+                    vm.schedule_end_time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), end_time_parts[0], end_time_parts[1]);
 
                     var metadata = JSON.parse(vm.event.metadata);
                     for (var i = 0; i < metadata.actions.length; i++) {  // Required for the REST serializer
@@ -81,10 +84,11 @@
                     }
                 } else {
                     vm.title = 'New Event';
-                    vm.event = {'is_active': true, 'sighting_duration_in_seconds': 0, 'sighting_has_battery_below': 100};
+                    vm.event = {'is_active': true, 'sighting_duration_in_seconds': 0, 'sighting_has_battery_below': 100,
+                                'schedule_timezone_offset': Math.abs(now.getTimezoneOffset())};
 
-                    vm.schedule_start_time = new Date(0, 0, 0, 0, 0);
-                    vm.schedule_end_time = new Date(0, 0, 0, 23, 59);
+                    vm.schedule_start_time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0);
+                    vm.schedule_end_time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59);
                 }
 
                 Movables.list().then(movablesSuccessFn, errorFn);
@@ -119,8 +123,11 @@
             vm.event.schedule_days_of_week = vm.schedule_monday + vm.schedule_tuesday + vm.schedule_wednesday +
                                             vm.schedule_thursday + vm.schedule_friday + vm.schedule_saturday +
                                             vm.schedule_sunday;
-            vm.event.schedule_start_time = pad('00', vm.schedule_start_time.getHours(), true) + ':' + pad('00', vm.schedule_start_time.getMinutes(), true) + ':00';
-            vm.event.schedule_end_time = pad('00', vm.schedule_end_time.getHours(), true) + ':' + pad('00', vm.schedule_end_time.getMinutes(), true) + ':59';
+
+            vm.event.schedule_start_time = pad('00', vm.schedule_start_time.getHours(), true) + ':' +
+                                            pad('00', vm.schedule_start_time.getMinutes(), true) + ':00';
+            vm.event.schedule_end_time = pad('00', vm.schedule_end_time.getHours(), true) + ':' +
+                                            pad('00', vm.schedule_end_time.getMinutes(), true) + ':59';
 
             var metadata = {'actions': []};
             if (vm.action_sms_recipients && vm.action_sms_message) {

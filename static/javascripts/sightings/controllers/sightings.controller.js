@@ -134,8 +134,6 @@
                     if (new Date(vm.sightings[i].last_seen_at) > now) {
                         vm.sightings[i].last_seen_at = now;
                     }
-                    //vm.sightings[i].first_seen_at = convertUTCDateToLocalDate(new Date(vm.sightings[i].first_seen_at));
-                    //vm.sightings[i].last_seen_at = convertUTCDateToLocalDate(new Date(vm.sightings[i].last_seen_at));
                     vm.sightings[i].satisfyFilter = new Date(vm.sightings[i].last_seen_at) >= new Date(vm.filterDate) &&
                     (filterPlacesIds === undefined || filterPlacesIds.indexOf(vm.sightings[i].place.id) >= 0);
                 }
