@@ -64,7 +64,6 @@ class AddSightingView(views.APIView):
 
         company_id = data.get('company_id', None)
         watcher_uid = data.get('watcher_uid', None)
-        place = None
         user = None
         movable_uid = data.get('movable_uid', None)
         rssi = data.get('rssi', None)
@@ -103,23 +102,30 @@ class AddSightingView(views.APIView):
         new_sighting = None
         if previous_sightings:
             previous_sighting = previous_sightings[0]
-            if (previous_sighting.place == place and previous_sighting.user == user) or \
-                    ((previous_sighting.place != place or previous_sighting.user != user) and
-                             previous_sighting.rssi >= rssi):
-                logger.debug('Updating previous sighting \'%s\' as the movable didn\'t change places.',
-                             previous_sighting)
+            if (previous_sighting.place == place and previous_sighting.user == user and rssi <= place.departure_rssi):
+                logger.debug('Updating previous sighting \'%s\' as the movable \'%s\' didn\'t change places.',
+                             previous_sighting, movable)
                 new_sighting = previous_sighting
                 new_sighting.last_seen_at = None  # this forces the datetime update
                 new_sighting.rssi = rssi
                 new_sighting.battery = battery
                 new_sighting.save()
-            else:  # if (previous_sighting.place != place or previous_sighting.user != user) and previous_sighting.rssi < rssi:
+            else:
                 utils.close_sighting(previous_sighting, place, user)
 
-        if not new_sighting:
-            # check if belongs to account
-            new_sighting = Sighting.objects.create(movable=movable, place=place, user=user, rssi=rssi, battery=battery)
-            logger.debug('Created new sighting \'%s\'.', new_sighting)
+        if new_sighting is None:
+            if movable.account_id == place.account_id and rssi >= place.arrival_rssi:
+                new_sighting = Sighting.objects.create(movable=movable, place=place, user=user, rssi=rssi, battery=battery)
+                logger.debug('Created new sighting \'%s\'.', new_sighting)
+            elif movable.reported_missing:
+                logger.debug('Reported missing movable was seen at \'%s\'. Notifying corresponding account owners', place)
+                try:
+                    send_mail('Reported missing: {0}'.format(movable.name),
+                              '{0} was seen at the following location: {1}'.format(movable.name, place.location),
+                              settings.DEFAULT_FROM_EMAIL,
+                            [u.email for u in account.get_account_admins()])
+                except Exception as ex:
+                    logger.exception('Failed to send reported missing email to account admins!')
 
         utils.check_for_events(new_sighting)
 

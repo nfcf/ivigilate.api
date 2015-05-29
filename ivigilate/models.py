@@ -42,6 +42,10 @@ class Account(models.Model):
         licenses_due_for_payment = self.licenses.filter(valid_until=None)
         return licenses_due_for_payment[0] if len(licenses_due_for_payment) > 0 else None
 
+    def get_account_admins(self):
+        account_admins = self.users.filter(is_account_admin=True)
+        return account_admins
+
     def __str__(self):
         return '%s - %s' % (self.company_id, self.name)
 
@@ -90,7 +94,7 @@ class AuthUserManager(BaseUserManager):
 
 
 class AuthUser(AbstractBaseUser, PermissionsMixin):
-    account = models.ForeignKey(Account, null=True, blank=True)
+    account = models.ForeignKey(Account, null=True, blank=True, related_name='users')
     email = models.EmailField(_('email address'), unique=True,
                               help_text=_('Required.'),
                               error_messages={

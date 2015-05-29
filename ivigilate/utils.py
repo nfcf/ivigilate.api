@@ -50,14 +50,14 @@ def send_twilio_message(to, msg):
     )
 
 
-def close_sighting(sighting, newPlace=None, newUser=None):
+def close_sighting(sighting, new_sighting_place=None, new_sighting_user=None):
     sighting.is_current = False
-    check_for_events(sighting, newPlace, newUser)
+    check_for_events(sighting, new_sighting_place, new_sighting_user)
     sighting.save()
     logger.debug('Sighting \'%s\' is no longer current.', sighting)
 
 
-def check_for_events(sighting, newPlace=None, newUser=None):
+def check_for_events(sighting, new_sighting_place=None, new_sighting_user=None):
     logger.debug('Checking for events associated with sighting \'%s...\'', sighting)
     now = datetime.now(timezone.utc)
     current_week_day_representation = math.pow(2, now.weekday())
@@ -90,16 +90,18 @@ def check_for_events(sighting, newPlace=None, newUser=None):
         logger.debug('Found %s event(s) active for sighting \'%s\'.', len(events), sighting)
         for event in events:
             logger.debug('Checking if \'%s\' event conditions are met.', event)
+            duration = sighting.get_duration()
             if event.sighting_is_current == sighting.is_current and \
                 event.sighting_has_battery_below >= (sighting.battery or 0) and \
+                event.sighting_duration_in_seconds <= sighting.get_duration() and \
                 ((event.sighting_has_comment is None) or
                  (event.sighting_has_comment and sighting.comment) or
                  (not event.sighting_has_comment and not sighting.comment)) and \
                 ((event.sighting_has_been_confirmed is None) or
                  (event.sighting_has_been_confirmed and sighting.confirmed) or
                  (not event.sighting_has_been_confirmed and not sighting.confirmed)) and \
-                (newPlace is None or newPlace in event.places.all()) and \
-                (newUser is None  or newUser in event.places):  # need to handle this newUser condition...
+                (new_sighting_place is None or new_sighting_place in event.places.all()) and \
+                (new_sighting_user is None or new_sighting_user in event.places):  # need to handle this new_sighting_user condition...
 
                 # Make sure we don't trigger the same actions over and over again (only once per sighting)
                 previous_occurrences = EventOccurrence.objects.filter(event=event, sighting=sighting).order_by('id')[:1]
