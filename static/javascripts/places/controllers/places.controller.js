@@ -13,6 +13,8 @@
         vm.editPlace = editPlace;
         vm.updatePlaceState = updatePlaceState;
 
+        vm.error = undefined;
+
         vm.places = undefined;
 
         activate();

@@ -1,0 +1,109 @@
+<div class="col-md-8 col-md-offset-2">
+    <h1>Settings</h1>
+
+    <div class="well">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
+                <div class="alert alert-success" ng-show="vm.success" ng-bind="vm.success"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-6">
+                <div class="form-group">
+                    <label for="company_id">Company ID</label>
+                    <input type="text" class="form-control" id="company_id" ng-model="vm.user.company_id" disabled/>
+                </div>
+            </div>
+            <div class="col-xs-6">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="text" class="form-control" id="email" ng-model="vm.user.email" required/>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-6">
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <input type="text" class="form-control" id="first_name" ng-model="vm.user.first_name"/>
+                </div>
+            </div>
+            <div class="col-xs-6">
+                <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" class="form-control" id="last_name" ng-model="vm.user.last_name"/>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-6">
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" id="password" ng-model="vm.user.password"
+                           placeholder="Leave empty to keep same password"/>
+                </div>
+            </div>
+            <div class="col-xs-6">
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <input type="password" class="form-control" id="confirm_password"
+                           ng-model="vm.user.confirm_password" ng-disabled="!vm.user.password"/>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="form-group text-right">
+                    <button type="submit" class="btn btn-primary" ng-click="vm.update()">Update</button>
+                </div>
+            </div>
+        </div>
+
+        <fieldset ng-if="!!vm.user.is_account_admin">
+            <legend>Manage Account Users</legend>
+            <div class="table-responsive">
+                <table st-table="vm.displayedUsers" st-safe-src="vm.users" class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th st-sort="email">Email</th>
+                        <th st-sort="first_name">First Name</th>
+                        <th st-sort="last_name">Last Name</th>
+                        <th st-sort="is_account_admin" class="text-center">Admin?</th>
+                        <th st-sort="is_active" class="text-center">Active?</th>
+                    </tr>
+                    <tr>
+                        <th colspan="5">
+                            <input st-search placeholder="Global Search" class="input-sm form-control" type="search"/>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="user in vm.displayedUsers">
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.first_name }}</td>
+                        <td>{{ user.last_name }}</td>
+                        <td class="text-center">
+                            <input type="checkbox" ng-model="user.is_account_admin"
+                                   ng-disabled="vm.user.email == user.email" ng-click="vm.updateUserAdminState(user)">
+                        </td>
+                        <td class="text-center">
+                            <input type="checkbox" ng-model="user.is_active"
+                                   ng-disabled="vm.user.email == user.email" ng-click="vm.updateUserActiveState(user)">
+                        </td>
+                    </tr>
+                    </tbody>
+                    <tfoot>
+                    <tr>
+                        <td colspan="5" class="text-center">
+                            <div st-pagination="" st-items-by-page="10" st-displayed-pages="5"></div>
+                        </td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </fieldset>
+    </div>
+</div>

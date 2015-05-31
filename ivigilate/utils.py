@@ -58,7 +58,7 @@ def close_sighting(sighting, new_sighting_place=None, new_sighting_user=None):
 
 
 def check_for_events(sighting, new_sighting_place=None, new_sighting_user=None):
-    logger.debug('Checking for events associated with sighting \'%s...\'', sighting)
+    logger.debug('Checking for events associated with sighting \'%s\'...', sighting)
     now = datetime.now(timezone.utc)
     current_week_day_representation = math.pow(2, now.weekday())
 

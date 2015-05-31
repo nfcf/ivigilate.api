@@ -17,9 +17,9 @@
       controllerAs: 'vm',
       templateUrl: '/static/templates/authentication/login.html'
     }).when('/settings', {
-      controller: 'SettingsController',
+      controller: 'UsersController',
       controllerAs: 'vm',
-      templateUrl: '/static/templates/authentication/settings.html'
+      templateUrl: '/static/templates/settings/settings.html'
     }).when('/places', {
       controller: 'PlacesController',
       controllerAs: 'vm',

@@ -67,9 +67,7 @@ class AuthUserViewSet(viewsets.ModelViewSet):
             queryset = self.queryset
         else:
             queryset = self.queryset.filter(account=account)
-        page = self.paginate_queryset(queryset)
-        serializer = self.get_pagination_serializer(page)
-        return Response(serializer.data)
+        return utils.view_list(request, account, queryset, self.get_serializer_class())
 
     def create(self, request):
         serializer = self.get_serializer_class()(data=request.data)
@@ -79,7 +77,8 @@ class AuthUserViewSet(viewsets.ModelViewSet):
         if password is None:
             error_message = "Password cannot be left empty."
         elif serializer.is_valid():
-            if serializer.save():
+            account = Account.objects.get(company_id=request.data['company_id'])
+            if serializer.save(account=account):
                 return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
         if error_message is None:

@@ -26,7 +26,7 @@
             'ivigilate.authentication',
             'ivigilate.payments',
             'ivigilate.layout',
-            'ivigilate.settings',
+            'ivigilate.users',
             'ivigilate.places',
             'ivigilate.events',
             'ivigilate.sightings'

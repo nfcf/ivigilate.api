@@ -60,6 +60,7 @@ class AddSightingView(views.APIView):
     permission_classes = (permissions.AllowAny, )
 
     def post(self, request, format=None):
+        REPORTED_MISSING_NOTIFICATION_EVERY_MINS = 1
         data = json.loads(request.body.decode('utf-8'))
 
         company_id = data.get('company_id', None)
@@ -72,6 +73,7 @@ class AddSightingView(views.APIView):
         try:
             account = Account.objects.get(company_id=company_id)
         except Account.DoesNotExist:
+            logger.warning('Attempt to add a sighting for an invalid Company ID.')
             return Response('Invalid Company ID.', status=status.HTTP_400_BAD_REQUEST)
 
         try:
@@ -92,40 +94,67 @@ class AddSightingView(views.APIView):
                 return Response('Invalid Watcher UID (couldn\'t find corresponding place).',
                                 status=status.HTTP_400_BAD_REQUEST)
 
-        if movable.account != account:
-            if movable.reported_missing:
-                dummy = 2  # do something...
-            else:
-                return Response('Ignored sighting as the movable doesn\'t belong to this account.')
-
+        now = datetime.datetime.now(timezone.utc)
         previous_sightings = Sighting.objects.filter(is_current=True, movable=movable).order_by('-last_seen_at')[:1]
+        previous_sighting_occurred_at = None
         new_sighting = None
         if previous_sightings:
             previous_sighting = previous_sightings[0]
-            if (previous_sighting.place == place and previous_sighting.user == user and rssi <= place.departure_rssi):
-                logger.debug('Updating previous sighting \'%s\' as the movable \'%s\' didn\'t change places.',
-                             previous_sighting, movable)
+            if (rssi < place.departure_rssi):
+                logger.info('Closing previous related sighting \'%s\' as the rssi dropped below the ' + \
+                            'departure_rssi configured for this place (%s < %s).',
+                            previous_sighting, rssi, place.departure_rssi)
+                utils.close_sighting(previous_sighting, place, user)
+            elif ((previous_sighting.place != place or previous_sighting.user != user) and
+                    rssi > previous_sighting.rssi):
+                logger.info('Closing previous related sighting \'%s\' as the movable moved to another location.',
+                            previous_sighting, rssi, place.departure_rssi)
+                utils.close_sighting(previous_sighting, place, user)
+            else:
+                logger.debug('Updating previous related sighting \'%s\'.', previous_sighting)
                 new_sighting = previous_sighting
-                new_sighting.last_seen_at = None  # this forces the datetime update
+                previous_sighting_occurred_at = previous_sighting.last_seen_at
+                if not movable.reported_missing or \
+                    (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60:
+                    new_sighting.last_seen_at = None  # this forces the datetime update on the model save()
                 new_sighting.rssi = rssi
                 new_sighting.battery = battery
                 new_sighting.save()
+
+        if movable.account_id != account.id:
+            if movable.reported_missing:
+                if (previous_sighting_occurred_at is None or
+                    (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60):
+                    logger.info('Reported missing movable was seen at / by \'%s\'. ' + \
+                                'Notifying corresponding account owners...', place if place is not None else user)
+                    try:
+                        send_mail('Reported missing: {0}'.format(movable.name),
+                                  '{0} was seen near the following coordinates: {1}'.format(movable.name, place.location),
+                                  settings.DEFAULT_FROM_EMAIL,
+                                  [u.email for u in movable.account.get_account_admins()])
+                    except Exception as ex:
+                        logger.exception('Failed to send reported missing email to account admins!')
+                else:
+                    logger.info('Reported missing movable was seen at / by \'%s\'. ' + \
+                                'Skipping notification as the last one was triggered less than 1 minute ago...',
+                                place if place is not None else user)
+                    return Response('Ignored sighting as the movable doesn\'t belong to this account.')
             else:
-                utils.close_sighting(previous_sighting, place, user)
+                logger.info('Ignoring current sighting as the movable \'%s\' was seen at / by another account\'s ' + \
+                            'place / user \'%s\' but has not been reported missing.',
+                            movable, place if place is not None else user)
+                return Response('Ignored sighting as the movable doesn\'t belong to this account.')
 
         if new_sighting is None:
-            if movable.account_id == place.account_id and rssi >= place.arrival_rssi:
-                new_sighting = Sighting.objects.create(movable=movable, place=place, user=user, rssi=rssi, battery=battery)
+            if rssi < place.arrival_rssi and not movable.reported_missing:
+                logger.info('Ignoring sighting of movable \'%s\' at / by \'%s\' as the rssi is lower than the ' + \
+                            'arrival_rssi configured for this place / user (%s < %s).',
+                            movable, place if place is not None else user, rssi, place.arrival_rssi)
+                return Response('Ignored sighting due to weak rssi.')
+            else:
+                new_sighting = Sighting.objects.create(movable=movable, place=place, user=user,
+                                                       location=place.location, rssi=rssi, battery=battery)
                 logger.debug('Created new sighting \'%s\'.', new_sighting)
-            elif movable.reported_missing:
-                logger.debug('Reported missing movable was seen at \'%s\'. Notifying corresponding account owners', place)
-                try:
-                    send_mail('Reported missing: {0}'.format(movable.name),
-                              '{0} was seen at the following location: {1}'.format(movable.name, place.location),
-                              settings.DEFAULT_FROM_EMAIL,
-                            [u.email for u in account.get_account_admins()])
-                except Exception as ex:
-                    logger.exception('Failed to send reported missing email to account admins!')
 
         utils.check_for_events(new_sighting)
 

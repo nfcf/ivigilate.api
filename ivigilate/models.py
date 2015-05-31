@@ -43,7 +43,7 @@ class Account(models.Model):
         return licenses_due_for_payment[0] if len(licenses_due_for_payment) > 0 else None
 
     def get_account_admins(self):
-        account_admins = self.users.filter(is_account_admin=True)
+        account_admins = self.users.filter(is_account_admin=True, is_active=True)
         return account_admins
 
     def __str__(self):
@@ -70,7 +70,7 @@ class License(models.Model):
 class AuthUserManager(BaseUserManager):
     use_in_migrations = True
 
-    def _create_user(self, account, email, password, admin, is_staff, is_superuser, **extra_fields):
+    def _create_user(self, account, email, password, is_staff, is_superuser, **extra_fields):
         now = datetime.now(timezone.utc)
 
         email = self.normalize_email(email)
@@ -147,7 +147,7 @@ class AuthUser(AbstractBaseUser, PermissionsMixin):
 
 
 class Place(models.Model):
-    account = models.ForeignKey(Account)
+    account = models.ForeignKey(Account, related_name='places')
     uid = models.CharField(max_length=36)
     reference_id = models.CharField(max_length=64, blank=True)
     name = models.CharField(max_length=64, blank=True)
@@ -181,7 +181,7 @@ class Place(models.Model):
 
 
 class Movable(models.Model):
-    account = models.ForeignKey(Account)
+    account = models.ForeignKey(Account, related_name='movables')
     uid = models.CharField(max_length=36)
     reference_id = models.CharField(max_length=64, blank=True)
     name = models.CharField(max_length=64, blank=True)
@@ -256,8 +256,8 @@ class Sighting(models.Model):
         super(Sighting, self).save(*args, **kwargs)
 
     def __str__(self):
-        return "%s: movable=%s, location_name=%s, last_seen_at=%s)" % \
-               (self.id, self.movable.name, self.get_location_name(), self.last_seen_at)
+        return "%s: movable=%s, location_name=%s" % \
+               (self.id, self.movable.name, self.get_location_name())
 
 
 class Event(models.Model):
