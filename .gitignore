@@ -62,5 +62,5 @@ static/bower_components/
 #PyCharm
 .idea/
 
-#testing
+logs/
 media/
