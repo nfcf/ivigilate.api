@@ -146,7 +146,7 @@ class AddSightingView(views.APIView):
                 return Response('Ignored sighting as the movable doesn\'t belong to this account.')
 
         if new_sighting is None:
-            if rssi < place.arrival_rssi and not movable.reported_missing:
+            if rssi < place.arrival_rssi and (movable.account_id == account.id or not movable.reported_missing):
                 logger.info('Ignoring sighting of movable \'%s\' at / by \'%s\' as the rssi is lower than the ' + \
                             'arrival_rssi configured for this place / user (%s < %s).',
                             movable, place if place is not None else user, rssi, place.arrival_rssi)

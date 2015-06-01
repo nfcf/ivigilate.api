@@ -128,6 +128,7 @@ EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'support@ivigilate.com'
 
 LOG_LEVEL = 'DEBUG' if DEBUG else 'INFO'
+LOG_SIZE = 2 * 1024 * 1024
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -158,8 +159,8 @@ LOGGING = {
         'log_file':{
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs/ivigilate.log'),
-            'maxBytes': 2 * 1024 * 1024,
+            'filename': os.path.join(BASE_DIR, 'logs/ivigilateX.log'),
+            'maxBytes': LOG_SIZE,
             'backupCount': 10,
             'formatter': 'verbose'
         },
