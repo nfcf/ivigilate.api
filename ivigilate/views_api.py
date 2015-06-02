@@ -1,3 +1,4 @@
+import os
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import AnonymousUser
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
@@ -228,10 +229,10 @@ class MakePaymentView(views.APIView):
                                                     relativedelta(months=license_metadata['duration_in_months']),
                                                     datetime.time(23, 59, 59, tzinfo=pytz.UTC))
 
-            stripe.api_key = settings.STRIPE_SECRET_KEY
             try:
                 logger.debug('Charging %s%s on the card with token %s', license_due_for_payment.currency,
                              license_due_for_payment.amount, license_due_for_payment.reference_id)
+                stripe.api_key = os.environ['STRIPE_SECRET_KEY']
                 charge = stripe.Charge.create(
                     amount=license_due_for_payment.amount,
                     currency=license_due_for_payment.currency,

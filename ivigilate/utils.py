@@ -6,7 +6,7 @@ from django.core.mail import send_mail
 from ivigilate import settings
 from ivigilate.models import Sighting, Event, EventOccurrence
 from django.db.models import Q
-import math, json, re, logging
+import math, json, re, logging, os
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
@@ -42,11 +42,11 @@ def replace_message_tags(msg, event, sighting):
 
 
 def send_twilio_message(to, msg):
-    client = TwilioRestClient(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+    client = TwilioRestClient(os.environ['TWILIO_ACCOUNT_SID'], os.environ['TWILIO_AUTH_TOKEN'])
     message = client.messages.create(
         body=msg,
         to=to,
-        from_=settings.TWILIO_DEFAULT_CALLERID,
+        from_=os.environ['TWILIO_DEFAULT_CALLERID'],
     )
 
 

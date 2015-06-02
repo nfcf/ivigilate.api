@@ -111,15 +111,6 @@ SITE_ID = 1
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Move this out of here (into virtualenv) when swapping to final set of credentials
-# http://django-twilio.readthedocs.org/en/latest/install.html
-# http://docs.python-guide.org/en/latest/dev/virtualenvs/
-STRIPE_SECRET_KEY = 'sk_test_Vs06D8aYMjzKnvXWGEC6NKXb'
-
-TWILIO_ACCOUNT_SID = 'AC1b8158faf55b96ed86dee884e1d94beb'
-TWILIO_AUTH_TOKEN = '3941cff26f237a3540627a5f52ca6e85'
-TWILIO_DEFAULT_CALLERID = '14158438604'
-
 EMAIL_HOST = 'smtp.mandrillapp.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'nunofcf@gmail.com'
