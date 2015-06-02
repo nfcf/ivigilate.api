@@ -1,7 +1,7 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from rest_framework import routers
-from ivigilate import views_model, views_api
+from ivigilate import views_model, views_api, views_report
 
 router = routers.DefaultRouter()
 router.register(r'accounts', views_model.AccountViewSet)
@@ -32,6 +32,8 @@ urlpatterns = patterns('',
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+
+    url(r'^report/', views_report.print_users, name='report'),
 
     url(r'^.*$', views_api.IndexView.as_view(), name='index'),
 )
