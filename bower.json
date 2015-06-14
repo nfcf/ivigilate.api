@@ -42,6 +42,7 @@
   "resolutions": {
     "underscore": "~1.5.x",
     "angular-google-maps": "~2.0.13",
-    "angular": "~1.4.0"
+    "angular": "~1.4.0",
+    "angular-translate": "~2.7.2"
   }
 }

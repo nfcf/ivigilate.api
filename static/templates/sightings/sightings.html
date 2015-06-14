@@ -48,8 +48,8 @@
                         <th st-sort="satisfyFilter" st-sort-default="true"><span
                                 class="glyphicon glyphicon-eye-open"></span></th>
                         <th>Photo</th>
-                        <th st-sort="movable.reference_id">ID</th>
-                        <th st-sort="movable.name">Name</th>
+                        <th st-sort="beacon.reference_id">ID</th>
+                        <th st-sort="beacon.name">Name</th>
                         <th st-sort="last_seen_at">Last Seen</th>
                         <th class="text-center" st-sort="battery">Battery</th>
                         <th st-sort="comment">Comment</th>
@@ -70,12 +70,12 @@
                     <tr ng-repeat="sighting in vm.displayedSightings"
                         ng-class="{'danger': !sighting.satisfyFilter}">
                         <td class="valign-middle text-center"></td>
-                        <td style="height:56px"><img ng-src="{{ sighting.movable.photo }}" height="40px"
-                                                     ng-if="sighting.movable.photo"/></td>
-                        <td class="valign-middle">{{ sighting.movable.reference_id || sighting.movable.uid }}</td>
-                        <td class="valign-middle">{{ sighting.movable.name }}</td>
+                        <td style="height:56px"><img ng-src="{{ sighting.beacon.photo }}" height="40px"
+                                                     ng-if="sighting.beacon.photo"/></td>
+                        <td class="valign-middle">{{ sighting.beacon.reference_id || sighting.beacon.uid }}</td>
+                        <td class="valign-middle">{{ sighting.beacon.name }}</td>
                         <td class="valign-middle">{{ sighting.last_seen_at | relativeDate }}
-                            at {{ sighting.location_name }}</td>
+                            at/by {{ sighting.watcher_name }}</td>
                         <td class="valign-middle text-center">{{ sighting.battery || 'N/A' }}</td>
                         <td class="valign-middle">{{ sighting.comment }}</td>
                         <td class="valign-middle text-center">

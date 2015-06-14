@@ -21,7 +21,7 @@ class RecurringLicensesJob(CronJobBase):
         accounts = Account.objects.filter()
         if accounts:
             for account in accounts:
-                if account.get_license_about_to_expire() != None and account.get_license_due_for_payment() == None:
+                if account.get_license_about_to_expire() is not None and account.get_license_due_for_payment() is None:
                     logger.debug('Found account that needs to renew the license in a few days: \'%s\'', account)
                     try:
                         account_metadata = json.loads(account.metadata)
@@ -29,7 +29,7 @@ class RecurringLicensesJob(CronJobBase):
                             license_metadata = dict()
                             license_metadata['duration_in_months'] = account_metadata['plan']['duration_in_months']
                             license_metadata['max_users'] = account_metadata['plan']['max_users']
-                            license_metadata['max_movables'] = account_metadata['plan']['max_movables']
+                            license_metadata['max_beacons'] = account_metadata['plan']['max_beacons']
                             license = License.objects.create(account=account,
                                                              amount=account_metadata['plan']['amount'],
                                                              currency=account_metadata['plan']['currency'],

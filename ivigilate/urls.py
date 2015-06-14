@@ -7,7 +7,7 @@ router = routers.DefaultRouter()
 router.register(r'accounts', views_model.AccountViewSet)
 router.register(r'users', views_model.AuthUserViewSet)
 router.register(r'places', views_model.PlaceViewSet)
-router.register(r'movables', views_model.MovableViewSet)
+router.register(r'beacons', views_model.BeaconViewSet)
 router.register(r'sightings', views_model.SightingViewSet)
 router.register(r'events', views_model.EventViewSet)
 

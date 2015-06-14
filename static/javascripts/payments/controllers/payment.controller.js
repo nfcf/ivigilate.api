@@ -32,17 +32,15 @@
                     vm.title = 'Your license is about to expire...';
                     vm.header = 'Please renew you subscription before ' +
                     date2str(new Date(vm.license.valid_until), 'yyyy-MM-dd hh:mm');
-                    vm.license.duration = metadata.duration_in_months;
-                    vm.license.max_movables = metadata.max_movables;
+                    vm.license.max_beacons = metadata.max_beacons;
                     vm.license.max_users = metadata.max_users;
                     vm.canSkip = true;
                 } else {
                     vm.license = user.license_due_for_payment;
                     var metadata = JSON.parse(vm.license.metadata);
-                    vm.title = 'Your license has expired...';
+                    vm.title = 'Your license is due for payment...';
                     vm.header = 'Please renew you subscription.';
-                    vm.license.duration = metadata.description;
-                    vm.license.max_movables = metadata.max_movables;
+                    vm.license.max_beacons = metadata.max_beacons;
                     vm.license.max_users = metadata.max_users;
                 }
             }

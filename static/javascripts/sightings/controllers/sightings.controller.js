@@ -105,7 +105,7 @@
 
         function confirmSighting(sighting) {
             var sightingToSend = JSON.parse(JSON.stringify(sighting));
-            sightingToSend.movable = sightingToSend.movable.id;  // Required for the REST serializer
+            sightingToSend.beacon = sightingToSend.beacon.id;  // Required for the REST serializer
             sightingToSend.place = sightingToSend.place.id;  // Required for the REST serializer
             Sightings.update(sightingToSend).then(successFn, errorFn);
 

@@ -8,8 +8,8 @@
 # NOTE: Python's struct.pack() will add padding bytes unless you make the endianness explicit. Little endian
 # should be used for BLE. Always start a struct.pack() format string with "<"
 import sys, struct, logging, Queue
-import config
 import bluetooth._bluetooth as bluez
+from datetime import datetime
 
 LE_META_EVENT = 0x3e
 LE_PUBLIC_ADDRESS = 0x00
@@ -141,19 +141,31 @@ def parse_events(sock, queue, loop_count=100):
                 num_reports = struct.unpack('B', pkt[0])[0]
                 offset = 0
                 for i in range(0, num_reports):
-                    # Requires further testing but this seems to always be part of iBeacon Adv prefix
-                    if return_string_from_packet(pkt[offset + 14: offset + 19]) == 'ff4c000215':
-                        mac = packed_bdaddr_to_string(pkt[offset + 3: offset + 9])
-                        uuid = return_string_from_packet(pkt[offset + 19: offset + 35])
-                        major = return_number_from_packet(pkt[offset + 35: offset + 37])
-                        minor = return_number_from_packet(pkt[offset + 37: offset + 39])
-                        power = struct.unpack('b', pkt[offset + 39])[0]
-                        battery = struct.unpack('b', pkt[offset + 40])[0]
-                        rssi = struct.unpack('b', pkt[offset + 41])[0]
-                        print "Packet: ", print_packet(pkt)
-                        print 'Parsed: %s,%s,%i,%i,%i,%i,%i' % (mac, uuid, major, minor, power, battery, rssi)
+                    try:
+                        # Requires further testing but this seems to always be part of iBeacon Adv prefix
+                        if return_string_from_packet(pkt[offset + 14: offset + 19]) == 'ff4c000215':
+                            mac = packed_bdaddr_to_string(pkt[offset + 3: offset + 9])
+                            uuid = return_string_from_packet(pkt[offset + 19: offset + 35])
+                            major = return_number_from_packet(pkt[offset + 35: offset + 37])
+                            minor = return_number_from_packet(pkt[offset + 37: offset + 39])
+                            power = struct.unpack('b', pkt[offset + 39])[0]
+                            if (len(pkt) > offset + 41):
+                                battery = struct.unpack('b', pkt[offset + 40])[0]
+                                rssi = struct.unpack('b', pkt[offset + 41])[0]
+                            else:
+                                battery = 0
+                                rssi = struct.unpack('b', pkt[offset + 40])[0]
 
-                        queue.put((uuid, rssi, battery))
+                            now = int(datetime.utcnow().strftime("%s"))
+                            previous_item = queue[0] if not queue.empty() else (0,'',0,0)
+                            if uuid != previous_item[1] or (uuid == previous_item[1] and (now-previous_item[0]) >= 1):
+                                print 'Packet: ', print_packet(pkt)
+                                print 'Parsed: %s,%s,%i,%i,%i,%i,%i' % (mac, uuid, major, minor, power, battery, rssi)
+                                queue.put((now, uuid, rssi, battery))
+                            else:
+                                logger.info('Skipping packet as a similar one happened less than 1 second ago.')
+                    except Exception as ex:
+                        logger.exception('Failed to parse beacon advertisement package:')
 
     sock.setsockopt(bluez.SOL_HCI, bluez.HCI_FILTER, old_filter)
     logger.info('Finished parsing events.')

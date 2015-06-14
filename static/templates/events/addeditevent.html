@@ -78,15 +78,15 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
-                    <label>Movable(s)</label>
-                    <ui-select multiple='true' ng-model="vm.movables_selected"
+                    <label>Beacon(s)</label>
+                    <ui-select multiple='true' ng-model="vm.beacons_selected"
                                theme="select2" ng-disabled="disabled" style="width: 100%">
-                        <ui-select-match placeholder="Select movable(s) to check for event or leave empty for all...">
+                        <ui-select-match placeholder="Select beacon(s) to check for event or leave empty for all...">
                             {{$item.name}}</ui-select-match>
                         <ui-select-choices
-                                repeat="movable in vm.movables | propsFilter: {name: $select.search, reference_id: $select.search} track by movable.id">
-                            <div ng-bind-html="movable.name | highlight: $select.search"></div>
-                            <small ng-bind-html="movable.reference_id | highlight: $select.search"/>
+                                repeat="beacon in vm.beacons | propsFilter: {name: $select.search, reference_id: $select.search} track by beacon.id">
+                            <div ng-bind-html="beacon.name | highlight: $select.search"></div>
+                            <small ng-bind-html="beacon.reference_id | highlight: $select.search"/>
                         </ui-select-choices>
                     </ui-select>
                 </div>
@@ -188,8 +188,8 @@
                                     <label for="action_sms_message">Message</label>
                                 <textarea class="form-control" id="action_sms_message" ng-model="vm.action_sms_message">
                                 </textarea>
-                                    <small>Note: The following tags can be used: %event_id%, %event_name%, %movable_id%,
-                                        %movable_name%, %place_id%, %place_name%.
+                                    <small>Note: The following tags can be used: %event_id%, %event_name%, %beacon_id%,
+                                        %beacon_name%, %place_id%, %place_name%.
                                     </small>
                                 </div>
                             </div>
@@ -221,8 +221,8 @@
                                 <textarea class="form-control" id="action_email_body"
                                           ng-model="vm.action_email_body">
                                 </textarea>
-                                    <small>Note: The following tags can be used: %event_id%, %event_name%, %movable_id%,
-                                        %movable_name%, %place_id%, %place_name%.
+                                    <small>Note: The following tags can be used: %event_id%, %event_name%, %beacon_id%,
+                                        %beacon_name%, %place_id%, %place_name%.
                                     </small>
                                 </div>
                             </div>
@@ -257,8 +257,8 @@
                                     <label for="action_rest_body">Body</label>
                                 <textarea class="form-control" id="action_rest_body" ng-model="vm.action_rest_body">
                                 </textarea>
-                                    <small>Note: The following tags can be used: %event_id%, %event_name%, %movable_id%,
-                                        %movable_name%, %place_id%, %place_name%.
+                                    <small>Note: The following tags can be used: %event_id%, %event_name%, %beacon_id%,
+                                        %beacon_name%, %place_id%, %place_name%.
                                     </small>
                                 </div>
                             </div>

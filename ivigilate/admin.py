@@ -4,23 +4,29 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.contrib import admin
 from ivigilate.models import *
-import json
+import json, logging
+
+
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
-        account = super().save_model(request, obj, form, change)
+        super().save_model(request, obj, form, change)
         if not change:
             try:
-                account_metadata = json.loads(account.metadata)
+                account_metadata = json.loads(obj.metadata)
                 if 'setup' in account_metadata:
-                    license_metadata = dict()
-                    license_metadata['license'] = account_metadata['setup']
-                    license_metadata['license']['description'] = 'Hardware and Setup Costs'
-                    license = License.objects.create(account=account, metadata=license_metadata)
+                    description = 'Hardware and Setup Costs + {0} Month(s) Subscription'.format(account_metadata['setup']['duration_in_months'])
+                    license = License.objects.create(account=obj,
+                                                     amount=account_metadata['setup']['amount'],
+                                                     currency=account_metadata['setup']['currency'],
+                                                     description=description,
+                                                     metadata=json.dumps(account_metadata['setup']))
             except Exception as ex:
-                pass
+                logger.exception('Failed to create initial license for account with exception:')
 
 
 @admin.register(License)
@@ -109,8 +115,8 @@ class PlaceAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Movable)
-class MovableAdmin(admin.ModelAdmin):
+@admin.register(Beacon)
+class BeaconAdmin(admin.ModelAdmin):
     pass
 
 

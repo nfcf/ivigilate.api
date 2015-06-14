@@ -66,7 +66,7 @@
 
         function updateEventState(event) {
             var eventToSend = JSON.parse(JSON.stringify(event));
-            eventToSend.movables = null;
+            eventToSend.beacons = null;
             eventToSend.places = null;
             Events.update(eventToSend).then(successFn, errorFn);
 

@@ -44,7 +44,7 @@ class LoginView(views.APIView):
                 return Response('This user has been disabled.',
                                 status=status.HTTP_401_UNAUTHORIZED)
         else:
-            return Response('Email/password combination invalid.',
+            return Response('Invalid email/password combination.',
                             status=status.HTTP_401_UNAUTHORIZED)
 
 
@@ -66,10 +66,12 @@ class AddSightingView(views.APIView):
 
         company_id = data.get('company_id', None)
         watcher_uid = data.get('watcher_uid', None)
-        user = None
-        movable_uid = data.get('movable_uid', None)
+        beacon_uid = data.get('beacon_uid', None)
         rssi = data.get('rssi', None)
         battery = data.get('battery', None)
+        place = None
+        user = None
+        location = None
 
         try:
             account = Account.objects.get(company_id=company_id)
@@ -78,9 +80,9 @@ class AddSightingView(views.APIView):
             return Response('Invalid Company ID.', status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            movable = Movable.objects.get(uid=movable_uid)
-        except Movable.DoesNotExist:
-            movable = Movable.objects.create(account=account, uid=movable_uid)
+            beacon = Beacon.objects.get(uid=beacon_uid)
+        except Beacon.DoesNotExist:
+            beacon = Beacon.objects.create(account=account, uid=beacon_uid)
 
         if '@' in watcher_uid:
             try:
@@ -91,70 +93,71 @@ class AddSightingView(views.APIView):
         else:
             try:
                 place = Place.objects.get(uid=watcher_uid)
+                location = place.location
             except Place.DoesNotExist:
                 return Response('Invalid Watcher UID (couldn\'t find corresponding place).',
                                 status=status.HTTP_400_BAD_REQUEST)
 
         now = datetime.datetime.now(timezone.utc)
-        previous_sightings = Sighting.objects.filter(is_current=True, movable=movable).order_by('-last_seen_at')[:1]
+        previous_sightings = Sighting.objects.filter(is_current=True, beacon=beacon).order_by('-last_seen_at')[:1]
         previous_sighting_occurred_at = None
         new_sighting = None
         if previous_sightings:
             previous_sighting = previous_sightings[0]
-            if (rssi < place.departure_rssi):
+            if (place is not None and rssi < place.departure_rssi):
                 logger.info('Closing previous related sighting \'%s\' as the rssi dropped below the ' + \
                             'departure_rssi configured for this place (%s < %s).',
                             previous_sighting, rssi, place.departure_rssi)
                 utils.close_sighting(previous_sighting, place, user)
             elif ((previous_sighting.place != place or previous_sighting.user != user) and
                     rssi > previous_sighting.rssi):
-                logger.info('Closing previous related sighting \'%s\' as the movable moved to another location.',
-                            previous_sighting, rssi, place.departure_rssi)
+                logger.info('Closing previous related sighting \'%s\' as the beacon moved to another location.',
+                            previous_sighting)
                 utils.close_sighting(previous_sighting, place, user)
             else:
                 logger.debug('Updating previous related sighting \'%s\'.', previous_sighting)
                 new_sighting = previous_sighting
                 previous_sighting_occurred_at = previous_sighting.last_seen_at
-                if not movable.reported_missing or \
+                if not beacon.reported_missing or \
                     (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60:
                     new_sighting.last_seen_at = None  # this forces the datetime update on the model save()
                 new_sighting.rssi = rssi
                 new_sighting.battery = battery
                 new_sighting.save()
 
-        if movable.account_id != account.id:
-            if movable.reported_missing:
+        if beacon.account_id != account.id:
+            if beacon.reported_missing:
                 if (previous_sighting_occurred_at is None or
                     (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60):
-                    logger.info('Reported missing movable was seen at / by \'%s\'. ' + \
+                    logger.info('Reported missing beacon was seen at / by \'%s\'. ' + \
                                 'Notifying corresponding account owners...', place if place is not None else user)
                     try:
-                        send_mail('Reported missing: {0}'.format(movable.name),
-                                  '{0} was seen near the following coordinates: {1}'.format(movable.name, place.location),
+                        send_mail('Reported missing: {0}'.format(beacon.name),
+                                  '{0} was seen near the following coordinates: {1}'.format(beacon.name, place.location),
                                   settings.DEFAULT_FROM_EMAIL,
-                                  [u.email for u in movable.account.get_account_admins()])
+                                  [u.email for u in beacon.account.get_account_admins()])
                     except Exception as ex:
                         logger.exception('Failed to send reported missing email to account admins!')
                 else:
-                    logger.info('Reported missing movable was seen at / by \'%s\'. ' + \
+                    logger.info('Reported missing beacon was seen at / by \'%s\'. ' + \
                                 'Skipping notification as the last one was triggered less than 1 minute ago...',
                                 place if place is not None else user)
-                    return Response('Ignored sighting as the movable doesn\'t belong to this account.')
+                    return Response('Ignored sighting as the beacon doesn\'t belong to this account.')
             else:
-                logger.info('Ignoring current sighting as the movable \'%s\' was seen at / by another account\'s ' + \
+                logger.info('Ignoring current sighting as the beacon \'%s\' was seen at / by another account\'s ' + \
                             'place / user \'%s\' but has not been reported missing.',
-                            movable, place if place is not None else user)
-                return Response('Ignored sighting as the movable doesn\'t belong to this account.')
+                            beacon, place if place is not None else user)
+                return Response('Ignored sighting as the beacon doesn\'t belong to this account.')
 
         if new_sighting is None:
-            if rssi < place.arrival_rssi and (movable.account_id == account.id or not movable.reported_missing):
-                logger.info('Ignoring sighting of movable \'%s\' at / by \'%s\' as the rssi is lower than the ' + \
+            if place is not None and rssi < place.arrival_rssi and (beacon.account_id == account.id or not beacon.reported_missing):
+                logger.info('Ignoring sighting of beacon \'%s\' at / by \'%s\' as the rssi is lower than the ' + \
                             'arrival_rssi configured for this place / user (%s < %s).',
-                            movable, place if place is not None else user, rssi, place.arrival_rssi)
+                            beacon, place if place is not None else user, rssi, place.arrival_rssi)
                 return Response('Ignored sighting due to weak rssi.')
             else:
-                new_sighting = Sighting.objects.create(movable=movable, place=place, user=user,
-                                                       location=place.location, rssi=rssi, battery=battery)
+                new_sighting = Sighting.objects.create(beacon=beacon, place=place, user=user,
+                                                       location=location, rssi=rssi, battery=battery)
                 logger.debug('Created new sighting \'%s\'.', new_sighting)
 
         utils.check_for_events(new_sighting)

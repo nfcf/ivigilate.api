@@ -145,7 +145,7 @@ class PlaceWriteSerializer(serializers.ModelSerializer):
         instance.location = validated_data.get('location', instance.location)
         instance.arrival_rssi = validated_data.get('arrival_rssi', instance.arrival_rssi)
         instance.departure_rssi = validated_data.get('departure_rssi', instance.departure_rssi)
-        instance.metadata = validated_data.get('name', instance.metadata)
+        instance.metadata = validated_data.get('metadata', instance.metadata)
         instance.updated_by = validated_data.get('user')
         instance.is_active = validated_data.get('is_active', instance.is_active)
         instance.save()
@@ -159,23 +159,23 @@ class SimpleEventSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'reference_id', 'name')
 
 
-class MovableReadSerializer(serializers.HyperlinkedModelSerializer):
+class BeaconReadSerializer(serializers.HyperlinkedModelSerializer):
     events = SimpleEventSerializer(many=True, read_only=True)
 
     class Meta:
-        model = Movable
-        fields = ('id', 'account', 'uid', 'reference_id', 'name',
-                  'photo', 'reported_missing', 'events',
+        model = Beacon
+        fields = ('id', 'account', 'uid', 'reference_id', 'type',
+                  'name', 'photo', 'reported_missing', 'events',
                   'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
 
 
-class MovableWriteSerializer(serializers.ModelSerializer):
+class BeaconWriteSerializer(serializers.ModelSerializer):
     company_id = serializers.CharField(source='account.company_id', required=False)
 
     class Meta:
-        model = Movable
-        fields = ('id', 'company_id', 'uid', 'reference_id', 'name',
-                  'photo', 'reported_missing',
+        model = Beacon
+        fields = ('id', 'company_id', 'uid', 'reference_id', 'type',
+                  'name', 'photo', 'reported_missing',
                   'metadata', 'created_at', 'updated_at', 'is_active')
 
     def validate_company_id(self, value):
@@ -187,6 +187,7 @@ class MovableWriteSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.reference_id = validated_data.get('reference_id', instance.reference_id)
+        instance.type = validated_data.get('type', instance.type)
         instance.name = validated_data.get('name', instance.name)
         instance.photo = validated_data.get('photo', instance.photo)
         instance.metadata = validated_data.get('metadata', instance.metadata)
@@ -199,16 +200,16 @@ class MovableWriteSerializer(serializers.ModelSerializer):
 
 
 class SightingReadSerializer(gis_serializers.GeoModelSerializer):
-    movable = MovableReadSerializer()
+    beacon = BeaconReadSerializer()
     place = PlaceReadSerializer()
     user = serializers.HyperlinkedIdentityField(view_name='authuser-detail')
-    location_name = serializers.CharField(source='get_location_name', read_only=True)
+    watcher_name = serializers.CharField(source='get_watcher_name', read_only=True)
 
     class Meta:
         model = Sighting
         geo_field = 'location'
-        fields = ('id', 'movable', 'place', 'user', 'first_seen_at', 'last_seen_at',
-                  'location', 'location_name', 'rssi', 'battery', 'metadata', 'confirmed',
+        fields = ('id', 'beacon', 'place', 'user', 'first_seen_at', 'last_seen_at',
+                  'location', 'watcher_name', 'rssi', 'battery', 'metadata', 'confirmed',
                   'confirmed_by', 'confirmed_at', 'comment', 'commented_by', 'commented_at', 'is_current')
 
 
@@ -223,7 +224,7 @@ class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
     class Meta:
         model = Sighting
         geo_field = 'location'
-        fields = ('id', 'movable', 'place', 'first_seen_at', 'last_seen_at',
+        fields = ('id', 'beacon', 'place', 'first_seen_at', 'last_seen_at',
                   'location', 'rssi', 'battery', 'metadata', 'confirmed', 'comment')
 
     def create(self, validated_data):
@@ -266,9 +267,9 @@ class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
         return instance
 
 
-class EventMovableSerializer(serializers.HyperlinkedModelSerializer):
+class EventBeaconSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = Movable
+        model = Beacon
         fields = ('id', 'reference_id', 'name')
 
 
@@ -279,13 +280,13 @@ class EventPlaceSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class EventReadSerializer(serializers.HyperlinkedModelSerializer):
-    movables = EventMovableSerializer(many=True, read_only=True)
+    beacons = EventBeaconSerializer(many=True, read_only=True)
     places = EventPlaceSerializer(many=True, read_only=True)
     sighting_previous_event = SimpleEventSerializer()
 
     class Meta:
         model = Event
-        fields = ('id', 'account', 'reference_id', 'name', 'movables', 'places',
+        fields = ('id', 'account', 'reference_id', 'name', 'beacons', 'places',
                   'schedule_days_of_week', 'schedule_start_time', 'schedule_end_time', 'schedule_timezone_offset',
                   'sighting_is_current', 'sighting_duration_in_seconds', 'sighting_has_battery_below',
                   'sighting_has_comment', 'sighting_has_been_confirmed', 'sighting_previous_event',

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from datetime import datetime
 import os, sys, subprocess, logging
-import time, requests, json, urllib
+import time, requests, json, urllib, zipfile
 import config, blescan
 
 logger = logging.getLogger(__name__)
@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 def respawn_script(ble_thread=None):
     if ble_thread is not None:
-        logger.info('Daily re-spawn, stopping BLE thread...')
+        logger.info('Daily or on update re-spawn, stopping BLE thread...')
         blescan.is_running = False
         ble_thread.join()
         logger.info('BLE thread stopped.')
@@ -26,7 +26,6 @@ def restart_pi():
     logger.info('Sending restart command to Raspberry Pi...')
     config.save()
 
-    # this needs to be tested when script is configured to run at lunch
     command = "/usr/bin/sudo /sbin/shutdown -r now"
     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
     output = process.communicate()[0]
@@ -73,8 +72,12 @@ def check():
                 for file in update['files']:
                     logger.info('check() is retrieving the following file: \'%s\'', file)
                     urllib.urlretrieve(file['src'], file['dst'])
+                    if zipfile.is_zipfile(file['dst']):
+                        logger.info('check() is unzipping the following file: \'%s\'', file['dst'])
+                        zipfile.ZipFile(file['dst']).extractall()
+
             except Exception:
-                logger.exception('check() failed to update file with error:')
+                logger.exception('check() failed to update file with exception:')
                 return
 
         config.set('DEVICE', 'last_update_date', now.strftime("%Y-%m-%d %H:%M"))

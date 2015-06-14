@@ -77,7 +77,7 @@ class AuthUserManager(BaseUserManager):
         user = self.model(account=account, email=email,
                           is_staff=is_staff, is_active=True,
                           is_superuser=is_superuser,
-                          created_at=now, **extra_fields)
+                          created_at=now, last_login=now, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -139,7 +139,7 @@ class AuthUser(AbstractBaseUser, PermissionsMixin):
         if not self.id:
             self.created_at = now
             self.updated_at = now
-            if self.account != None and len(AuthUser.objects.filter(account=self.account, is_account_admin=True)) == 0:
+            if self.account is not None and len(AuthUser.objects.filter(account=self.account, is_account_admin=True)) == 0:
                 self.is_account_admin = True  # an account needs an account admin, so make it the first user to enroll
         else:
             self.updated_at = now
@@ -180,10 +180,15 @@ class Place(models.Model):
         return '%s: uid=%s, name=%s' % (self.account.company_id, self.uid, self.name)
 
 
-class Movable(models.Model):
-    account = models.ForeignKey(Account, related_name='movables')
+class Beacon(models.Model):
+    TYPE = (
+        ('M', 'Movable'),
+        ('F', 'Fixed'),
+    )
+    account = models.ForeignKey(Account, related_name='beacons')
     uid = models.CharField(max_length=36)
     reference_id = models.CharField(max_length=64, blank=True)
+    type = models.CharField(max_length=1, choices=TYPE, default='M')
     name = models.CharField(max_length=64, blank=True)
     photo = models.FileField(upload_to='photos', blank=True, null=True)
     reported_missing = models.BooleanField(default=False)
@@ -203,14 +208,14 @@ class Movable(models.Model):
             self.updated_at = now
         else:
             self.updated_at = now
-        super(Movable, self).save(*args, **kwargs)
+        super(Beacon, self).save(*args, **kwargs)
 
     def __str__(self):
-        return '%s: uid=%s, name=%s' % (self.account.company_id, self.uid, self.name)
+        return '%s: uid=%s, type=%s, name=%s' % (self.account.company_id, self.uid, self.type, self.name)
 
 
 class Sighting(models.Model):
-    movable = models.ForeignKey(Movable)
+    beacon = models.ForeignKey(Beacon)
     place = models.ForeignKey(Place, null=True)
     user = models.ForeignKey(AuthUser, null=True)
     first_seen_at = models.DateTimeField()
@@ -228,13 +233,13 @@ class Sighting(models.Model):
     is_current = models.BooleanField(default=True)
     objects = models.GeoManager()
 
-    def get_location_name(self):
-        location_name = None
+    def get_watcher_name(self):
+        watcher_name = None
         if self.place:
-            location_name = self.place.name
+            watcher_name = self.place.name
         elif self.user:
-            location_name = self.user.get_full_name()
-        return location_name
+            watcher_name = self.user.get_full_name()
+        return watcher_name
 
     def get_duration(self):
         return (self.last_seen_at - self.first_seen_at).seconds
@@ -256,15 +261,15 @@ class Sighting(models.Model):
         super(Sighting, self).save(*args, **kwargs)
 
     def __str__(self):
-        return "%s: movable=%s, location_name=%s" % \
-               (self.id, self.movable.name, self.get_location_name())
+        return "%s: beacon=%s, watcher_name=%s" % \
+               (self.id, self.beacon.name, self.get_watcher_name())
 
 
 class Event(models.Model):
     account = models.ForeignKey(Account)
     reference_id = models.CharField(max_length=64, blank=True)
     name = models.CharField(max_length=64)
-    movables = models.ManyToManyField(Movable, blank=True, related_name='events')
+    beacons = models.ManyToManyField(Beacon, blank=True, related_name='events')
     places = models.ManyToManyField(Place, blank=True)
     users = models.ManyToManyField(AuthUser, blank=True)
 
@@ -303,7 +308,7 @@ class Event(models.Model):
 
 class EventOccurrence(models.Model):
     event = models.ForeignKey(Event)
-    movable = models.ForeignKey(Movable)
+    beacon = models.ForeignKey(Beacon)
     sighting = models.ForeignKey(Sighting)
     occurred_at = models.DateTimeField(editable=False)
 
@@ -316,7 +321,7 @@ class EventOccurrence(models.Model):
 
 class EventLimit(models.Model):
     event = models.ForeignKey(Event)
-    movable = models.ForeignKey(Movable)
+    beacon = models.ForeignKey(Beacon)
 
     occurrence_date_limit = models.DateTimeField()
     occurrence_count_limit = models.IntegerField()

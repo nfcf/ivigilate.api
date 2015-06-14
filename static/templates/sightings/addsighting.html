@@ -9,14 +9,14 @@
         <div class="col-md-6">
             <div class="form-group">
                 <label>Who did you see?</label>
-                <ui-select ng-model="vm.movable" theme="selectize" ng-disabled="disabled">
-                    <ui-select-match placeholder="Select or search for a movable in the list...">
+                <ui-select ng-model="vm.beacon" theme="selectize" ng-disabled="disabled">
+                    <ui-select-match placeholder="Select or search for a beacon in the list...">
                         {{ $select.selected.name }}
                     </ui-select-match>
                     <ui-select-choices
-                            repeat="movable in vm.movables | propsFilter: {name: $select.search, reference_id: $select.search}">
-                        <div ng-bind-html="movable.name  | highlight: $select.search"></div>
-                        <small ng-bind-html="movable.reference_id | highlight: $select.search"/>
+                            repeat="beacon in vm.beacons | propsFilter: {name: $select.search, reference_id: $select.search}">
+                        <div ng-bind-html="beacon.name  | highlight: $select.search"></div>
+                        <small ng-bind-html="beacon.reference_id | highlight: $select.search"/>
                     </ui-select-choices>
                 </ui-select>
             </div>

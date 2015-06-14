@@ -5,17 +5,19 @@
         .module('ivigilate.places.controllers')
         .controller('AddSightingController', AddSightingController);
     
-    AddSightingController.$inject = ['$location', '$scope', '$filter', '$modalInstance', 'data', 'Authentication', 'Places', 'Movables', 'Sightings'];
+    AddSightingController.$inject = ['$location', '$scope', '$filter', '$modalInstance', 'data', 'Authentication',
+                                    'Places', 'Beacons', 'Sightings'];
 
-    function AddSightingController($location, $scope, $filter, $modalInstance, data, Authentication, Places, Movables, Sightings) {
+    function AddSightingController($location, $scope, $filter, $modalInstance, data, Authentication,
+                                   Places, Beacons, Sightings) {
         var vm = this;
         vm.openDatePicker = openDatePicker;
         vm.cancel = cancel;
         vm.save = save;
 
         vm.error = undefined;
-        vm.movables = undefined;
-        vm.movable = undefined;
+        vm.beacons = undefined;
+        vm.beacon = undefined;
         vm.places = undefined;
         vm.place = undefined;
 
@@ -48,14 +50,14 @@
         }
 
         function populateDialog(data) {
-            Movables.list().then(movablesSuccessFn, movablesErrorFn);
+            Beacons.list().then(beaconsSuccessFn, beaconsErrorFn);
 
-            function movablesSuccessFn(data, status, headers, config) {
-                vm.movables = data.data;
+            function beaconsSuccessFn(data, status, headers, config) {
+                vm.beacons = data.data;
             }
 
-            function movablesErrorFn(data, status, headers, config) {
-                vm.error = 'Failed to get Movables with error: ' + JSON.stringify(data.data);
+            function beaconsErrorFn(data, status, headers, config) {
+                vm.error = 'Failed to get Beacons with error: ' + JSON.stringify(data.data);
             }
 
             Places.list().then(placesSuccessFn, placesErrorFn);
@@ -77,7 +79,7 @@
 
         function save() {
             var sighting = {};
-            sighting.movable = vm.movable.id;
+            sighting.beacon = vm.beacon.id;
             sighting.place = vm.place.id;
             sighting.first_seen_at = vm.seen_at;
             sighting.last_seen_at = addTime(vm.seen_at, vm.duration.getHours(), vm.duration.getMinutes());

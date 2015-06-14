@@ -20,7 +20,7 @@
         function checkLicense(user) {
             return new Promise(function (resolve, reject) {
                 if (user.is_account_admin) {
-                    if (user.license_about_to_expire && user.license_due_for_payment) {
+                    if (user.license_due_for_payment) {
                         var dlg = dialogs.create('static/templates/payments/payment.html', 'PaymentController as vm', user, {'size': 'md'});
                         dlg.result.then(function (license) {
                             user.license_about_to_expire = null;

@@ -29,7 +29,6 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework_gis',
     'django_cron',
-    'django_twilio',
     'compressor',
     'ivigilate',
 )

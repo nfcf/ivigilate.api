@@ -6,10 +6,10 @@
         .controller('AddEditEventController', AddEditEventController);
 
     AddEditEventController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data',
-        'Authentication', 'Movables', 'Places', 'Events'];
+        'Authentication', 'Beacons', 'Places', 'Events'];
 
     function AddEditEventController($location, $scope, $timeout, $modalInstance, data,
-                                    Authentication, Movables, Places, Events) {
+                                    Authentication, Beacons, Places, Events) {
         var vm = this;
         vm.cancel = cancel;
         vm.destroy = destroy;
@@ -38,8 +38,8 @@
 
         vm.events = [];
         vm.nullEventOption = {"name": "-- Don't care --"};
-        vm.movables = [];
-        vm.movables_selected = [];
+        vm.beacons = [];
+        vm.beacons_selected = [];
         vm.places = [];
         vm.places_selected = [];
 
@@ -91,7 +91,7 @@
                     vm.schedule_end_time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59);
                 }
 
-                Movables.list().then(movablesSuccessFn, errorFn);
+                Beacons.list().then(beaconsSuccessFn, errorFn);
                 Places.list().then(placesSuccessFn, errorFn);
                 Events.list().then(eventsSuccessFn, errorFn);
             }
@@ -99,9 +99,9 @@
                 $location.url('/');
             }
 
-            function movablesSuccessFn(data, status, headers, config) {
-                vm.movables = data.data;
-                if (vm.is_edit) vm.movables_selected = vm.event.movables;
+            function beaconsSuccessFn(data, status, headers, config) {
+                vm.beacons = data.data;
+                if (vm.is_edit) vm.beacons_selected = vm.event.beacons;
             }
 
             function placesSuccessFn(data, status, headers, config) {
@@ -148,9 +148,9 @@
             vm.event.metadata = JSON.stringify(metadata);
 
             var eventToSend = JSON.parse(JSON.stringify(vm.event));
-            eventToSend.movables = [];
-            for (var i = 0; i < vm.movables_selected.length; i++) {  // Required for the REST serializer
-                eventToSend.movables.push(vm.movables_selected[i].id);
+            eventToSend.beacons = [];
+            for (var i = 0; i < vm.beacons_selected.length; i++) {  // Required for the REST serializer
+                eventToSend.beacons.push(vm.beacons_selected[i].id);
             }
             eventToSend.places = [];
             for (var i = 0; i < vm.places_selected.length; i++) {  // Required for the REST serializer
@@ -167,7 +167,7 @@
             }
 
             function successFn(data, status, headers, config) {
-                vm.event.movables = vm.movables_selected;
+                vm.event.beacons = vm.beacons_selected;
                 vm.event.places = vm.places_selected;
                 $modalInstance.close(vm.event);
             }

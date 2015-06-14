@@ -18,7 +18,7 @@ def init_logger(log_level):
 def send_sighting(beacon_uuid, beacon_rssi, beacon_battery):
     data = json.dumps(
         {'company_id': config.get('BASE', 'company_id'),
-         'movable_uid': beacon_uuid,
+         'beacon_uid': beacon_uuid,
          'watcher_uid': config.get('DEVICE', 'hardware') + config.get('DEVICE', 'revision') + config.get('DEVICE', 'serial'),
          'rssi': beacon_rssi,
          'battery': beacon_battery})
@@ -83,7 +83,7 @@ def main():
         # if new sighting, send it to the server
         if not ble_queue.empty():
             sighting = ble_queue.get()
-            send_sighting(sighting[0], sighting[1], sighting[2])
+            send_sighting(sighting[1], sighting[2], sighting[3])
 
         time.sleep(0.25)
 

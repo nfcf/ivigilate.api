@@ -6,10 +6,10 @@
         .controller('EditSightingController', EditSightingController);
 
     EditSightingController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data',
-        'Authentication', 'Movables', 'Sightings', 'Events'];
+        'Authentication', 'Beacons', 'Sightings', 'Events'];
 
     function EditSightingController($location, $scope, $timeout, $modalInstance, data,
-                                    Authentication, Movables, Sightings, Events) {
+                                    Authentication, Beacons, Sightings, Events) {
         var vm = this;
         vm.fileChanged = fileChanged;
         vm.cancel = cancel;
@@ -28,7 +28,7 @@
             var user = Authentication.getAuthenticatedUser();
             if (user) {
                 vm.sighting = data;
-                vm.imagePreview = vm.sighting.movable.photo;
+                vm.imagePreview = vm.sighting.beacon.photo;
 
                 Events.list().then(eventsSuccessFn, eventsErrorFn);
             }
@@ -38,7 +38,7 @@
 
             function eventsSuccessFn(data, status, headers, config) {
                 vm.events = data.data;
-                vm.events_selected = vm.sighting.movable.events;
+                vm.events_selected = vm.sighting.beacon.events;
             }
 
             function eventsErrorFn(data, status, headers, config) {
@@ -65,18 +65,18 @@
         }
 
         function save() {
-            vm.sighting.movable.events = vm.events_selected;
+            vm.sighting.beacon.events = vm.events_selected;
 
-            var movableToSend = JSON.parse(JSON.stringify(vm.sighting.movable));
-            movableToSend.events = [];
-            for (var i = 0; i < vm.sighting.movable.events.length; i++) {  // Required for the REST serializer
-                movableToSend.events.push(vm.sighting.movable.events[i].id);
+            var beaconToSend = JSON.parse(JSON.stringify(vm.sighting.beacon));
+            beaconToSend.events = [];
+            for (var i = 0; i < vm.sighting.beacon.events.length; i++) {  // Required for the REST serializer
+                beaconToSend.events.push(vm.sighting.beacon.events[i].id);
             }
-            movableToSend.photo = undefined;
-            Movables.update(movableToSend, vm.imageToUpload).then(movableSuccessFn, movableErrorFn, movableProgressFn);
+            beaconToSend.photo = undefined;
+            Beacons.update(beaconToSend, vm.imageToUpload).then(beaconSuccessFn, beaconErrorFn, beaconProgressFn);
 
-            function movableSuccessFn(data, status, headers, config) {
-                vm.sighting.movable = vm.sighting.movable.id;  // Required for the REST serializer
+            function beaconSuccessFn(data, status, headers, config) {
+                vm.sighting.beacon = vm.sighting.beacon.id;  // Required for the REST serializer
                 vm.sighting.place = vm.sighting.place.id;  // Required for the REST serializer
                 Sightings.update(vm.sighting).then(sightingSuccessFn, sightingErrorFn);
 
@@ -89,11 +89,11 @@
                 }
             }
 
-            function movableErrorFn(data, status, headers, config) {
+            function beaconErrorFn(data, status, headers, config) {
                 vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
             }
 
-            function movableProgressFn(evt) {
+            function beaconProgressFn(evt) {
                 //Do nothing for now...
             }
         }

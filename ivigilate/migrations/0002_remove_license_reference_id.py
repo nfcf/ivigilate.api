@@ -7,14 +7,12 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ivigilate', '0024_auto_20150513_0849'),
+        ('ivigilate', '0001_initial'),
     ]
 
     operations = [
-        migrations.AddField(
+        migrations.RemoveField(
             model_name='license',
             name='reference_id',
-            field=models.CharField(blank=True, max_length=64),
-            preserve_default=True,
         ),
     ]

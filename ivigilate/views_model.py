@@ -135,14 +135,14 @@ class PlaceViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class MovableViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
+class BeaconViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
                      mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    queryset = Movable.objects.all()
+    queryset = Beacon.objects.all()
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
-            return MovableReadSerializer
-        return MovableWriteSerializer
+            return BeaconReadSerializer
+        return BeaconWriteSerializer
 
     def get_permissions(self):
         if self.request.method in ['HEAD', 'OPTIONS']:
@@ -158,8 +158,8 @@ class MovableViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         try:
             queryset = self.queryset.get(id=pk, account=account)
-        except Movable.DoesNotExist:
-            return Response('Movable does not exist or is not associated with the current logged on account.',
+        except Beacon.DoesNotExist:
+            return Response('Beacon does not exist or is not associated with the current logged on account.',
                             status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.get_serializer_class()(queryset, many=False, context={'request': request})
@@ -178,16 +178,16 @@ class MovableViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
                 # work around to handle the M2M field as DRF doesn't handle them well...
                 events = self.request.DATA.get('events', None)
                 if events:
-                    movable = Movable.objects.get(uid=serializer.validated_data['uid'])
+                    beacon = Beacon.objects.get(uid=serializer.validated_data['uid'])
 
                     new_list = json.loads(events)
-                    old_list = movable.events.all().values_list('id', flat=True)
+                    old_list = beacon.events.all().values_list('id', flat=True)
                     to_add_list = list(set(new_list) - set(old_list))
                     to_remove_list = list(set(old_list) - set(new_list))
                     for id in to_add_list:
-                        movable.events.add(id)
+                        beacon.events.add(id)
                     for id in to_remove_list:
-                        movable.events.remove(id)
+                        beacon.events.remove(id)
                 # delete this field from the response as it isn't serializable
                 if 'photo' in serializer.validated_data:
                     del serializer.validated_data['photo']
@@ -224,26 +224,26 @@ class SightingViewSet(viewsets.ModelViewSet):
                     filter_show_all = request.query_params.get('filterShowAll') in ['True', 'true', '1']
 
             filteredQuery = 'SELECT s.* ' + \
-                            'FROM ivigilate_sighting s JOIN ivigilate_movable m ON s.movable_id = m.id ' + \
-                            'WHERE m.account_id = %s AND s.last_seen_at BETWEEN %s AND %s ' + \
+                            'FROM ivigilate_sighting s JOIN ivigilate_beacon b ON s.beacon_id = b.id ' + \
+                            'WHERE b.account_id = %s AND s.last_seen_at BETWEEN %s AND %s ' + \
                             'AND (%s OR s.place_id = ANY(%s::integer[])) AND s.last_seen_at IN (' + \
-                            ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY movable_id' + \
+                            ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY beacon_id' + \
                             ') ORDER BY s.last_seen_at DESC'
             filteredQueryParams = [account.id, filter_date + ' 00:00:00', filter_date + ' 23:59:59',
                                    len(filter_places) == 0, [int(p) for p in filter_places]]
 
             showAllQuery = '(SELECT s.* ' + \
-                           'FROM ivigilate_sighting s JOIN ivigilate_movable m ON s.movable_id = m.id ' + \
-                           'WHERE m.account_id = %s AND s.first_seen_at >= %s AND s.last_seen_at <= %s ' + \
+                           'FROM ivigilate_sighting s JOIN ivigilate_beacon b ON s.beacon_id = b.id ' + \
+                           'WHERE b.account_id = %s AND s.first_seen_at >= %s AND s.last_seen_at <= %s ' + \
                            'AND (%s OR s.place_id = ANY(%s)) AND s.last_seen_at IN (' + \
-                           ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY movable_id' + \
+                           ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY beacon_id' + \
                            ') ORDER BY s.last_seen_at DESC)' + \
                            ' UNION ' + \
                            '(SELECT s.* ' + \
-                           'FROM ivigilate_sighting s JOIN ivigilate_movable m ON s.movable_id = m.id ' + \
-                           'WHERE m.account_id = %s AND s.last_seen_at <= %s ' + \
+                           'FROM ivigilate_sighting s JOIN ivigilate_beacon b ON s.beacon_id = b.id ' + \
+                           'WHERE b.account_id = %s AND s.last_seen_at <= %s ' + \
                            'AND s.last_seen_at IN (' + \
-                           ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY movable_id' + \
+                           ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY beacon_id' + \
                            ') ORDER BY s.last_seen_at DESC)'
             showAllQueryParams = [account.id, filter_date + ' 00:00:00', filter_date + ' 23:59:59',
                                   len(filter_places) == 0, [int(p) for p in filter_places],
@@ -260,7 +260,7 @@ class SightingViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         try:
-            queryset = self.queryset.get(id=pk, movable__account=account)
+            queryset = self.queryset.get(id=pk, beacon__account=account)
         except Sighting.DoesNotExist:
             return Response('Sighting does not exist or is not associated with the current logged on account.',
                             status=status.HTTP_400_BAD_REQUEST)
@@ -275,8 +275,8 @@ class SightingViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             if serializer.save(user=user):
                 # remove fields from the response as they aren't serializable nor needed
-                if 'movable' in serializer.validated_data:
-                    del serializer.validated_data['movable']
+                if 'beacon' in serializer.validated_data:
+                    del serializer.validated_data['beacon']
                 if 'place' in serializer.validated_data:
                     del serializer.validated_data['place']
                 return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
@@ -291,8 +291,8 @@ class SightingViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             if serializer.save(user=user):
                 # remove fields from the response as they aren't serializable nor needed
-                if 'movable' in serializer.validated_data:
-                    del serializer.validated_data['movable']
+                if 'beacon' in serializer.validated_data:
+                    del serializer.validated_data['beacon']
                 if 'place' in serializer.validated_data:
                     del serializer.validated_data['place']
                 return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
@@ -330,20 +330,19 @@ class EventViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer_class()(queryset, many=False, context={'request': request})
         return Response(serializer.data)
 
-    def add_m2m_fields(self, event, movables, places):
+    def add_m2m_fields(self, event, beacons, places):
         # work around to handle the M2M field as DRF doesn't handle them well...
-        movables = self.request.DATA.get('movables', None)
-        if movables:
-            new_list = movables
-            old_list = event.movables.all().values_list('id', flat=True)
+        if beacons:
+            new_list = beacons
+            old_list = event.beacons.all().values_list('id', flat=True)
             to_add_list = list(set(new_list) - set(old_list))
             to_remove_list = list(set(old_list) - set(new_list))
             for id in to_add_list:
-                event.movables.add(id)
+                event.beacons.add(id)
             for id in to_remove_list:
-                event.movables.remove(id)
+                event.beacons.remove(id)
+
         # work around to handle the M2M field as DRF doesn't handle them well...
-        places = self.request.DATA.get('places', None)
         if places:
             new_list = places
             old_list = event.places.all().values_list('id', flat=True)
@@ -363,9 +362,9 @@ class EventViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             if serializer.save(updated_by=user, account=account):
                 event = Event.objects.get(reference_id=serializer.validated_data['reference_id'])
-                movables = self.request.DATA.get('movables', None)
+                beacons = self.request.DATA.get('beacons', None)
                 places = self.request.DATA.get('places', None)
-                self.add_m2m_fields(event, movables, places)
+                self.add_m2m_fields(event, beacons, places)
 
                 # remove fields from the response as they aren't serializable nor needed
                 if 'sighting_previous_event' in serializer.validated_data:
@@ -390,9 +389,9 @@ class EventViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             if serializer.save(updated_by=user):
                 event = Event.objects.get(reference_id=serializer.validated_data['reference_id'])
-                movables = self.request.DATA.get('movables', None)
+                beacons = self.request.DATA.get('beacons', None)
                 places = self.request.DATA.get('places', None)
-                self.add_m2m_fields(event, movables, places)
+                self.add_m2m_fields(event, beacons, places)
 
                 # remove fields from the response as they aren't serializable nor needed
                 if 'sighting_previous_event' in serializer.validated_data:
