@@ -32,6 +32,11 @@ class Account(models.Model):
 
         super(Account, self).save(*args, **kwargs)
 
+    def get_license_in_force(self):
+        now = datetime.now(timezone.utc)
+        license_in_force = self.licenses.filter(valid_until__gt=now)
+        return license_in_force[0] if len(license_in_force) > 0 else None
+
     def get_license_about_to_expire(self):
         now = datetime.now(timezone.utc)
         filter_datetime = now + timedelta(weeks=2)

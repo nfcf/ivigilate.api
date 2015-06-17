@@ -40,7 +40,16 @@
                            ng-model="vm.sighting.beacon.name" placeholder="Name"/>
                 </div>
             </div>
-            <div class="col-xs-12">
+            <div class="col-xs-12 col-md-6">
+                <div class="form-group">
+                    <label>Beacon Type</label>
+                    <select ng-model="vm.sighting.beacon.type" class="form-control">
+                        <option value="M">Movable</option>
+                        <option value="F">Fixed</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-xs-12 col-md-6">
                 <div class="form-group">
                     <label>Event(s) to watch</label>
                     <ui-select multiple='true' ng-model="vm.events_selected"

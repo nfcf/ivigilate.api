@@ -77,7 +77,8 @@
 
             function beaconSuccessFn(data, status, headers, config) {
                 vm.sighting.beacon = vm.sighting.beacon.id;  // Required for the REST serializer
-                vm.sighting.place = vm.sighting.place.id;  // Required for the REST serializer
+                vm.sighting.place = !!vm.sighting.place ? vm.sighting.place.id : null;  // Required for the REST serializer
+                vm.sighting.user = !!vm.sighting.user ? vm.sighting.user.id : null;  // Required for the REST serializer
                 Sightings.update(vm.sighting).then(sightingSuccessFn, sightingErrorFn);
 
                 function sightingSuccessFn(data, status, headers, config) {

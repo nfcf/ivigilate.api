@@ -75,7 +75,7 @@
                         <td class="valign-middle">{{ sighting.beacon.reference_id || sighting.beacon.uid }}</td>
                         <td class="valign-middle">{{ sighting.beacon.name }}</td>
                         <td class="valign-middle">{{ sighting.last_seen_at | relativeDate }}
-                            at/by {{ sighting.watcher_name }}</td>
+                            {{ !!place ? 'at' : 'by' }} {{ sighting.watcher_name }}</td>
                         <td class="valign-middle text-center">{{ sighting.battery || 'N/A' }}</td>
                         <td class="valign-middle">{{ sighting.comment }}</td>
                         <td class="valign-middle text-center">

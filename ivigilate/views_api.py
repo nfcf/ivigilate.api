@@ -33,11 +33,17 @@ class LoginView(views.APIView):
 
         email = data.get('email', None)
         password = data.get('password', None)
+        metadata = data.get('metadata', None)
 
         user = authenticate(email=email, password=password)
         if user is not None:
             if user.is_active:
                 login(request, user)
+                if (metadata is not None and user.metadata is None) or \
+                    (metadata != user.metadata):
+                    user.metadata = metadata
+                    user.save()
+
                 serialized = AuthUserReadSerializer(user, context={'request': request})
                 return Response(serialized.data)
             else:
@@ -57,113 +63,130 @@ class LogoutView(views.APIView):
         return Response({}, status=status.HTTP_204_NO_CONTENT)
 
 
-class AddSightingView(views.APIView):
+class AddSightingsView(views.APIView):
     permission_classes = (permissions.AllowAny, )
 
     def post(self, request, format=None):
         REPORTED_MISSING_NOTIFICATION_EVERY_MINS = 1
         data = json.loads(request.body.decode('utf-8'))
 
-        company_id = data.get('company_id', None)
-        watcher_uid = data.get('watcher_uid', None)
-        beacon_uid = data.get('beacon_uid', None)
-        rssi = data.get('rssi', None)
-        battery = data.get('battery', None)
-        place = None
-        user = None
-        location = None
+        if (data is not None and len(data) > 0):
+            for sighting in data:
+                company_id = sighting.get('company_id', None)
+                watcher_uid = sighting.get('watcher_uid', None)
+                beacon_uid = sighting.get('beacon_uid', None)
+                rssi = sighting.get('rssi', None)
+                battery = sighting.get('battery', None)
+                location = sighting.get('location', None)
+                place = None
+                user = None
 
-        try:
-            account = Account.objects.get(company_id=company_id)
-        except Account.DoesNotExist:
-            logger.warning('Attempt to add a sighting for an invalid Company ID.')
-            return Response('Invalid Company ID.', status=status.HTTP_400_BAD_REQUEST)
+                try:
+                    account = Account.objects.get(company_id=company_id)
+                    if account.get_license_in_force() is None:
+                        return Response('Ignoring sighting as the Account doesn\'t have a valid subscription.',
+                                        status=status.HTTP_412_PRECONDITION_FAILED)
+                except Account.DoesNotExist:
+                    logger.warning('Attempt to add a sighting for an invalid Company ID.')
+                    return Response('Invalid Company ID.', status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            beacon = Beacon.objects.get(uid=beacon_uid)
-        except Beacon.DoesNotExist:
-            beacon = Beacon.objects.create(account=account, uid=beacon_uid)
+                try:
+                    beacon = Beacon.objects.get(uid=beacon_uid)
+                except Beacon.DoesNotExist:
+                    beacon = Beacon.objects.create(account=account, uid=beacon_uid)
 
-        if '@' in watcher_uid:
-            try:
-                user = AuthUser.objects.get(email=watcher_uid)
-            except AuthUser.DoesNotExist:
-                return Response('Invalid Watcher UID (couldn\'t find corresponding user).',
-                                status=status.HTTP_400_BAD_REQUEST)
-        else:
-            try:
-                place = Place.objects.get(uid=watcher_uid)
-                location = place.location
-            except Place.DoesNotExist:
-                return Response('Invalid Watcher UID (couldn\'t find corresponding place).',
-                                status=status.HTTP_400_BAD_REQUEST)
-
-        now = datetime.datetime.now(timezone.utc)
-        previous_sightings = Sighting.objects.filter(is_current=True, beacon=beacon).order_by('-last_seen_at')[:1]
-        previous_sighting_occurred_at = None
-        new_sighting = None
-        if previous_sightings:
-            previous_sighting = previous_sightings[0]
-            if (place is not None and rssi < place.departure_rssi):
-                logger.info('Closing previous related sighting \'%s\' as the rssi dropped below the ' + \
-                            'departure_rssi configured for this place (%s < %s).',
-                            previous_sighting, rssi, place.departure_rssi)
-                utils.close_sighting(previous_sighting, place, user)
-            elif ((previous_sighting.place != place or previous_sighting.user != user) and
-                    rssi > previous_sighting.rssi):
-                logger.info('Closing previous related sighting \'%s\' as the beacon moved to another location.',
-                            previous_sighting)
-                utils.close_sighting(previous_sighting, place, user)
-            else:
-                logger.debug('Updating previous related sighting \'%s\'.', previous_sighting)
-                new_sighting = previous_sighting
-                previous_sighting_occurred_at = previous_sighting.last_seen_at
-                if not beacon.reported_missing or \
-                    (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60:
-                    new_sighting.last_seen_at = None  # this forces the datetime update on the model save()
-                new_sighting.rssi = rssi
-                new_sighting.battery = battery
-                new_sighting.save()
-
-        if beacon.account_id != account.id:
-            if beacon.reported_missing:
-                if (previous_sighting_occurred_at is None or
-                    (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60):
-                    logger.info('Reported missing beacon was seen at / by \'%s\'. ' + \
-                                'Notifying corresponding account owners...', place if place is not None else user)
+                if '@' in watcher_uid:
                     try:
-                        send_mail('Reported missing: {0}'.format(beacon.name),
-                                  '{0} was seen near the following coordinates: {1}'.format(beacon.name, place.location),
-                                  settings.DEFAULT_FROM_EMAIL,
-                                  [u.email for u in beacon.account.get_account_admins()])
-                    except Exception as ex:
-                        logger.exception('Failed to send reported missing email to account admins!')
+                        user = AuthUser.objects.get(email=watcher_uid)
+                        if not user.is_active:
+                            return Response('Ignoring sighting as the User is not active on the system.',
+                                        status=status.HTTP_412_PRECONDITION_FAILED)
+                        elif location is not None:
+                            location = json.dumps(location)
+                    except AuthUser.DoesNotExist:
+                        return Response('Invalid Watcher UID (couldn\'t find corresponding user).',
+                                        status=status.HTTP_400_BAD_REQUEST)
                 else:
-                    logger.info('Reported missing beacon was seen at / by \'%s\'. ' + \
-                                'Skipping notification as the last one was triggered less than 1 minute ago...',
-                                place if place is not None else user)
-                    return Response('Ignored sighting as the beacon doesn\'t belong to this account.')
-            else:
-                logger.info('Ignoring current sighting as the beacon \'%s\' was seen at / by another account\'s ' + \
-                            'place / user \'%s\' but has not been reported missing.',
-                            beacon, place if place is not None else user)
-                return Response('Ignored sighting as the beacon doesn\'t belong to this account.')
+                    try:
+                        place = Place.objects.get(uid=watcher_uid)
+                        if not place.is_active:
+                            return Response('Ignoring sighting as the Place is not active on the system.',
+                                        status=status.HTTP_412_PRECONDITION_FAILED)
+                        else:
+                            location = place.location
+                    except Place.DoesNotExist:
+                        return Response('Invalid Watcher UID (couldn\'t find corresponding place).',
+                                        status=status.HTTP_400_BAD_REQUEST)
 
-        if new_sighting is None:
-            if place is not None and rssi < place.arrival_rssi and (beacon.account_id == account.id or not beacon.reported_missing):
-                logger.info('Ignoring sighting of beacon \'%s\' at / by \'%s\' as the rssi is lower than the ' + \
-                            'arrival_rssi configured for this place / user (%s < %s).',
-                            beacon, place if place is not None else user, rssi, place.arrival_rssi)
-                return Response('Ignored sighting due to weak rssi.')
-            else:
-                new_sighting = Sighting.objects.create(beacon=beacon, place=place, user=user,
-                                                       location=location, rssi=rssi, battery=battery)
-                logger.debug('Created new sighting \'%s\'.', new_sighting)
+                now = datetime.datetime.now(timezone.utc)
+                previous_sightings = Sighting.objects.filter(is_current=True, beacon=beacon).order_by('-last_seen_at')[:1]
+                previous_sighting_occurred_at = None
+                new_sighting = None
+                if previous_sightings:
+                    previous_sighting = previous_sightings[0]
+                    if (place is not None and rssi < place.departure_rssi):
+                        logger.info('Closing previous related sighting \'%s\' as the rssi dropped below the ' + \
+                                    'departure_rssi configured for this place (%s < %s).',
+                                    previous_sighting, rssi, place.departure_rssi)
+                        utils.close_sighting(previous_sighting, place, user)
+                    elif ((previous_sighting.place != place or previous_sighting.user != user) and
+                            rssi > previous_sighting.rssi):
+                        logger.info('Closing previous related sighting \'%s\' as the beacon moved to another location.',
+                                    previous_sighting)
+                        utils.close_sighting(previous_sighting, place, user)
+                    else:
+                        logger.debug('Updating previous related sighting \'%s\'.', previous_sighting)
+                        new_sighting = previous_sighting
+                        previous_sighting_occurred_at = previous_sighting.last_seen_at
+                        if not beacon.reported_missing or \
+                            (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60:
+                            new_sighting.last_seen_at = None  # this forces the datetime update on the model save()
+                        new_sighting.rssi = rssi
+                        new_sighting.battery = battery
+                        new_sighting.location = location
+                        new_sighting.save()
 
-        utils.check_for_events(new_sighting)
+                if beacon.account_id != account.id:
+                    if beacon.reported_missing:
+                        if (previous_sighting_occurred_at is None or
+                            (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60):
+                            logger.info('Reported missing beacon was seen at / by \'%s\'. ' +
+                                        'Notifying corresponding account owners...', place if place is not None else user)
+                            try:
+                                send_mail('Reported missing: {0}'.format(beacon.name),
+                                          '{0} was seen near the following coordinates: {1}'.format(beacon.name, place.location),
+                                          settings.DEFAULT_FROM_EMAIL,
+                                          [u.email for u in beacon.account.get_account_admins()])
+                            except Exception as ex:
+                                logger.exception('Failed to send reported missing email to account admins!')
+                        else:
+                            logger.info('Reported missing beacon was seen at / by \'%s\'. ' + \
+                                        'Skipping notification as the last one was triggered less than 1 minute ago...',
+                                        place if place is not None else user)
+                            return Response('Ignored sighting as the beacon doesn\'t belong to this account.')
+                    else:
+                        logger.info('Ignoring current sighting as the beacon \'%s\' was seen at / by another account\'s ' +
+                                    'place / user \'%s\' but has not been reported missing.',
+                                    beacon, place if place is not None else user)
+                        return Response('Ignored sighting as the beacon doesn\'t belong to this account.')
 
-        serialized = SightingReadSerializer(new_sighting, context={'request': request})
-        return Response(serialized.data)
+                if new_sighting is None:
+                    if place is not None and rssi < place.arrival_rssi and \
+                            (beacon.account_id == account.id or not beacon.reported_missing):
+                        logger.info('Ignoring sighting of beacon \'%s\' at / by \'%s\' as the rssi is lower than the ' +
+                                    'arrival_rssi configured for this place / user (%s < %s).',
+                                    beacon, place if place is not None else user, rssi, place.arrival_rssi)
+                        return Response('Ignored sighting due to weak rssi.')
+                    else:
+                        new_sighting = Sighting.objects.create(beacon=beacon, place=place, user=user,
+                                                               location=location, rssi=rssi, battery=battery)
+                        logger.debug('Created new sighting \'%s\'.', new_sighting)
+
+                utils.check_for_events(new_sighting)
+
+        # serialized = SightingReadSerializer(new_sighting, context={'request': request})
+        # return Response(serialized.data)
+        return Response(status=status.HTTP_200_OK)
 
 
 class AutoUpdateView(views.APIView):
@@ -186,14 +209,14 @@ class AutoUpdateView(views.APIView):
             try:
                 full_metadata = json.loads(place.metadata)
             except Exception as ex:
-                full_metadata = dict()
+                full_metadata = {}  # dict()
                 full_metadata['auto_update'] = None
             full_metadata['device'] = json.loads(metadata)
 
             place.metadata = json.dumps(full_metadata)
             place.save()
         except Place.DoesNotExist:
-            full_metadata = dict()
+            full_metadata = {}  # dict()
             full_metadata['device'] = metadata
             full_metadata['auto_update'] = None
             Place.objects.create(account=account,

@@ -26,7 +26,7 @@ class RecurringLicensesJob(CronJobBase):
                     try:
                         account_metadata = json.loads(account.metadata)
                         if 'plan' in account_metadata:
-                            license_metadata = dict()
+                            license_metadata = {}  # dict()
                             license_metadata['duration_in_months'] = account_metadata['plan']['duration_in_months']
                             license_metadata['max_users'] = account_metadata['plan']['max_users']
                             license_metadata['max_beacons'] = account_metadata['plan']['max_beacons']

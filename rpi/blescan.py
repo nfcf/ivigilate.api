@@ -123,16 +123,7 @@ def parse_events(sock, queue, loop_count=100):
         pkt = sock.recv(255)
         ptype, event, plen = struct.unpack('BBB', pkt[:3])
 
-        if event == bluez.EVT_INQUIRY_RESULT_WITH_RSSI:
-            print '1'
-            i = 0
-        elif event == bluez.EVT_NUM_COMP_PKTS:
-            print '2'
-            i = 0
-        elif event == bluez.EVT_DISCONN_COMPLETE:
-            print '3'
-            i = 0
-        elif event == LE_META_EVENT:
+        if event == LE_META_EVENT:
             subevent, = struct.unpack('B', pkt[3])
             pkt = pkt[4:]
             if subevent == EVT_LE_CONN_COMPLETE:
@@ -156,12 +147,19 @@ def parse_events(sock, queue, loop_count=100):
                                 battery = 0
                                 rssi = struct.unpack('b', pkt[offset + 40])[0]
 
-                            now = int(datetime.utcnow().strftime("%s"))
-                            previous_item = queue[0] if not queue.empty() else (0,'',0,0)
-                            if uuid != previous_item[1] or (uuid == previous_item[1] and (now-previous_item[0]) >= 1):
-                                print 'Packet: ', print_packet(pkt)
-                                print 'Parsed: %s,%s,%i,%i,%i,%i,%i' % (mac, uuid, major, minor, power, battery, rssi)
-                                queue.put((now, uuid, rssi, battery))
+                            now = int(datetime.now().strftime("%s"))
+                            previous_item = queue[0] if not queue.empty() else {}  # dict()
+                            if uuid != previous_item.get('beacon_uid', None) or \
+                                    (uuid == previous_item.get('beacon_uid', None) and
+                                             (now-previous_item['occurred_at']) >= 1):
+                                logger.info('Raw: ', print_packet(pkt))
+                                logger.debug('Parsed: %s,%s,%i,%i,%i,%i,%i' % (mac, uuid, major, minor, power, battery, rssi))
+                                sighting = {}  # dict()
+                                sighting['occurred_at'] = now
+                                sighting['beacon_uid'] = uuid
+                                sighting['rssi'] = rssi
+                                sighting['battery'] = battery
+                                queue.put(sighting)
                             else:
                                 logger.info('Skipping packet as a similar one happened less than 1 second ago.')
                     except Exception as ex:

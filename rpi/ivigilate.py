@@ -15,18 +15,15 @@ def init_logger(log_level):
                         format='%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s')
 
 
-def send_sighting(beacon_uuid, beacon_rssi, beacon_battery):
-    data = json.dumps(
-        {'company_id': config.get('BASE', 'company_id'),
-         'beacon_uid': beacon_uuid,
-         'watcher_uid': config.get('DEVICE', 'hardware') + config.get('DEVICE', 'revision') + config.get('DEVICE', 'serial'),
-         'rssi': beacon_rssi,
-         'battery': beacon_battery})
+def send_sightings(sightings):
+    for sighting in sightings:
+        sighting['company_id'] = config.get('BASE', 'company_id')
+        sighting['watcher_uid'] = config.get('DEVICE', 'hardware') + config.get('DEVICE', 'revision') + config.get('DEVICE', 'serial'),
 
     try:
-        response = requests.post(config.get('SERVER', 'address') + config.get('SERVER', 'addsighting_uri'),
-                                 data)
-        logger.debug('Received from addsighting: %s', response)
+        response = requests.post(config.get('SERVER', 'address') + config.get('SERVER', 'addsightings_uri'),
+                                 json.dumps(sightings))
+        logger.debug('Received from addsightings: %s', response.status_code)
     except Exception:
         logger.exception('Failed to contact the server with error:')
 
@@ -80,12 +77,16 @@ def main():
             config.save()
             autoupdate.respawn_script(ble_thread)
 
-        # if new sighting, send it to the server
-        if not ble_queue.empty():
-            sighting = ble_queue.get()
-            send_sighting(sighting[1], sighting[2], sighting[3])
+        # if new sightings, send them to the server
+        sightings = []
+        for i in range(100):
+            if ble_queue.empty(): break
+            else: sightings.append(ble_queue.get())
 
-        time.sleep(0.25)
+        if len(sightings) > 0:
+            send_sightings(sightings)
+
+        time.sleep(1)
 
 
 if __name__ == '__main__':

@@ -48,7 +48,7 @@
 
         function update() {
             if (vm.user.password !== undefined && vm.user.password.trim() === '') vm.user.password = undefined;
-            Settings.update(vm.user).then(successFn, errorFn);
+            Users.update(vm.user).then(successFn, errorFn);
 
             function successFn(data, status, headers, config) {
                 vm.error = null;
