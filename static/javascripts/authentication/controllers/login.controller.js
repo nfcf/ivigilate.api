@@ -5,9 +5,9 @@
         .module('ivigilate.authentication.controllers')
         .controller('LoginController', LoginController);
 
-    LoginController.$inject = ['$location', '$scope', 'Authentication'];
+    LoginController.$inject = ['$location', 'Authentication'];
 
-    function LoginController($location, $scope, Authentication) {
+    function LoginController($location, Authentication) {
         var vm = this;
         vm.login = login;
         vm.resetPassword = resetPassword;

@@ -1,63 +1,65 @@
-<div class="modal-header">
-    <button ng-click="vm.cancel()" class="close">×</button>
-    <h3 class="modal-title">Place</h3>
-</div>
-<div class="modal-body">
-    <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
-
-    <div class="row">
-        <div class="col-xs-6 col-md-4">
-            <div class="form-group">
-                <label for="uid">Unique ID</label>
-                <input type="text" class="form-control" id="uid" ng-model="vm.place.uid" disabled/>
-            </div>
-        </div>
-        <div class="col-xs-6 col-md-4">
-            <div class="form-group">
-                <label for="reference_id">Reference ID</label>
-                <input type="text" class="form-control" id="reference_id" ng-model="vm.place.reference_id"
-                       placeholder="Reference to another system"/>
-            </div>
-        </div>
-        <div class="col-xs-12 col-md-4">
-            <div class="form-group">
-                <label for="name">Name</label>
-                <input type="text" class="form-control" id="name" ng-model="vm.place.name"/>
-            </div>
-        </div>
+<form role="form" ng-submit="vm.save()">
+    <div class="modal-header">
+        <button ng-click="vm.cancel()" class="close">×</button>
+        <h3 class="modal-title">Place</h3>
     </div>
+    <div class="modal-body">
+        <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
 
-    <div class="row">
-        <div class="col-xs-6 col-md-6">
-            <div class="form-group">
-                <label for="arrival_rssi">Arrival Proximity</label>
-                <input type="number" class="form-control" id="arrival_rssi" ng-model="vm.place.arrival_rssi"
-                       placeholder="Default is -75" required/>
+        <div class="row">
+            <div class="col-xs-6 col-md-4">
+                <div class="form-group">
+                    <label for="uid">Unique ID</label>
+                    <input type="text" class="form-control" id="uid" ng-model="vm.place.uid" disabled/>
+                </div>
+            </div>
+            <div class="col-xs-6 col-md-4">
+                <div class="form-group">
+                    <label for="reference_id">Reference ID</label>
+                    <input type="text" class="form-control" id="reference_id" ng-model="vm.place.reference_id"
+                           placeholder="Reference to another system"/>
+                </div>
+            </div>
+            <div class="col-xs-12 col-md-4">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" class="form-control" id="name" ng-model="vm.place.name"/>
+                </div>
             </div>
         </div>
-        <div class="col-xs-6 col-md-6">
-            <div class="form-group">
-                <label for="departure_rssi">Departure Proximity</label>
-                <input type="number" class="form-control" id="departure_rssi" ng-model="vm.place.departure_rssi"
-                       placeholder="Default is -90" required/>
+
+        <div class="row">
+            <div class="col-xs-6 col-md-6">
+                <div class="form-group">
+                    <label for="arrival_rssi">Arrival Proximity</label>
+                    <input type="number" class="form-control" id="arrival_rssi" ng-model="vm.place.arrival_rssi"
+                           placeholder="Default is -75" required/>
+                </div>
+            </div>
+            <div class="col-xs-6 col-md-6">
+                <div class="form-group">
+                    <label for="departure_rssi">Departure Proximity</label>
+                    <input type="number" class="form-control" id="departure_rssi" ng-model="vm.place.departure_rssi"
+                           placeholder="Default is -90" required/>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="form-group" ng-if="vm.showMap">
-        <script type="text/ng-template" id="searchbox.tpl.html">
-            <input type="text" class="angular-google-map-searchbox" placeholder="Search Box">
-        </script>
-        <ui-gmap-google-map center="vm.map.center" zoom="vm.map.zoom">
-            <ui-gmap-search-box template="vm.searchbox.template"
-                                events="vm.searchbox.events"></ui-gmap-search-box>
-            <ui-gmap-marker idKey="vm.marker.id" coords="vm.marker.coords" options="vm.marker.options"
-                            events="vm.marker.events"></ui-gmap-marker>
-        </ui-gmap-google-map>
-    </div>
+        <div class="form-group" ng-if="vm.showMap">
+            <script type="text/ng-template" id="searchbox.tpl.html">
+                <input type="text" class="angular-google-map-searchbox" placeholder="Search Box">
+            </script>
+            <ui-gmap-google-map center="vm.map.center" zoom="vm.map.zoom">
+                <ui-gmap-search-box template="vm.searchbox.template"
+                                    events="vm.searchbox.events"></ui-gmap-search-box>
+                <ui-gmap-marker idKey="vm.marker.id" coords="vm.marker.coords" options="vm.marker.options"
+                                events="vm.marker.events"></ui-gmap-marker>
+            </ui-gmap-google-map>
+        </div>
 
-</div>
-<div class="modal-footer">
-    <button ng-click="vm.cancel()" class="btn btn-default">Cancel</button>
-    <button ng-click="vm.save()" class="btn btn-primary">Save</button>
-</div>
+    </div>
+    <div class="modal-footer">
+        <button ng-click="vm.cancel()" class="btn btn-default">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+    </div>
+</form>

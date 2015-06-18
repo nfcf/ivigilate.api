@@ -72,8 +72,8 @@ class AddSightingsView(views.APIView):
 
         if (data is not None and len(data) > 0):
             for sighting in data:
-                company_id = sighting.get('company_id', None)
-                watcher_uid = sighting.get('watcher_uid', None)
+                company_id = sighting.get('company_id')
+                watcher_uid = sighting.get('watcher_uid').lower()
                 beacon_uid = sighting.get('beacon_uid', None)
                 rssi = sighting.get('rssi', None)
                 battery = sighting.get('battery', None)
@@ -195,8 +195,8 @@ class AutoUpdateView(views.APIView):
     def post(self, request, format=None):
         data = json.loads(request.body.decode('utf-8'))
 
-        company_id = data.get('company_id', None)
-        watcher_uid = data.get('watcher_uid', None)
+        company_id = data.get('company_id')
+        watcher_uid = data.get('watcher_uid').lower()
         metadata = data.get('metadata', None)
 
         try:

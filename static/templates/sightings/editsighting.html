@@ -1,96 +1,24 @@
-<div class="modal-header">
-    <button ng-click="vm.cancel()" class="close">×</button>
-    <h3 class="modal-title">Edit Sighting</h3>
-</div>
-<div class="modal-body">
-    <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
+<form role="form" ng-submit="vm.save()">
+    <div class="modal-header">
+        <button ng-click="vm.cancel()" class="close">×</button>
+        <h3 class="modal-title">Edit Sighting</h3>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
 
-    <div class="row">
-        <div class="col-xs-12 col-md-4">
-            <div>
-                <label for="photo">Photo</label>
-            </div>
-            <div class="text-center">
-                <img ng-src="{{ vm.imagePreview }}" height="128px"/>
-            </div>
-            <br/>
-
-            <div class="col-sm-6 col-sm-offset-2">
-                <input type="file" id="photo" ng-file-select ng-model="vm.imagePreview"
-                       ng-file-change="vm.fileChanged($files)" ng-capture="camera" allow-dir="false"
-                       accept="image/*" style="width: 100px;">
-
-                <!--<div ng-file-drop ng-file-select ng-model="vm.image" class="drop-box" drag-over-class="dragover"
-                     ng-capture="'camera'" allow-dir="false" accept="image/*">Drop an image here or click to upload</div>
-                <div ng-no-file-drop>File Drag/Drop is not supported for this browser</div>-->
-            </div>
-        </div>
-        <div class="col-xs-12 col-md-8">
-            <div class="col-xs-12 col-md-6">
-                <div class="form-group">
-                    <label for="reference_id">Reference ID</label>
-                    <input type="text" class="form-control" id="reference_id"
-                           ng-model="vm.sighting.beacon.reference_id" placeholder="Reference to another system"/>
-                </div>
-            </div>
-            <div class="col-xs-12 col-md-6">
-                <div class="form-group">
-                    <label for="name">Name</label>
-                    <input type="text" class="form-control" id="name"
-                           ng-model="vm.sighting.beacon.name" placeholder="Name"/>
-                </div>
-            </div>
-            <div class="col-xs-12 col-md-6">
-                <div class="form-group">
-                    <label>Beacon Type</label>
-                    <select ng-model="vm.sighting.beacon.type" class="form-control">
-                        <option value="M">Movable</option>
-                        <option value="F">Fixed</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col-xs-12 col-md-6">
-                <div class="form-group">
-                    <label>Event(s) to watch</label>
-                    <ui-select multiple='true' ng-model="vm.events_selected"
-                               theme="select2" ng-disabled="disabled" style="width: 100%">
-                        <ui-select-match placeholder="Select event(s) to watch...">{{$item.name}}</ui-select-match>
-                        <ui-select-choices
-                                repeat="event in vm.events | propsFilter: {name: $select.search, reference_id: $select.search} track by event.id">
-                            <div ng-bind-html="event.name | highlight: $select.search"></div>
-                            <small ng-bind-html="event.reference_id | highlight: $select.search"/>
-                        </ui-select-choices>
-                    </ui-select>
-                </div>
-            </div>
-            <div class="col-xs-12 col-md-6">
-                <div class="form-group">
-                    <label for="is_active">Is Active?</label><br/>
-                    <toggle-switch id="is_active" ng-model="vm.sighting.beacon.is_active"></toggle-switch>
-                </div>
-            </div>
-            <div class="col-xs-12 col-md-6">
-                <div class="form-group">
-                    <label for="reported_missing">Report Missing</label><br/>
-                    <toggle-switch id="reported_missing"
-                                   ng-model="vm.sighting.beacon.reported_missing"></toggle-switch>
-                </div>
-            </div>
-            <div class="col-xs-12">
-                <hr/>
-            </div>
+        <div class="row">
             <div class="col-xs-12">
                 <div class="form-group">
                     <label for="comment">Comment</label>
-                        <textarea type="text" class="form-control" id="comment" ng-model="vm.sighting.comment"
-                                  required/>
+                    <textarea type="text" class="form-control" id="comment" ng-model="vm.sighting.comment" required></textarea>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-<div class="modal-footer">
-    <button ng-click="vm.cancel()" class="btn btn-default">Cancel</button>
-    <button ng-click="vm.save()" class="btn btn-primary">Save</button>
-</div>
+    </div>
+
+    <div class="modal-footer">
+        <button ng-click="vm.cancel()" class="btn btn-default">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+    </div>
+</form>

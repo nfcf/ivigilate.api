@@ -1,44 +1,48 @@
 <div class="row">
     <div class="col-md-10 col-md-offset-1">
-        <h1>Places</h1>
+        <h1>Beacons</h1>
 
         <div class="well">
             <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
 
             <div class="table-responsive">
-                <table st-table="vm.displayedPlaces" st-safe-src="vm.places" class="table table-striped">
+                <table st-table="vm.displayedBeacons" st-safe-src="vm.beacons" class="table table-striped">
                     <thead>
                     <tr>
+                        <th st-sort="photo">Photo</th>
                         <th st-sort="reference_id">ID</th>
                         <th st-sort="name" st-sort-default="True">Name</th>
-                        <th st-sort="arrival_rssi">Arrival Proximity</th>
-                        <th st-sort="departure_rssi">Departure Proximity</th>
+                        <th st-sort="type">Type</th>
+                        <th class="text-center" st-sort="battery">Battery</th>
                         <th class="text-center" st-sort="is_active">Active?</th>
                         <th></th>
                     </tr>
                     <tr>
-                        <th colspan="6">
+                        <th colspan="7">
                             <input st-search placeholder="Global Search" class="input-sm form-control" type="search"/>
                         </th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="place in vm.displayedPlaces">
-                        <td>{{ place.reference_id || place.uid }}</td>
-                        <td>{{ place.name }}</td>
-                        <td>{{ place.arrival_rssi }}</td>
-                        <td>{{ place.departure_rssi }}</td>
-                        <td class="text-center">
-                            <input type="checkbox" ng-model="place.is_active" ng-click="vm.updatePlaceState(place)">
+                    <tr ng-repeat="beacon in vm.displayedBeacons">
+                        <td style="height:56px">
+                            <img ng-src="{{ beacon.photo }}" height="40px" ng-if="beacon.photo"/>
+                        </td>
+                        <td class="valign-middle">{{ beacon.reference_id || beacon.uid }}</td>
+                        <td class="valign-middle">{{ beacon.name }}</td>
+                        <td class="valign-middle">{{ beacon.type }}</td>
+                        <td class="valign-middle text-center">{{ beacon.battery || 'N/A' }}</td>
+                        <td class="valign-middle text-center">
+                            <input type="checkbox" ng-model="beacon.is_active" ng-click="vm.updateBeaconState(beacon)">
                         </td>
                         <td>
-                            <a ng-click="vm.editPlace(place)">Edit</a>
+                            <a ng-click="vm.editBeacon(beacon)">Edit</a>
                         </td>
                     </tr>
                     </tbody>
                     <tfoot>
                     <tr>
-                        <td colspan="6" class="text-center">
+                        <td colspan="7" class="text-center">
                             <div st-pagination="" st-items-by-page="10" st-displayed-pages="5"></div>
                         </td>
                     </tr>

@@ -31,18 +31,26 @@
             return $http.get('/api/v1/beacons/');
         }
 
-        function update(beacon) {
-            return $http.put('/api/v1/beacons/' + beacon.id + '/', beacon);
-        }
-
         function update(beacon, image) {
-            return $upload.upload({
-                url: '/api/v1/beacons/' + beacon.id + '/',
-                method: 'PUT',
-                fields: beacon,
-                file: image,
-                fileFormDataName: 'photo'
-            });
+            var beaconToSend = JSON.parse(JSON.stringify(beacon));
+            beaconToSend.photo = undefined;
+            beaconToSend.events = [];
+            for (var i = 0; i < beacon.events.length; i++) {  // Required for the REST serializer
+                beaconToSend.events.push(beacon.events[i].id);
+            }
+
+            if (!!image) {
+                return $upload.upload({
+                    url: '/api/v1/beacons/' + beacon.id + '/',
+                    method: 'PUT',
+                    fields: beacon,
+                    file: image,
+                    fileFormDataName: 'photo'
+                });
+            } else {
+
+                return $http.put('/api/v1/beacons/' + beaconToSend.id + '/', beaconToSend);
+            }
         }
     }
 })();

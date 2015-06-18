@@ -13,7 +13,7 @@ logger.addHandler(logging.NullHandler())
 
 
 def view_list(request, account, queryset, serializer):
-    if account.get_license_in_force() is not None:
+    if account is None or account.get_license_in_force() is not None:
         serializer_response = serializer(queryset, many=True, context={'request': request})
         # page = self.paginate_queryset(queryset)
         # serializer = self.get_pagination_serializer(page)

@@ -4,8 +4,7 @@
     angular
         .module('ivigilate.sightings', [
             'ivigilate.sightings.controllers',
-            'ivigilate.sightings.services',
-            'ivigilate.beacons.services'
+            'ivigilate.sightings.services'
         ]);
 
 
@@ -14,8 +13,5 @@
 
     angular
         .module('ivigilate.sightings.services', []);
-
-    angular
-        .module('ivigilate.beacons.services', []);
 
 })();

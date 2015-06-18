@@ -51,7 +51,11 @@
         }
 
         function update(sighting) {
-            return $http.put('/api/v1/sightings/' + sighting.id + '/', sighting);
+            var sightingToSend = JSON.parse(JSON.stringify(sighting));
+            sightingToSend.beacon = sighting.beacon.id;  // Required for the REST serializer
+            sightingToSend.place = !!sighting.place ? sighting.place.id : null;  // Required for the REST serializer
+            sightingToSend.user = !!sighting.user ? sighting.user.id : null;  // Required for the REST serializer
+            return $http.put('/api/v1/sightings/' + sightingToSend.id + '/', sightingToSend);
         }
     }
 })();

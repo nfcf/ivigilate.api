@@ -2,7 +2,7 @@
     'use strict';
 
     angular
-        .module('ivigilate.places.controllers')
+        .module('ivigilate.sightings.controllers')
         .controller('AddSightingController', AddSightingController);
     
     AddSightingController.$inject = ['$location', '$scope', '$filter', '$modalInstance', 'data', 'Authentication',

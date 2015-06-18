@@ -28,6 +28,7 @@
             'ivigilate.layout',
             'ivigilate.users',
             'ivigilate.places',
+            'ivigilate.beacons',
             'ivigilate.events',
             'ivigilate.sightings'
         ]);

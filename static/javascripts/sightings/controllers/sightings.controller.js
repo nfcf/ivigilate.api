@@ -5,9 +5,11 @@
         .module('ivigilate.sightings.controllers')
         .controller('SightingsController', SightingsController);
 
-    SightingsController.$inject = ['$location', '$scope', '$filter', '$interval', 'Authentication', 'Places', 'Sightings', 'Payments', 'dialogs'];
+    SightingsController.$inject = ['$location', '$scope', '$filter', '$interval', 'Authentication',
+        'Places', 'Sightings', 'Payments', 'dialogs'];
 
-    function SightingsController($location, $scope, $filter, $interval, Authentication, Places, Sightings, Payments, dialogs) {
+    function SightingsController($location, $scope, $filter, $interval, Authentication,
+                                 Places, Sightings, Payments, dialogs) {
         var vm = this;
         vm.refresh = refresh;
         vm.addSighting = addSighting;
@@ -69,7 +71,8 @@
             }
 
             function placesErrorFn(data, status, headers, config) {
-                vm.error = 'Failed to get Places with error: ' + JSON.stringify(data.data);
+                vm.error = 'Failed to get Places with error: ' +
+                    data.status != 500 ? JSON.stringify(data.data) : data.statusText;
             }
         }
 
@@ -97,7 +100,7 @@
         }
 
         function editSighting(sighting) {
-            var dlg = dialogs.create('static/templates/sightings/editsighting.html', 'EditSightingController as vm', sighting, {'size': 'lg'});
+            var dlg = dialogs.create('static/templates/sightings/editsighting.html', 'EditSightingController as vm', sighting, {'size': 'md'});
             dlg.result.then(function (editedSighting) {
                 refresh();
             });

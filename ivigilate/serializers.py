@@ -68,6 +68,15 @@ class AccountSerializer(serializers.ModelSerializer):
         return instance
 
 
+class SimpleAuthUserSerializer(serializers.ModelSerializer):
+    company_id = serializers.CharField(source='account.company_id')
+    full_name = serializers.CharField(source='get_full_name', read_only=True)
+
+    class Meta:
+        model = AuthUser
+        fields = ('id', 'company_id', 'email', 'full_name')
+
+
 class AuthUserReadSerializer(serializers.ModelSerializer):
     company_id = serializers.CharField(source='account.company_id')
     license_about_to_expire = LicenseSerializer(source='account.get_license_about_to_expire', read_only=True)
@@ -192,8 +201,8 @@ class BeaconWriteSerializer(serializers.ModelSerializer):
         instance.photo = validated_data.get('photo', instance.photo)
         instance.metadata = validated_data.get('metadata', instance.metadata)
         instance.reported_missing = validated_data.get('reported_missing', instance.reported_missing)
-        instance.updated_by = validated_data.get('user')
         instance.is_active = validated_data.get('is_active', instance.is_active)
+        instance.updated_by = validated_data.get('user')
         instance.save()
 
         return instance
@@ -202,7 +211,7 @@ class BeaconWriteSerializer(serializers.ModelSerializer):
 class SightingReadSerializer(gis_serializers.GeoModelSerializer):
     beacon = BeaconReadSerializer()
     place = PlaceReadSerializer()
-    user = serializers.HyperlinkedIdentityField(view_name='authuser-detail')
+    user = SimpleAuthUserSerializer()
     watcher_name = serializers.CharField(source='get_watcher_name', read_only=True)
 
     class Meta:

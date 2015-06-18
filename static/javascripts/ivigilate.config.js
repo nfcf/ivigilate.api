@@ -6,7 +6,7 @@
         .config(config);
 
     config.$inject = ['$locationProvider', 'uiGmapGoogleMapApiProvider', 'dialogsProvider', '$translateProvider',
-                        'stripeProvider', 'showErrorsConfigProvider'];
+        'stripeProvider', 'showErrorsConfigProvider'];
 
     /**
      * @name config
