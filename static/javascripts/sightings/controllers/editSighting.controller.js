@@ -28,13 +28,17 @@
         }
 
         function save() {
-            Sightings.update(vm.sighting).then(sightingSuccessFn, sightingErrorFn);
+            $scope.$broadcast('show-errors-check-validity');
 
-            function sightingSuccessFn(data, status, headers, config) {
+            if (vm.form.$valid) {
+                Sightings.update(vm.sighting).then(successFn, errorFn);
+            }
+
+            function successFn(data, status, headers, config) {
                 $modalInstance.close(vm.sighting);
             }
 
-            function sightingErrorFn(data, status, headers, config) {
+            function errorFn(data, status, headers, config) {
                 vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
             }
         }

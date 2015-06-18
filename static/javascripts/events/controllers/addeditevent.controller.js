@@ -120,50 +120,54 @@
         }
 
         function save() {
-            vm.event.schedule_days_of_week = vm.schedule_monday + vm.schedule_tuesday + vm.schedule_wednesday +
-                                            vm.schedule_thursday + vm.schedule_friday + vm.schedule_saturday +
-                                            vm.schedule_sunday;
+            $scope.$broadcast('show-errors-check-validity');
 
-            vm.event.schedule_start_time = pad('00', vm.schedule_start_time.getHours(), true) + ':' +
-                                            pad('00', vm.schedule_start_time.getMinutes(), true) + ':00';
-            vm.event.schedule_end_time = pad('00', vm.schedule_end_time.getHours(), true) + ':' +
-                                            pad('00', vm.schedule_end_time.getMinutes(), true) + ':59';
+            if (vm.form.$valid) {
+                vm.event.schedule_days_of_week = vm.schedule_monday + vm.schedule_tuesday + vm.schedule_wednesday +
+                vm.schedule_thursday + vm.schedule_friday + vm.schedule_saturday +
+                vm.schedule_sunday;
 
-            var metadata = {'actions': []};
-            if (vm.action_sms_recipients && vm.action_sms_message) {
-                metadata.actions.push({
-                    'type': 'SMS',
-                    'recipients': vm.action_sms_recipients,
-                    'message': vm.action_sms_message
-                });
-            }
-            if (vm.action_email_recipients && vm.action_email_subject) {
-                metadata.actions.push({
-                    'type': 'EMAIL',
-                    'recipients': vm.action_email_recipients,
-                    'subject': vm.action_email_subject,
-                    'body': vm.action_email_body
-                });
-            }
-            vm.event.metadata = JSON.stringify(metadata);
+                vm.event.schedule_start_time = pad('00', vm.schedule_start_time.getHours(), true) + ':' +
+                pad('00', vm.schedule_start_time.getMinutes(), true) + ':00';
+                vm.event.schedule_end_time = pad('00', vm.schedule_end_time.getHours(), true) + ':' +
+                pad('00', vm.schedule_end_time.getMinutes(), true) + ':59';
 
-            var eventToSend = JSON.parse(JSON.stringify(vm.event));
-            eventToSend.beacons = [];
-            for (var i = 0; i < vm.beacons_selected.length; i++) {  // Required for the REST serializer
-                eventToSend.beacons.push(vm.beacons_selected[i].id);
-            }
-            eventToSend.places = [];
-            for (var i = 0; i < vm.places_selected.length; i++) {  // Required for the REST serializer
-                eventToSend.places.push(vm.places_selected[i].id);
-            }
-            if (vm.event.sighting_previous_event) {
-                eventToSend.sighting_previous_event = vm.event.sighting_previous_event.id;
-            }
+                var metadata = {'actions': []};
+                if (vm.action_sms_recipients && vm.action_sms_message) {
+                    metadata.actions.push({
+                        'type': 'SMS',
+                        'recipients': vm.action_sms_recipients,
+                        'message': vm.action_sms_message
+                    });
+                }
+                if (vm.action_email_recipients && vm.action_email_subject) {
+                    metadata.actions.push({
+                        'type': 'EMAIL',
+                        'recipients': vm.action_email_recipients,
+                        'subject': vm.action_email_subject,
+                        'body': vm.action_email_body
+                    });
+                }
+                vm.event.metadata = JSON.stringify(metadata);
 
-            if (vm.is_edit) {
-                Events.update(eventToSend).then(successFn, errorFn);
-            } else {
-                Events.add(eventToSend).then(successFn, errorFn);
+                var eventToSend = JSON.parse(JSON.stringify(vm.event));
+                eventToSend.beacons = [];
+                for (var i = 0; i < vm.beacons_selected.length; i++) {  // Required for the REST serializer
+                    eventToSend.beacons.push(vm.beacons_selected[i].id);
+                }
+                eventToSend.places = [];
+                for (var i = 0; i < vm.places_selected.length; i++) {  // Required for the REST serializer
+                    eventToSend.places.push(vm.places_selected[i].id);
+                }
+                if (vm.event.sighting_previous_event) {
+                    eventToSend.sighting_previous_event = vm.event.sighting_previous_event.id;
+                }
+
+                if (vm.is_edit) {
+                    Events.update(eventToSend).then(successFn, errorFn);
+                } else {
+                    Events.add(eventToSend).then(successFn, errorFn);
+                }
             }
 
             function successFn(data, status, headers, config) {

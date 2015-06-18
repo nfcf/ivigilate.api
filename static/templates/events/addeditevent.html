@@ -1,11 +1,12 @@
-<form role="form" ng-submit="vm.save()">
-    <div class="modal-header">
-        <button ng-click="vm.cancel()" class="close">×</button>
-        <h3 class="modal-title" ng-bind="vm.title">Event</h3>
-    </div>
-    <div class="modal-body">
-        <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
+<div class="modal-header">
+    <button ng-click="vm.cancel()" class="close">×</button>
+    <h3 class="modal-title" ng-bind="vm.title">Event</h3>
+</div>
 
+<div class="modal-body">
+    <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
+
+    <form name="vm.form" novalidate>
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
@@ -15,9 +16,9 @@
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="form-group">
+                <div class="form-group" show-errors>
                     <label for="name">Name</label>
-                    <input type="text" class="form-control" id="name" ng-model="vm.event.name"/>
+                    <input type="text" class="form-control" name="name" ng-model="vm.event.name" required />
                 </div>
             </div>
         </div>
@@ -133,17 +134,17 @@
 
             <div class="row">
                 <div class="col-xs-4 col-md-4">
-                    <div class="form-group">
+                    <div class="form-group" show-errors>
                         <label for="sighting_duration_in_seconds">Duration (sec)</label><br/>
-                        <input type="number" class="form-control" id="sighting_duration_in_seconds"
-                               ng-model="vm.event.sighting_duration_in_seconds"/>
+                        <input type="number" class="form-control" name="sighting_duration_in_seconds"
+                               ng-model="vm.event.sighting_duration_in_seconds" required/>
                     </div>
                 </div>
                 <div class="col-xs-4 col-md-4">
-                    <div class="form-group">
+                    <div class="form-group" show-errors>
                         <label for="sighting_has_battery_below">Battery below (%)</label><br/>
-                        <input type="number" class="form-control" id="sighting_has_battery_below"
-                               ng-model="vm.event.sighting_has_battery_below"/>
+                        <input type="number" class="form-control" name="sighting_has_battery_below"
+                               ng-model="vm.event.sighting_has_battery_below" required/>
                     </div>
                 </div>
                 <div class="col-xs-4 col-md-4">
@@ -274,10 +275,11 @@
                 </div>
             </div>
         </fieldset>
-    </div>
-    <div class="modal-footer">
-        <button ng-click="vm.cancel()" class="btn btn-default">Cancel</button>
-        <button ng-click="vm.destroy()" ng-if="vm.is_edit" class="btn btn-danger">Delete</button>
-        <button type="submit" class="btn btn-primary">Save</button>
-    </div>
-</form>
+    </form>
+</div>
+
+<div class="modal-footer">
+    <button ng-click="vm.cancel()" class="btn btn-default">Cancel</button>
+    <button ng-click="vm.destroy()" ng-if="vm.is_edit" class="btn btn-danger">Delete</button>
+    <button ng-click="vm.save()" class="btn btn-primary">Save</button>
+</div>

@@ -173,8 +173,9 @@ class BeaconReadSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Beacon
+        geo_field = 'location'
         fields = ('id', 'account', 'uid', 'reference_id', 'type',
-                  'name', 'photo', 'reported_missing', 'events',
+                  'name', 'photo', 'location', 'reported_missing', 'events',
                   'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
 
 
@@ -183,8 +184,9 @@ class BeaconWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Beacon
+        geo_field = 'location'
         fields = ('id', 'company_id', 'uid', 'reference_id', 'type',
-                  'name', 'photo', 'reported_missing',
+                  'name', 'photo', 'location', 'reported_missing',
                   'metadata', 'created_at', 'updated_at', 'is_active')
 
     def validate_company_id(self, value):
@@ -200,6 +202,7 @@ class BeaconWriteSerializer(serializers.ModelSerializer):
         instance.name = validated_data.get('name', instance.name)
         instance.photo = validated_data.get('photo', instance.photo)
         instance.metadata = validated_data.get('metadata', instance.metadata)
+        instance.location = validated_data.get('location', instance.location)
         instance.reported_missing = validated_data.get('reported_missing', instance.reported_missing)
         instance.is_active = validated_data.get('is_active', instance.is_active)
         instance.updated_by = validated_data.get('user')

@@ -75,6 +75,10 @@
             vm.beacon = data;
             vm.imagePreview = vm.beacon.photo;
 
+            $scope.$watch('vm.beacon.type', function () {
+                vm.showMap = vm.beacon.type == 'F';
+            }, true);
+
             if (!vm.beacon.location) {
                 vm.beacon.location = {
                     'type': 'Point',
@@ -122,20 +126,24 @@
         }
 
         function save() {
-            vm.beacon.events = vm.events_selected;
-            Beacons.update(vm.beacon, vm.imageToUpload).then(beaconSuccessFn, beaconErrorFn, beaconProgressFn);
+            $scope.$broadcast('show-errors-check-validity');
 
-            function beaconSuccessFn(data, status, headers, config) {
-                $modalInstance.close(vm.sighting);
+            if (vm.form.$valid) {
+                vm.beacon.events = vm.events_selected;
+                Beacons.update(vm.beacon, vm.imageToUpload).then(successFn, errorFn, progressFn);
             }
 
-            function beaconErrorFn(data, status, headers, config) {
-                vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
-            }
+            function successFn(data, status, headers, config) {
+                    $modalInstance.close(vm.sighting);
+                }
 
-            function beaconProgressFn(evt) {
-                //Do nothing for now...
-            }
+                function errorFn(data, status, headers, config) {
+                    vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
+                }
+
+                function progressFn(evt) {
+                    //Do nothing for now...
+                }
         }
 
         function cancel() {

@@ -15,7 +15,7 @@
     content:"\e080";
 }
 
-.table tbody>tr>td.valign-middle{
+.table tbody>tr>td.valign-middle {
     vertical-align: middle;
 }
 
@@ -44,8 +44,7 @@ a, th { cursor: pointer; }
     background-size: cover;*/
 }
 
-.custom-carousel-indicator
-{
+.custom-carousel-indicator {
     text-align: center;
 }
 .custom-carousel-indicator span.active {

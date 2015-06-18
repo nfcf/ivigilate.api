@@ -78,15 +78,19 @@
         }
 
         function save() {
-            var sighting = {};
-            sighting.beacon = vm.beacon.id;
-            sighting.place = vm.place.id;
-            sighting.first_seen_at = vm.seen_at;
-            sighting.last_seen_at = addTime(vm.seen_at, vm.duration.getHours(), vm.duration.getMinutes());
-            sighting.comment = vm.comment;
-            sighting.confirmed = true;
+            $scope.$broadcast('show-errors-check-validity');
 
-            Sightings.add(sighting).then(successFn, errorFn);
+            if (vm.form.$valid) {
+                var sighting = {};
+                sighting.beacon = vm.beacon.id;
+                sighting.place = vm.place.id;
+                sighting.first_seen_at = vm.seen_at;
+                sighting.last_seen_at = addTime(vm.seen_at, vm.duration.getHours(), vm.duration.getMinutes());
+                sighting.comment = vm.comment;
+                sighting.confirmed = true;
+
+                Sightings.add(sighting).then(successFn, errorFn);
+            }
 
             function successFn(data, status, headers, config) {
                 $modalInstance.close(vm.sighting);

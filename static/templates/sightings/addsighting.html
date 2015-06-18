@@ -1,11 +1,12 @@
-<form role="form" ng-submit="vm.save()">
-    <div class="modal-header">
-        <button ng-click="vm.cancel()" class="close">×</button>
-        <h3 class="modal-title">New Sighting</h3>
-    </div>
-    <div class="modal-body">
-        <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
+<div class="modal-header">
+    <button ng-click="vm.cancel()" class="close">×</button>
+    <h3 class="modal-title">New Sighting</h3>
+</div>
 
+<div class="modal-body">
+    <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
+
+    <form name="vm.form" novalidate>
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
@@ -25,7 +26,7 @@
             <div class="col-md-6">
                 <div class="form-group">
                     <label>Where?</label>
-                    <ui-select ng-model="vm.place" theme="selectize" ng-disabled="disabled">
+                    <ui-select ng-model="vm.place" theme="selectize" ng-disabled="disabled" required>
                         <ui-select-match placeholder="Select or search for a place in the list...">
                             {{ $select.selected.name }}
                         </ui-select-match>
@@ -74,16 +75,17 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="form-group">
+                <div class="form-group" show-errors>
                     <label for="comment">Comment</label>
-                    <textarea type="text" class="form-control" id="comment" ng-model="vm.comment" required/>
+                    <textarea type="text" class="form-control" name="comment" ng-model="vm.comment" required/>
                 </div>
             </div>
         </div>
-    </div>
+    </form>
+</div>
 
-    <div class="modal-footer">
-        <button ng-click="vm.cancel()" class="btn btn-default">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save</button>
-    </div>
-</form>
+<div class="modal-footer">
+    <button ng-click="vm.cancel()" class="btn btn-default">Cancel</button>
+    <button ng-click="vm.save()" class="btn btn-primary">Save</button>
+</div>
+

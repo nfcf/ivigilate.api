@@ -360,8 +360,8 @@ class EventViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer_class()(data=request.data)
 
         if serializer.is_valid():
-            if serializer.save(updated_by=user, account=account):
-                event = Event.objects.get(reference_id=serializer.validated_data['reference_id'])
+            event = serializer.save(updated_by=user, account=account)
+            if event:
                 beacons = self.request.DATA.get('beacons', None)
                 places = self.request.DATA.get('places', None)
                 self.add_m2m_fields(event, beacons, places)
@@ -387,8 +387,8 @@ class EventViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer_class()(instance, data=request.data)
 
         if serializer.is_valid():
-            if serializer.save(updated_by=user):
-                event = Event.objects.get(reference_id=serializer.validated_data['reference_id'])
+            event = serializer.save(updated_by=user)
+            if event:
                 beacons = self.request.DATA.get('beacons', None)
                 places = self.request.DATA.get('places', None)
                 self.add_m2m_fields(event, beacons, places)

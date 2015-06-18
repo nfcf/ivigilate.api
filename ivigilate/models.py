@@ -196,12 +196,14 @@ class Beacon(models.Model):
     type = models.CharField(max_length=1, choices=TYPE, default='M')
     name = models.CharField(max_length=64, blank=True)
     photo = models.FileField(upload_to='photos', blank=True, null=True)
+    location = models.PointField(null=True, blank=True)
     reported_missing = models.BooleanField(default=False)
     metadata = models.TextField(blank=True)
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(editable=False)
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
     is_active = models.BooleanField(default=True)
+    objects = models.GeoManager()
 
     class Meta:
         unique_together = ('account', 'uid', 'reference_id')

@@ -5,11 +5,9 @@
         .module('ivigilate.places.controllers')
         .controller('EditPlaceController', EditPlaceController);
 
-    EditPlaceController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data',
-                                    'Authentication', 'Places', 'uiGmapGoogleMapApi'];
+    EditPlaceController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data', 'Authentication', 'Places', 'uiGmapGoogleMapApi'];
 
-    function EditPlaceController($location, $scope, $timeout, $modalInstance, data,
-                                 Authentication, Places, uiGmapGoogleMapApi) {
+    function EditPlaceController($location, $scope, $timeout, $modalInstance, data, Authentication, Places, uiGmapGoogleMapApi) {
         var vm = this;
         vm.cancel = cancel;
         vm.save = save;
@@ -89,7 +87,11 @@
         }
 
         function save() {
-            Places.update(vm.place).then(successFn, errorFn);
+            $scope.$broadcast('show-errors-check-validity');
+
+            if (vm.form.$valid) {
+                Places.update(vm.place).then(successFn, errorFn);
+            }
 
             function successFn(data, status, headers, config) {
                 $modalInstance.close(vm.place);
