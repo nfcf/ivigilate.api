@@ -108,6 +108,7 @@ class AuthUser(AbstractBaseUser, PermissionsMixin):
                              )
     first_name = models.CharField(_('first name'), max_length=30, blank=True)
     last_name = models.CharField(_('last name'), max_length=30, blank=True)
+    photo = models.FileField(upload_to='photos', blank=True, null=True)
     metadata = models.TextField(blank=True)
 
     is_account_admin = models.BooleanField(_('account admin status'), default=False,

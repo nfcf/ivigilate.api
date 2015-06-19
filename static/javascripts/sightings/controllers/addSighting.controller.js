@@ -90,6 +90,8 @@
                 sighting.confirmed = true;
 
                 Sightings.add(sighting).then(successFn, errorFn);
+            } else {
+                vm.error = 'There are invalid fields in the form.';
             }
 
             function successFn(data, status, headers, config) {

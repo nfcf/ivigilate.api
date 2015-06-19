@@ -71,7 +71,13 @@
                         ng-class="{'danger': !sighting.satisfyFilter}">
                         <td class="valign-middle text-center"></td>
                         <td style="height:56px">
-                            <img ng-src="{{ sighting.beacon.photo }}" height="40px" ng-if="sighting.beacon.photo"/>
+                            <img height="40px"
+                                 ng-src="{{ !!sighting.user && sighting.beacon.type == 'F' ?
+                                    sighting.user.photo :
+                                    sighting.beacon.photo }}"
+                                 ng-if="!!sighting.user && sighting.beacon.type == 'F' ?
+                                    sighting.user.photo :
+                                    sighting.beacon.photo"/>
                         </td>
                         <td class="valign-middle">
                             {{ !!sighting.user && sighting.beacon.type == 'F' ?

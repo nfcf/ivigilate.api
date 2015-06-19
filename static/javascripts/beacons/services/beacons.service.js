@@ -41,14 +41,13 @@
 
             if (!!image) {
                 return $upload.upload({
-                    url: '/api/v1/beacons/' + beacon.id + '/',
+                    url: '/api/v1/beacons/' + beaconToSend.id + '/',
                     method: 'PUT',
-                    fields: beacon,
+                    fields: beaconToSend,
                     file: image,
                     fileFormDataName: 'photo'
                 });
             } else {
-
                 return $http.put('/api/v1/beacons/' + beaconToSend.id + '/', beaconToSend);
             }
         }

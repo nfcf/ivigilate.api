@@ -74,7 +74,7 @@ class SimpleAuthUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AuthUser
-        fields = ('id', 'company_id', 'email', 'full_name')
+        fields = ('id', 'company_id', 'email', 'full_name', 'photo')
 
 
 class AuthUserReadSerializer(serializers.ModelSerializer):
@@ -84,7 +84,8 @@ class AuthUserReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AuthUser
-        fields = ('id', 'company_id', 'email', 'first_name', 'last_name', 'metadata', 'is_account_admin', 'is_active',
+        fields = ('id', 'company_id', 'email', 'first_name', 'last_name', 'photo',
+                  'metadata', 'is_account_admin', 'is_active',
                   'created_at', 'updated_at', 'license_about_to_expire', 'license_due_for_payment')
 
 
@@ -95,8 +96,8 @@ class AuthUserWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AuthUser
-        fields = ('id', 'company_id', 'email', 'first_name', 'last_name', 'metadata',
-                  'is_account_admin', 'is_active', 'password', 'confirm_password')
+        fields = ('id', 'company_id', 'email', 'first_name', 'last_name', 'photo',
+                  'metadata', 'is_account_admin', 'is_active', 'password', 'confirm_password')
 
     def validate_company_id(self, value):
         try:
@@ -112,6 +113,7 @@ class AuthUserWriteSerializer(serializers.ModelSerializer):
         instance.email = validated_data.get('email', instance.email)
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.photo = validated_data.get('photo', instance.photo)
         instance.metadata = validated_data.get('metadata', instance.metadata)
         instance.is_account_admin = validated_data.get('is_account_admin', instance.is_account_admin)
         instance.is_active = validated_data.get('is_active', instance.is_active)
