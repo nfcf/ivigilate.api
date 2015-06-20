@@ -1,44 +1,46 @@
 <div class="row">
     <div class="col-md-10 col-md-offset-1">
-        <h1>Places</h1>
+        <h1>Detectors</h1>
 
         <div class="well">
             <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
 
             <div class="table-responsive">
-                <table st-table="vm.displayedPlaces" st-safe-src="vm.places" class="table table-striped">
+                <table st-table="vm.displayedDetectors" st-safe-src="vm.detectors" class="table table-striped">
                     <thead>
                     <tr>
                         <th st-sort="reference_id">ID</th>
                         <th st-sort="name" st-sort-default="True">Name</th>
+                        <th st-sort="type">Type</th>
                         <th st-sort="arrival_rssi">Arrival Proximity</th>
                         <th st-sort="departure_rssi">Departure Proximity</th>
                         <th class="text-center" st-sort="is_active">Active?</th>
                         <th></th>
                     </tr>
                     <tr>
-                        <th colspan="6">
+                        <th colspan="7">
                             <input st-search placeholder="Global Search" class="input-sm form-control" type="search"/>
                         </th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="place in vm.displayedPlaces">
-                        <td>{{ place.reference_id || place.uid }}</td>
-                        <td>{{ place.name }}</td>
-                        <td>{{ place.arrival_rssi }}</td>
-                        <td>{{ place.departure_rssi }}</td>
+                    <tr ng-repeat="detector in vm.displayedDetectors">
+                        <td>{{ detector.reference_id || detector.uid }}</td>
+                        <td>{{ detector.name }}</td>
+                        <td>{{ detector.type }}</td>
+                        <td>{{ detector.arrival_rssi }}</td>
+                        <td>{{ detector.departure_rssi }}</td>
                         <td class="text-center">
-                            <input type="checkbox" ng-model="place.is_active" ng-click="vm.updatePlaceState(place)">
+                            <input type="checkbox" ng-model="detector.is_active" ng-click="vm.updateDetectorState(detector)">
                         </td>
                         <td>
-                            <a ng-click="vm.editPlace(place)">Edit</a>
+                            <a ng-click="vm.editDetector(detector)">Edit</a>
                         </td>
                     </tr>
                     </tbody>
                     <tfoot>
                     <tr>
-                        <td colspan="6" class="text-center">
+                        <td colspan="7" class="text-center">
                             <div st-pagination="" st-items-by-page="10" st-displayed-pages="5"></div>
                         </td>
                     </tr>

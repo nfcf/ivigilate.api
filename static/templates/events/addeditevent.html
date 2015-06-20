@@ -78,32 +78,53 @@
         <fieldset>
             <legend>Trigger conditions</legend>
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="form-group">
                         <label>Beacon(s)</label>
                         <ui-select multiple='true' ng-model="vm.beacons_selected"
                                    theme="select2" ng-disabled="disabled" style="width: 100%">
-                            <ui-select-match placeholder="Select beacon(s) to check for event or leave empty for all...">
+                            <ui-select-match placeholder="Select beacon(s) or leave empty for all...">
                                 {{$item.name}}</ui-select-match>
                             <ui-select-choices
                                     repeat="beacon in vm.beacons | propsFilter: {name: $select.search, reference_id: $select.search} track by beacon.id">
                                 <div ng-bind-html="beacon.name | highlight: $select.search"></div>
-                                <small ng-bind-html="beacon.reference_id | highlight: $select.search"/>
+                                <small>
+                                    ID: <span ng-bind-html="beacon.reference_id | highlight: $select.search"></span>
+                                </small>
                             </ui-select-choices>
                         </ui-select>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="form-group">
-                        <label>Place(s)</label>
-                        <ui-select multiple='true' ng-model="vm.places_selected"
-                                   theme="select2" ng-disabled="disabled" style="width: 100%;">
-                            <ui-select-match placeholder="Select place(s) to check for event of leave empty for all...">
+                        <label>Detector(s)</label>
+                        <ui-select multiple='true' ng-model="vm.detectors_selected"
+                                   theme="select2" ng-disabled="disabled" style="width: 100%">
+                            <ui-select-match placeholder="Select detector(s) or leave empty for all...">
                                 {{$item.name}}</ui-select-match>
                             <ui-select-choices
-                                    repeat="place in vm.places | propsFilter: {name: $select.search, reference_id: $select.search} track by place.id">
-                                <div ng-bind-html="place.name | highlight: $select.search"></div>
-                                <small ng-bind-html="place.reference_id | highlight: $select.search"/>
+                                    repeat="detector in vm.detectors | propsFilter: {name: $select.search, reference_id: $select.search} track by detector.id">
+                                <div ng-bind-html="detector.name | highlight: $select.search"></div>
+                                <small>
+                                    ID: <span ng-bind-html="detector.reference_id | highlight: $select.search"></span>
+                                </small>
+                            </ui-select-choices>
+                        </ui-select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>User(s)</label>
+                        <ui-select multiple='true' ng-model="vm.users_selected"
+                                   theme="select2" ng-disabled="disabled" style="width: 100%;">
+                            <ui-select-match placeholder="Select user(s) or leave empty for all...">
+                                {{$item.name}}</ui-select-match>
+                            <ui-select-choices
+                                    repeat="user in vm.users | propsFilter: {name: $select.search, reference_id: $select.search} track by user.id">
+                                <div ng-bind-html="user.name | highlight: $select.search"></div>
+                                <small>
+                                    ID: <span ng-bind-html="user.reference_id | highlight: $select.search"></span>
+                                </small>
                             </ui-select-choices>
                         </ui-select>
                     </div>
@@ -191,7 +212,7 @@
                                 <textarea class="form-control" id="action_sms_message" ng-model="vm.action_sms_message">
                                 </textarea>
                                         <small>Note: The following tags can be used: %event_id%, %event_name%, %beacon_id%,
-                                            %beacon_name%, %place_id%, %place_name%.
+                                            %beacon_name%, %watcher_id%, %watcher_name%.
                                         </small>
                                     </div>
                                 </div>
@@ -224,7 +245,7 @@
                                           ng-model="vm.action_email_body">
                                 </textarea>
                                         <small>Note: The following tags can be used: %event_id%, %event_name%, %beacon_id%,
-                                            %beacon_name%, %place_id%, %place_name%.
+                                            %beacon_name%, %watcher_id%, %watcher_name%.
                                         </small>
                                     </div>
                                 </div>
@@ -260,7 +281,7 @@
                                 <textarea class="form-control" id="action_rest_body" ng-model="vm.action_rest_body">
                                 </textarea>
                                         <small>Note: The following tags can be used: %event_id%, %event_name%, %beacon_id%,
-                                            %beacon_name%, %place_id%, %place_name%.
+                                            %beacon_name%, %watcher_id%, %watcher_name%.
                                         </small>
                                     </div>
                                 </div>

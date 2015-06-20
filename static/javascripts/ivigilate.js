@@ -27,7 +27,7 @@
             'ivigilate.payments',
             'ivigilate.layout',
             'ivigilate.users',
-            'ivigilate.places',
+            'ivigilate.detectors',
             'ivigilate.beacons',
             'ivigilate.events',
             'ivigilate.sightings'

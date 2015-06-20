@@ -110,8 +110,8 @@ class AuthUserAdmin(UserAdmin):
     filter_horizontal = ()
 
 
-@admin.register(Place)
-class PlaceAdmin(admin.ModelAdmin):
+@admin.register(Detector)
+class DetectorAdmin(admin.ModelAdmin):
     pass
 
 

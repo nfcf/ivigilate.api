@@ -7,6 +7,7 @@
             <div class="row">
                 <div class="col-md-3">
                     <label for="filterDate">Date</label>
+
                     <div class="input-group">
                         <input id="filterDate" type="text" class="form-control" datepicker-popup="yyyy-MM-dd"
                                datepicker-options="vm.datepickerOptions" max-date="vm.filterDateMax"
@@ -21,20 +22,24 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <label for="filterPlace">Place(s)</label>
+                    <label for="filterPlacesAndUsers">Seen at / by</label>
+
                     <div class="form-group">
-                        <ui-select multiple ng-model="vm.filterPlaces" theme="select2" ng-disabled="disabled" style="width: 100%">
-                            <ui-select-match placeholder="Select place(s)...">{{$item.name}}</ui-select-match>
+                        <ui-select multiple ng-model="vm.filterPlacesAndUsers" theme="select2" ng-disabled="disabled" style="width: 100%">
+                            <ui-select-match placeholder="Select place(s) or user(s)...">{{$item.name}}</ui-select-match>
                             <ui-select-choices
-                                    repeat="place in vm.places | propsFilter: {name: $select.search, reference_id: $select.search}">
-                                <div ng-bind-html="place.name | highlight: $select.search"></div>
-                                <small ng-bind-html="place.reference_id | highlight: $select.search"/>
+                                    repeat="placeOrUser in vm.placesAndUsers | propsFilter: {name: $select.search, reference_id: $select.search}">
+                                <div ng-bind-html="placeOrUser.name | highlight: $select.search"></div>
+                                <small>
+                                    {{ placeOrUser.kind }} with ID: <span ng-bind-html="placeOrUser.reference_id"></span>
+                                </small>
                             </ui-select-choices>
                         </ui-select>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <label for="filterShowAll">Show All</label>
+
                     <div class="form-group">
                         <toggle-switch id="filterShowAll" ng-model="vm.filterShowAll" class="bootstrap-switch-small"></toggle-switch>
                     </div>
@@ -73,34 +78,34 @@
                         <td style="height:56px">
                             <img height="40px"
                                  ng-src="{{ !!sighting.user && sighting.beacon.type == 'F' ?
-                                    sighting.user.photo :
-                                    sighting.beacon.photo }}"
+                                         sighting.user.photo :
+                                         sighting.beacon.photo }}"
                                  ng-if="!!sighting.user && sighting.beacon.type == 'F' ?
                                     sighting.user.photo :
                                     sighting.beacon.photo"/>
                         </td>
                         <td class="valign-middle">
                             {{ !!sighting.user && sighting.beacon.type == 'F' ?
-                                    sighting.user.email :
+                                    sighting.user.reference_id || sighting.user.email :
                                     sighting.beacon.reference_id || sighting.beacon.uid }}
                         </td>
                         <td class="valign-middle">
                             {{ !!sighting.user && sighting.beacon.type == 'F' ?
-                                    sighting.user.full_name :
+                                    sighting.user.name :
                                     sighting.beacon.name }}
                         </td>
                         <td class="valign-middle">
                             {{ sighting.last_seen_at | relativeDate }}
                             {{ !!sighting.user ?
                                     sighting.beacon.type == 'F' ?
-                                        'at' :
-                                        'by' :
+                                    'at' :
+                                    'by' :
                                     'at' }}
                             {{ !!sighting.user ?
                                     sighting.beacon.type == 'F' ?
-                                        sighting.beacon.name :
-                                        sighting.user.full_name :
-                                    sighting.place.name }}
+                                    sighting.beacon.name :
+                                    sighting.user.name :
+                                    sighting.detector.name }}
                         </td>
                         <td class="valign-middle text-center">
                             {{ sighting.battery || 'N/A' }}

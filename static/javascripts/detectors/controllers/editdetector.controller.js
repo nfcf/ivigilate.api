@@ -2,18 +2,18 @@
     'use strict';
 
     angular
-        .module('ivigilate.places.controllers')
-        .controller('EditPlaceController', EditPlaceController);
+        .module('ivigilate.detectors.controllers')
+        .controller('EditDetectorController', EditDetectorController);
 
-    EditPlaceController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data', 'Authentication', 'Places', 'uiGmapGoogleMapApi'];
+    EditDetectorController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data', 'Authentication', 'Detectors', 'uiGmapGoogleMapApi'];
 
-    function EditPlaceController($location, $scope, $timeout, $modalInstance, data, Authentication, Places, uiGmapGoogleMapApi) {
+    function EditDetectorController($location, $scope, $timeout, $modalInstance, data, Authentication, Detectors, uiGmapGoogleMapApi) {
         var vm = this;
         vm.cancel = cancel;
         vm.save = save;
 
         vm.error = undefined;
-        vm.place = undefined;
+        vm.detector = undefined;
         vm.map = undefined;
         vm.showMap = false;
         vm.defaultZoomLevel = 15;
@@ -26,7 +26,7 @@
             options: {draggable: true},
             events: {
                 dragend: function (marker, eventName, args) {
-                    vm.place.location.coordinates = [marker.getPosition().lng(), marker.getPosition().lat()];
+                    vm.detector.location.coordinates = [marker.getPosition().lng(), marker.getPosition().lat()];
                 }
             }
         };
@@ -43,7 +43,7 @@
                         vm.marker.coords.latitude = vm.map.center.latitude;
                         vm.marker.coords.longitude = vm.map.center.longitude;
 
-                        vm.place.location.coordinates = [vm.marker.coords.longitude, vm.marker.coords.latitude];
+                        vm.detector.location.coordinates = [vm.marker.coords.longitude, vm.marker.coords.latitude];
                     }
                 }
             }
@@ -67,9 +67,14 @@
         }
 
         function populateDialog(data, user) {
-            vm.place = data;
-            if (!vm.place.location) {
-                vm.place.location = {
+            vm.detector = data;
+
+            $scope.$watch('vm.detector.type', function () {
+                vm.showMap = vm.detector.type == 'F';
+            }, true);
+
+            if (!vm.detector.location) {
+                vm.detector.location = {
                     'type': 'Point',
                     'coordinates': [-40.70744491, 34.698986644] //Defaults to the middle of the ocean
                 };
@@ -77,8 +82,8 @@
 
             vm.map = {
                 center: {
-                    longitude: vm.place.location.coordinates[0],
-                    latitude: vm.place.location.coordinates[1]
+                    longitude: vm.detector.location.coordinates[0],
+                    latitude: vm.detector.location.coordinates[1]
                 },
                 zoom: vm.defaultZoomLevel
             };
@@ -90,13 +95,13 @@
             $scope.$broadcast('show-errors-check-validity');
 
             if (vm.form.$valid) {
-                Places.update(vm.place).then(successFn, errorFn);
+                Detectors.update(vm.detector).then(successFn, errorFn);
             } else {
                 vm.error = 'There are invalid fields in the form.';
             }
 
             function successFn(data, status, headers, config) {
-                $modalInstance.close(vm.place);
+                $modalInstance.close(vm.detector);
             }
 
             function errorFn(data, status, headers, config) {

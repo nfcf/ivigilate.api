@@ -79,7 +79,7 @@ class AddSightingsView(views.APIView):
                 rssi = sighting.get('rssi', None)
                 battery = sighting.get('battery', None)
                 location = sighting.get('location', None)
-                place = None
+                detector = None
                 user = None
 
                 try:
@@ -109,14 +109,14 @@ class AddSightingsView(views.APIView):
                                         status=status.HTTP_400_BAD_REQUEST)
                 else:
                     try:
-                        place = Place.objects.get(uid=watcher_uid)
-                        if not place.is_active:
-                            return Response('Ignoring sighting as the Place is not active on the system.',
+                        detector = Detector.objects.get(uid=watcher_uid)
+                        if not detector.is_active:
+                            return Response('Ignoring sighting as the Detector is not active on the system.',
                                         status=status.HTTP_412_PRECONDITION_FAILED)
                         else:
-                            location = place.location
-                    except Place.DoesNotExist:
-                        return Response('Invalid Watcher UID (couldn\'t find corresponding place).',
+                            location = detector.location
+                    except Detector.DoesNotExist:
+                        return Response('Invalid Watcher UID (couldn\'t find corresponding detector).',
                                         status=status.HTTP_400_BAD_REQUEST)
 
                 now = datetime.datetime.now(timezone.utc)
@@ -125,16 +125,16 @@ class AddSightingsView(views.APIView):
                 new_sighting = None
                 if previous_sightings:
                     previous_sighting = previous_sightings[0]
-                    if (place is not None and rssi < place.departure_rssi):
+                    if (detector is not None and rssi < detector.departure_rssi):
                         logger.info('Closing previous related sighting \'%s\' as the rssi dropped below the ' + \
-                                    'departure_rssi configured for this place (%s < %s).',
-                                    previous_sighting, rssi, place.departure_rssi)
-                        utils.close_sighting(previous_sighting, place, user)
-                    elif ((previous_sighting.place != place or previous_sighting.user != user) and
+                                    'departure_rssi configured for this detector (%s < %s).',
+                                    previous_sighting, rssi, detector.departure_rssi)
+                        utils.close_sighting(previous_sighting, detector, user)
+                    elif ((previous_sighting.detector != detector or previous_sighting.user != user) and
                             rssi > previous_sighting.rssi):
                         logger.info('Closing previous related sighting \'%s\' as the beacon moved to another location.',
                                     previous_sighting)
-                        utils.close_sighting(previous_sighting, place, user)
+                        utils.close_sighting(previous_sighting, detector, user)
                     else:
                         logger.debug('Updating previous related sighting \'%s\'.', previous_sighting)
                         new_sighting = previous_sighting
@@ -152,10 +152,10 @@ class AddSightingsView(views.APIView):
                         if (previous_sighting_occurred_at is None or
                             (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60):
                             logger.info('Reported missing beacon was seen at / by \'%s\'. ' +
-                                        'Notifying corresponding account owners...', place if place is not None else user)
+                                        'Notifying corresponding account owners...', detector if detector is not None else user)
                             try:
                                 send_mail('Reported missing: {0}'.format(beacon.name),
-                                          '{0} was seen near the following coordinates: {1}'.format(beacon.name, place.location),
+                                          '{0} was seen near the following coordinates: {1}'.format(beacon.name, detector.location),
                                           settings.DEFAULT_FROM_EMAIL,
                                           [u.email for u in beacon.account.get_account_admins()])
                             except Exception as ex:
@@ -163,23 +163,23 @@ class AddSightingsView(views.APIView):
                         else:
                             logger.info('Reported missing beacon was seen at / by \'%s\'. ' + \
                                         'Skipping notification as the last one was triggered less than 1 minute ago...',
-                                        place if place is not None else user)
+                                        detector if detector is not None else user)
                             return Response('Ignored sighting as the beacon doesn\'t belong to this account.')
                     else:
                         logger.info('Ignoring current sighting as the beacon \'%s\' was seen at / by another account\'s ' +
-                                    'place / user \'%s\' but has not been reported missing.',
-                                    beacon, place if place is not None else user)
+                                    'detector / user \'%s\' but has not been reported missing.',
+                                    beacon, detector if detector is not None else user)
                         return Response('Ignored sighting as the beacon doesn\'t belong to this account.')
 
                 if new_sighting is None:
-                    if place is not None and rssi < place.arrival_rssi and \
+                    if detector is not None and rssi < detector.arrival_rssi and \
                             (beacon.account_id == account.id or not beacon.reported_missing):
                         logger.info('Ignoring sighting of beacon \'%s\' at / by \'%s\' as the rssi is lower than the ' +
-                                    'arrival_rssi configured for this place / user (%s < %s).',
-                                    beacon, place if place is not None else user, rssi, place.arrival_rssi)
+                                    'arrival_rssi configured for this detector / user (%s < %s).',
+                                    beacon, detector if detector is not None else user, rssi, detector.arrival_rssi)
                         return Response('Ignored sighting due to weak rssi.')
                     else:
-                        new_sighting = Sighting.objects.create(beacon=beacon, place=place, user=user,
+                        new_sighting = Sighting.objects.create(beacon=beacon, detector=detector, user=user,
                                                                location=location, rssi=rssi, battery=battery)
                         logger.debug('Created new sighting \'%s\'.', new_sighting)
 
@@ -197,7 +197,7 @@ class AutoUpdateView(views.APIView):
         data = json.loads(request.body.decode('utf-8'))
 
         company_id = data.get('company_id')
-        receiver_uid = data.get('receiver_uid').lower()
+        detector_uid = data.get('detector_uid').lower()
         metadata = data.get('metadata', None)
 
         try:
@@ -206,22 +206,22 @@ class AutoUpdateView(views.APIView):
             return Response('Invalid Company ID.', status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            place = Place.objects.get(uid=receiver_uid)
+            detector = Detector.objects.get(uid=detector_uid)
             try:
-                full_metadata = json.loads(place.metadata)
+                full_metadata = json.loads(detector.metadata)
             except Exception as ex:
                 full_metadata = {}  # dict()
                 full_metadata['auto_update'] = None
             full_metadata['device'] = json.loads(metadata)
 
-            place.metadata = json.dumps(full_metadata)
-            place.save()
-        except Place.DoesNotExist:
+            detector.metadata = json.dumps(full_metadata)
+            detector.save()
+        except Detector.DoesNotExist:
             full_metadata = {}  # dict()
             full_metadata['device'] = metadata
             full_metadata['auto_update'] = None
-            Place.objects.create(account=account,
-                                 uid=receiver_uid,
+            Detector.objects.create(account=account,
+                                 uid=detector_uid,
                                  metadata=json.dumps(full_metadata))
 
         # check for updates by comparing last_update_date in the metadata field

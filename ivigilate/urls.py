@@ -6,7 +6,7 @@ from ivigilate import views_model, views_api, views_report
 router = routers.DefaultRouter()
 router.register(r'accounts', views_model.AccountViewSet)
 router.register(r'users', views_model.AuthUserViewSet)
-router.register(r'places', views_model.PlaceViewSet)
+router.register(r'detectors', views_model.DetectorViewSet)
 router.register(r'beacons', views_model.BeaconViewSet)
 router.register(r'sightings', views_model.SightingViewSet)
 router.register(r'events', views_model.EventViewSet)

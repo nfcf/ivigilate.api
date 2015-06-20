@@ -104,7 +104,7 @@
             }
 
             function eventsErrorFn(data, status, headers, config) {
-                vm.error = 'Failed to get Places with error: ' + JSON.stringify(data.data);
+                vm.error = 'Failed to get Detectors with error: ' + JSON.stringify(data.data);
             }
         }
 

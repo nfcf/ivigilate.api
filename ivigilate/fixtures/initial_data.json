@@ -4,7 +4,7 @@
     "pk": 1,
     "fields": {
       "name": "Gone out of sight",
-      "description": "Triggered as soon as a movable gets out of the configured place(s) receiver's range.",
+      "description": "Triggered as soon as a movable gets out of the configured place(s) detector's range.",
       "sighting_is_current": false,
       "sighting_duration_in_seconds": 5,
       "sighting_has_battery_below": 100,

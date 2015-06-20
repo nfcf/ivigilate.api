@@ -6,10 +6,10 @@
         .controller('AddSightingController', AddSightingController);
     
     AddSightingController.$inject = ['$location', '$scope', '$filter', '$modalInstance', 'data', 'Authentication',
-                                    'Places', 'Beacons', 'Sightings'];
+                                    'Detectors', 'Beacons', 'Sightings'];
 
     function AddSightingController($location, $scope, $filter, $modalInstance, data, Authentication,
-                                   Places, Beacons, Sightings) {
+                                   Detectors, Beacons, Sightings) {
         var vm = this;
         vm.openDatePicker = openDatePicker;
         vm.cancel = cancel;
@@ -18,8 +18,8 @@
         vm.error = undefined;
         vm.beacons = undefined;
         vm.beacon = undefined;
-        vm.places = undefined;
-        vm.place = undefined;
+        vm.detectors = undefined;
+        vm.detector = undefined;
 
         vm.datepickerOpen = false;
         vm.seen_at_date = vm.maxDate = $filter('date')(new Date(), 'yyyy-MM-dd');
@@ -60,14 +60,14 @@
                 vm.error = 'Failed to get Beacons with error: ' + JSON.stringify(data.data);
             }
 
-            Places.list().then(placesSuccessFn, placesErrorFn);
+            Detectors.list().then(detectorsSuccessFn, detectorsErrorFn);
 
-            function placesSuccessFn(data, status, headers, config) {
-                vm.places = data.data;
+            function detectorsSuccessFn(data, status, headers, config) {
+                vm.detectors = data.data;
             }
 
-            function placesErrorFn(data, status, headers, config) {
-                vm.error = 'Failed to get Places with error: ' + JSON.stringify(data.data);
+            function detectorsErrorFn(data, status, headers, config) {
+                vm.error = 'Failed to get Detectors with error: ' + JSON.stringify(data.data);
             }
         }
 
@@ -83,7 +83,7 @@
             if (vm.form.$valid) {
                 var sighting = {};
                 sighting.beacon = vm.beacon.id;
-                sighting.place = vm.place.id;
+                sighting.detector = vm.detector.id;
                 sighting.first_seen_at = vm.seen_at;
                 sighting.last_seen_at = addTime(vm.seen_at, vm.duration.getHours(), vm.duration.getMinutes());
                 sighting.comment = vm.comment;

@@ -6,10 +6,10 @@
         .controller('AddEditEventController', AddEditEventController);
 
     AddEditEventController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data',
-        'Authentication', 'Beacons', 'Places', 'Events'];
+        'Authentication', 'Beacons', 'Detectors', 'Events'];
 
     function AddEditEventController($location, $scope, $timeout, $modalInstance, data,
-                                    Authentication, Beacons, Places, Events) {
+                                    Authentication, Beacons, Detectors, Events) {
         var vm = this;
         vm.cancel = cancel;
         vm.destroy = destroy;
@@ -40,8 +40,10 @@
         vm.nullEventOption = {"name": "-- Don't care --"};
         vm.beacons = [];
         vm.beacons_selected = [];
-        vm.places = [];
-        vm.places_selected = [];
+        vm.detectors = [];
+        vm.detectors_selected = [];
+        vm.users = [];
+        vm.users_selected = [];
 
         vm.actions_index = 0;
 
@@ -92,7 +94,7 @@
                 }
 
                 Beacons.list().then(beaconsSuccessFn, errorFn);
-                Places.list().then(placesSuccessFn, errorFn);
+                Detectors.list().then(detectorsSuccessFn, errorFn);
                 Events.list().then(eventsSuccessFn, errorFn);
             }
             else {
@@ -104,9 +106,9 @@
                 if (vm.is_edit) vm.beacons_selected = vm.event.beacons;
             }
 
-            function placesSuccessFn(data, status, headers, config) {
-                vm.places = data.data;
-                if (vm.is_edit) vm.places_selected = vm.event.places;
+            function detectorsSuccessFn(data, status, headers, config) {
+                vm.detectors = data.data;
+                if (vm.is_edit) vm.detectors_selected = vm.event.detectors;
             }
 
             function eventsSuccessFn(data, status, headers, config) {
@@ -155,9 +157,9 @@
                 for (var i = 0; i < vm.beacons_selected.length; i++) {  // Required for the REST serializer
                     eventToSend.beacons.push(vm.beacons_selected[i].id);
                 }
-                eventToSend.places = [];
-                for (var i = 0; i < vm.places_selected.length; i++) {  // Required for the REST serializer
-                    eventToSend.places.push(vm.places_selected[i].id);
+                eventToSend.detectors = [];
+                for (var i = 0; i < vm.detectors_selected.length; i++) {  // Required for the REST serializer
+                    eventToSend.detectors.push(vm.detectors_selected[i].id);
                 }
                 if (vm.event.sighting_previous_event) {
                     eventToSend.sighting_previous_event = vm.event.sighting_previous_event.id;
@@ -174,7 +176,7 @@
 
             function successFn(data, status, headers, config) {
                 vm.event.beacons = vm.beacons_selected;
-                vm.event.places = vm.places_selected;
+                vm.event.detectors = vm.detectors_selected;
                 $modalInstance.close(vm.event);
             }
 
@@ -204,7 +206,7 @@
         /*function populateEventTypes() {
          event_types.push({
          name: 'Gone out of sight',
-         description: 'Triggered as soon as a movable gets out of the configured place(s) receiver\'s range.',
+         description: 'Triggered as soon as a movable gets out of the configured place(s) detector\'s range.',
          sighting_is_current: false,
          sighting_duration_in_seconds: 5,
          sighting_has_battery_below: 100,

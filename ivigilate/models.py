@@ -79,7 +79,7 @@ class AuthUserManager(BaseUserManager):
         now = datetime.now(timezone.utc)
 
         email = self.normalize_email(email)
-        user = self.model(account=account, email=email,
+        user = self.model(account=account, email=email, reference_id=email,
                           is_staff=is_staff, is_active=True,
                           is_superuser=is_superuser,
                           created_at=now, last_login=now, **extra_fields)
@@ -106,6 +106,7 @@ class AuthUser(AbstractBaseUser, PermissionsMixin):
                                                 'unique': _('The given email address has already been registered.')
                                              }
                              )
+    reference_id = models.CharField(max_length=64, blank=True)
     first_name = models.CharField(_('first name'), max_length=30, blank=True)
     last_name = models.CharField(_('last name'), max_length=30, blank=True)
     photo = models.FileField(upload_to='photos', blank=True, null=True)
@@ -152,11 +153,16 @@ class AuthUser(AbstractBaseUser, PermissionsMixin):
         super(AuthUser, self).save(*args, **kwargs)
 
 
-class Place(models.Model):
-    account = models.ForeignKey(Account, related_name='places')
+class Detector(models.Model):
+    TYPE = (
+        ('M', 'Movable'),
+        ('F', 'Fixed'),
+    )
+    account = models.ForeignKey(Account, related_name='detectors')
     uid = models.CharField(max_length=36)
     reference_id = models.CharField(max_length=64, blank=True)
     name = models.CharField(max_length=64, blank=True)
+    type = models.CharField(max_length=1, choices=TYPE, default='F')
     location = models.PointField(null=True)
     arrival_rssi = models.IntegerField(default=-85)
     departure_rssi = models.IntegerField(default=-95)
@@ -180,7 +186,7 @@ class Place(models.Model):
             self.updated_at = now
         else:
             self.updated_at = now
-        super(Place, self).save(*args, **kwargs)
+        super(Detector, self).save(*args, **kwargs)
 
     def __str__(self):
         return '%s: uid=%s, name=%s' % (self.account.company_id, self.uid, self.name)
@@ -194,8 +200,8 @@ class Beacon(models.Model):
     account = models.ForeignKey(Account, related_name='beacons')
     uid = models.CharField(max_length=36)
     reference_id = models.CharField(max_length=64, blank=True)
-    type = models.CharField(max_length=1, choices=TYPE, default='M')
     name = models.CharField(max_length=64, blank=True)
+    type = models.CharField(max_length=1, choices=TYPE, default='M')
     photo = models.FileField(upload_to='photos', blank=True, null=True)
     location = models.PointField(null=True, blank=True)
     reported_missing = models.BooleanField(default=False)
@@ -224,7 +230,7 @@ class Beacon(models.Model):
 
 class Sighting(models.Model):
     beacon = models.ForeignKey(Beacon)
-    place = models.ForeignKey(Place, null=True)
+    detector = models.ForeignKey(Detector, null=True)
     user = models.ForeignKey(AuthUser, null=True)
     first_seen_at = models.DateTimeField()
     last_seen_at = models.DateTimeField()
@@ -243,8 +249,8 @@ class Sighting(models.Model):
 
     def get_watcher_name(self):
         watcher_name = None
-        if self.place:
-            watcher_name = self.place.name
+        if self.detector:
+            watcher_name = self.detector.name
         elif self.user:
             watcher_name = self.user.get_full_name()
         return watcher_name
@@ -278,7 +284,7 @@ class Event(models.Model):
     reference_id = models.CharField(max_length=64, blank=True)
     name = models.CharField(max_length=64)
     beacons = models.ManyToManyField(Beacon, blank=True, related_name='events')
-    places = models.ManyToManyField(Place, blank=True)
+    detectors = models.ManyToManyField(Detector, blank=True)
     users = models.ManyToManyField(AuthUser, blank=True)
 
     schedule_days_of_week = models.PositiveSmallIntegerField(default=0)  # used as an 8bit field for easy logical ops

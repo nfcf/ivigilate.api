@@ -87,14 +87,14 @@ class AuthUserViewSet(viewsets.ModelViewSet):
         return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
 
 
-class PlaceViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
+class DetectorViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
                    mixins.RetrieveModelMixin, viewsets.GenericViewSet):
-    queryset = Place.objects.all()
+    queryset = Detector.objects.all()
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
-            return PlaceReadSerializer
-        return PlaceWriteSerializer
+            return DetectorReadSerializer
+        return DetectorWriteSerializer
 
     def get_permissions(self):
         if self.request.method in ['HEAD', 'OPTIONS']:
@@ -110,8 +110,8 @@ class PlaceViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         try:
             queryset = self.queryset.get(id=pk, account=account)
-        except Place.DoesNotExist:
-            return Response('Place does not exist or is not associated with the current logged on account.',
+        except Detector.DoesNotExist:
+            return Response('Detector does not exist or is not associated with the current logged on account.',
                             status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.get_serializer_class()(queryset, many=False, context={'request': request})
@@ -122,8 +122,8 @@ class PlaceViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         try:
             instance = self.queryset.get(id=pk, account=account)
-        except Place.DoesNotExist:
-            return Response('Place does not exist or is not associated with the current logged on account.',
+        except Detector.DoesNotExist:
+            return Response('Detector does not exist or is not associated with the current logged on account.',
                             status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.get_serializer_class()(instance, data=request.data)
@@ -213,40 +213,56 @@ class SightingViewSet(viewsets.ModelViewSet):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         if account:
             filter_date = str(datetime.now(timezone.utc).date())
-            filter_places = []
+            filter_beacons = []
+            filter_detectors = []
+            filter_users = []
             filter_show_all = False
             if request.query_params is not None:
                 if request.query_params.get('filterDate') is not None:
                     filter_date = request.query_params.get('filterDate')
-                if request.query_params.get('filterPlaces') is not None:
-                    filter_places = request.query_params.getlist('filterPlaces')
+                if request.query_params.get('filterBeacons') is not None:
+                    filter_beacons = request.query_params.getlist('filterBeacons')
+                if request.query_params.get('filterDetectors') is not None:
+                    filter_detectors = request.query_params.getlist('filterDetectors')
+                if request.query_params.get('filterUsers') is not None:
+                    filter_users = request.query_params.getlist('filterUsers')
                 if request.query_params.get('filterShowAll') is not None:
                     filter_show_all = request.query_params.get('filterShowAll') in ['True', 'true', '1']
 
             filteredQuery = 'SELECT s.* ' + \
-                            'FROM ivigilate_sighting s JOIN ivigilate_beacon b ON s.beacon_id = b.id ' + \
-                            'WHERE b.account_id = %s AND s.last_seen_at BETWEEN %s AND %s ' + \
-                            'AND (%s OR s.place_id = ANY(%s::integer[])) AND s.last_seen_at IN (' + \
-                            ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY beacon_id' + \
-                            ') ORDER BY s.last_seen_at DESC'
+                             'FROM ivigilate_sighting s JOIN ivigilate_beacon b ON s.beacon_id = b.id ' + \
+                             'WHERE b.account_id = %s AND s.last_seen_at BETWEEN %s AND %s ' + \
+                             'AND (%s OR s.beacon_id = ANY(%s::integer[])) ' + \
+                             'AND (%s OR s.detector_id = ANY(%s::integer[])) ' + \
+                             'AND (%s OR s.user_id = ANY(%s::integer[])) ' + \
+                             'AND s.last_seen_at IN (' + \
+                             ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY beacon_id' + \
+                             ') ORDER BY s.last_seen_at DESC'
             filteredQueryParams = [account.id, filter_date + ' 00:00:00', filter_date + ' 23:59:59',
-                                   len(filter_places) == 0, [int(p) for p in filter_places]]
+                                   len(filter_beacons) == 0, [int(x) for x in filter_beacons],
+                                   len(filter_detectors) == 0, [int(x) for x in filter_detectors],
+                                   len(filter_users) == 0, [int(x) for x in filter_users]]
 
             showAllQuery = '(SELECT s.* ' + \
-                           'FROM ivigilate_sighting s JOIN ivigilate_beacon b ON s.beacon_id = b.id ' + \
-                           'WHERE b.account_id = %s AND s.first_seen_at >= %s AND s.last_seen_at <= %s ' + \
-                           'AND (%s OR s.place_id = ANY(%s)) AND s.last_seen_at IN (' + \
-                           ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY beacon_id' + \
-                           ') ORDER BY s.last_seen_at DESC)' + \
-                           ' UNION ' + \
-                           '(SELECT s.* ' + \
-                           'FROM ivigilate_sighting s JOIN ivigilate_beacon b ON s.beacon_id = b.id ' + \
-                           'WHERE b.account_id = %s AND s.last_seen_at <= %s ' + \
-                           'AND s.last_seen_at IN (' + \
-                           ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY beacon_id' + \
-                           ') ORDER BY s.last_seen_at DESC)'
+                            'FROM ivigilate_sighting s JOIN ivigilate_beacon b ON s.beacon_id = b.id ' + \
+                            'WHERE b.account_id = %s AND s.first_seen_at >= %s AND s.last_seen_at <= %s ' + \
+                            'AND (%s OR s.beacon_id = ANY(%s::integer[])) ' + \
+                            'AND (%s OR s.detector_id = ANY(%s::integer[])) ' + \
+                            'AND (%s OR s.user_id = ANY(%s::integer[])) ' + \
+                            'AND s.last_seen_at IN (' + \
+                            ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY beacon_id' + \
+                            ') ORDER BY s.last_seen_at DESC)' + \
+                            ' UNION ' + \
+                            '(SELECT s.* ' + \
+                            'FROM ivigilate_sighting s JOIN ivigilate_beacon b ON s.beacon_id = b.id ' + \
+                            'WHERE b.account_id = %s AND s.last_seen_at <= %s ' + \
+                            'AND s.last_seen_at IN (' + \
+                            ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY beacon_id' + \
+                            ') ORDER BY s.last_seen_at DESC)'
             showAllQueryParams = [account.id, filter_date + ' 00:00:00', filter_date + ' 23:59:59',
-                                  len(filter_places) == 0, [int(p) for p in filter_places],
+                                  len(filter_beacons) == 0, [int(x) for x in filter_beacons],
+                                  len(filter_detectors) == 0, [int(x) for x in filter_detectors],
+                                  len(filter_users) == 0, [int(x) for x in filter_users],
                                   account.id, filter_date + ' 23:59:59']
 
             queryset = self.queryset.raw(showAllQuery if filter_show_all else filteredQuery,
@@ -277,8 +293,8 @@ class SightingViewSet(viewsets.ModelViewSet):
                 # remove fields from the response as they aren't serializable nor needed
                 if 'beacon' in serializer.validated_data:
                     del serializer.validated_data['beacon']
-                if 'place' in serializer.validated_data:
-                    del serializer.validated_data['place']
+                if 'detector' in serializer.validated_data:
+                    del serializer.validated_data['detector']
                 return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -293,8 +309,8 @@ class SightingViewSet(viewsets.ModelViewSet):
                 # remove fields from the response as they aren't serializable nor needed
                 if 'beacon' in serializer.validated_data:
                     del serializer.validated_data['beacon']
-                if 'place' in serializer.validated_data:
-                    del serializer.validated_data['place']
+                if 'detector' in serializer.validated_data:
+                    del serializer.validated_data['detector']
                 return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -330,7 +346,7 @@ class EventViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer_class()(queryset, many=False, context={'request': request})
         return Response(serializer.data)
 
-    def add_m2m_fields(self, event, beacons, places):
+    def add_m2m_fields(self, event, beacons, detectors):
         # work around to handle the M2M field as DRF doesn't handle them well...
         if beacons:
             new_list = beacons
@@ -343,15 +359,15 @@ class EventViewSet(viewsets.ModelViewSet):
                 event.beacons.remove(id)
 
         # work around to handle the M2M field as DRF doesn't handle them well...
-        if places:
-            new_list = places
-            old_list = event.places.all().values_list('id', flat=True)
+        if detectors:
+            new_list = detectors
+            old_list = event.detectors.all().values_list('id', flat=True)
             to_add_list = list(set(new_list) - set(old_list))
             to_remove_list = list(set(old_list) - set(new_list))
             for id in to_add_list:
-                event.places.add(id)
+                event.detectors.add(id)
             for id in to_remove_list:
-                event.places.remove(id)
+                event.detectors.remove(id)
 
 
     def create(self, request):
@@ -363,8 +379,8 @@ class EventViewSet(viewsets.ModelViewSet):
             event = serializer.save(updated_by=user, account=account)
             if event:
                 beacons = self.request.DATA.get('beacons', None)
-                places = self.request.DATA.get('places', None)
-                self.add_m2m_fields(event, beacons, places)
+                detectors = self.request.DATA.get('detectors', None)
+                self.add_m2m_fields(event, beacons, detectors)
 
                 # remove fields from the response as they aren't serializable nor needed
                 if 'sighting_previous_event' in serializer.validated_data:
@@ -390,8 +406,8 @@ class EventViewSet(viewsets.ModelViewSet):
             event = serializer.save(updated_by=user)
             if event:
                 beacons = self.request.DATA.get('beacons', None)
-                places = self.request.DATA.get('places', None)
-                self.add_m2m_fields(event, beacons, places)
+                detectors = self.request.DATA.get('detectors', None)
+                self.add_m2m_fields(event, beacons, detectors)
 
                 # remove fields from the response as they aren't serializable nor needed
                 if 'sighting_previous_event' in serializer.validated_data:

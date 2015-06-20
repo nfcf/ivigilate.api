@@ -20,10 +20,10 @@
             controller: 'UsersController',
             controllerAs: 'vm',
             templateUrl: '/static/templates/settings/settings.html'
-        }).when('/places', {
-            controller: 'PlacesController',
+        }).when('/detectors', {
+            controller: 'DetectorsController',
             controllerAs: 'vm',
-            templateUrl: '/static/templates/places/places.html'
+            templateUrl: '/static/templates/detectors/detectors.html'
         }).when('/beacons', {
             controller: 'BeaconsController',
             controllerAs: 'vm',

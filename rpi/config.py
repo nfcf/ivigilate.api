@@ -59,6 +59,6 @@ def getint(section, var):
 
 
 def save():
-    with open(CONFIG_FILE_PATH, 'wb') as file:
+    with open(BASE_APP_PATH + 'ivigilate.conf', 'wb') as file:
         __cfg.write(file)
 

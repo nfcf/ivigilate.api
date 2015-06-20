@@ -37,8 +37,8 @@ def replace_message_tags(msg, event, sighting):
         replace('%event_name%', event.name). \
         replace('%beacon_id%', sighting.beacon.reference_id). \
         replace('%beacon_name%', sighting.beacon.name). \
-        replace('%place_id%', sighting.place.reference_id). \
-        replace('%place_name%', sighting.place.name)
+        replace('%detector_id%', sighting.detector.reference_id). \
+        replace('%detector_name%', sighting.detector.name)
 
 
 def send_twilio_message(to, msg):
@@ -50,9 +50,9 @@ def send_twilio_message(to, msg):
     )
 
 
-def close_sighting(sighting, new_sighting_place=None, new_sighting_user=None):
+def close_sighting(sighting, new_sighting_detector=None, new_sighting_user=None):
     sighting.is_current = False
-    check_for_events(sighting, new_sighting_place, new_sighting_user)
+    check_for_events(sighting, new_sighting_detector, new_sighting_user)
     sighting.save()
     logger.debug('Sighting \'%s\' is no longer current.', sighting)
 
@@ -79,7 +79,7 @@ def trigger_event_actions(event, sighting):
                           re.split(',|;', action['recipients']), fail_silently=False)
 
 
-def check_for_events(sighting, new_sighting_place=None, new_sighting_user=None):
+def check_for_events(sighting, new_sighting_detector=None, new_sighting_user=None):
     logger.debug('Checking for events associated with sighting \'%s\'...', sighting)
     now = datetime.now(timezone.utc)
     current_week_day_representation = math.pow(2, now.weekday())
@@ -87,18 +87,18 @@ def check_for_events(sighting, new_sighting_place=None, new_sighting_user=None):
     raw_query = Event.objects.raw('SELECT e.* ' + \
                                   'FROM ivigilate_event e ' \
                                   'LEFT OUTER JOIN ivigilate_event_beacons eb ON e.id = eb.event_id ' \
-                                  'LEFT OUTER JOIN ivigilate_event_places ep ON e.id = ep.event_id ' \
+                                  'LEFT OUTER JOIN ivigilate_event_detectors er ON e.id = er.event_id ' \
                                   'WHERE (e.is_active = True ' \
                                   'AND (eb.beacon_id IS NULL OR eb.beacon_id = %s) ' \
-                                  'AND (ep.place_id IS NULL OR ep.place_id = %s) ' \
+                                  'AND (er.detector_id IS NULL OR er.detector_id = %s) ' \
                                   'AND e.schedule_days_of_week & %s > 0 ' \
                                   'AND e.schedule_start_time <= %s + interval \'1m\' * e.schedule_timezone_offset ' \
                                   'AND e.schedule_end_time >= %s + interval \'1m\' * e.schedule_timezone_offset)',
-                                  [sighting.beacon.id, sighting.place.id if sighting.place is not None else 0,
+                                  [sighting.beacon.id, sighting.detector.id if sighting.detector is not None else 0,
                                    int(current_week_day_representation),
                                    now.strftime('%H:%M:%S'), now.strftime('%H:%M:%S')])
 
-    # To user the ORM version below, need to move timezone_offset field to Account model or Place model
+    # To user the ORM version below, need to move timezone_offset field to Account model or Detector model
     # filter_date = now + timedelta(minutes=sighting.place.account.timezone_offset)
     #events = Event.objects.filter(Q(is_active=True),
     #                              Q(movables=None)|Q(movables__id__exact=sighting.movable.id),
@@ -123,7 +123,7 @@ def check_for_events(sighting, new_sighting_place=None, new_sighting_user=None):
                     ((event.sighting_has_been_confirmed is None) or
                          (event.sighting_has_been_confirmed and sighting.confirmed) or
                          (not event.sighting_has_been_confirmed and not sighting.confirmed)) and \
-                    (new_sighting_place is None or new_sighting_place in event.places.all()) and \
+                    (new_sighting_detector is None or new_sighting_detector in event.detectors.all()) and \
                     (new_sighting_user is None or new_sighting_user in event.users.all()):  # need to handle this new_sighting_user condition...
 
                 if (event.sighting_previous_event is None):
