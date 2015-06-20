@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import os, ConfigParser, logging
 
-CONFIG_FILE_PATH = '/usr/local/bin/ivigilate/ivigilate.conf'
+BASE_APP_PATH = '/usr/local/bin/ivigilate/'
+LOG_FILE_PATH = '/var/log/ivigilate.log'
+HCICONFIG_FILE_PATH = '/usr/sbin/hciconfig'
 
 __cfg = None
 logger = logging.getLogger(__name__)
@@ -30,7 +32,7 @@ def get_cpuinfo():
 def init():
     global __cfg
     __cfg = ConfigParser.SafeConfigParser()
-    __cfg.read(CONFIG_FILE_PATH)
+    __cfg.read(BASE_APP_PATH + 'ivigilate.conf')
 
     cpuinfo = get_cpuinfo()
     __cfg.set('DEVICE', 'hardware', cpuinfo[0])

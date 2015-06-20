@@ -124,7 +124,7 @@ def check_for_events(sighting, new_sighting_place=None, new_sighting_user=None):
                          (event.sighting_has_been_confirmed and sighting.confirmed) or
                          (not event.sighting_has_been_confirmed and not sighting.confirmed)) and \
                     (new_sighting_place is None or new_sighting_place in event.places.all()) and \
-                    (new_sighting_user is None or new_sighting_user in event.places):  # need to handle this new_sighting_user condition...
+                    (new_sighting_user is None or new_sighting_user in event.users.all()):  # need to handle this new_sighting_user condition...
 
                 if (event.sighting_previous_event is None):
                     # Make sure we don't trigger the same actions over and over again (only once per sighting)

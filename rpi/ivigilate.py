@@ -5,22 +5,22 @@ import time, requests, json, Queue, threading, urllib
 import config, autoupdate, blescan
 import bluetooth._bluetooth as bluez
 
-LOG_FILE_PATH = '/var/log/ivigilate.log'
 dev_id = 0
 logger = logging.getLogger(__name__)
 
 
 def init_logger(log_level):
-    logging.basicConfig(filename=LOG_FILE_PATH, level=log_level,
+    logging.basicConfig(filename=config.LOG_FILE_PATH, level=log_level,
                         format='%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s')
 
 
 def send_sightings(sightings):
     for sighting in sightings:
         sighting['company_id'] = config.get('BASE', 'company_id')
-        sighting['watcher_uid'] = config.get('DEVICE', 'hardware') + config.get('DEVICE', 'revision') + config.get('DEVICE', 'serial'),
+        sighting['watcher_uid'] = config.get('DEVICE', 'hardware') + config.get('DEVICE', 'revision') + config.get('DEVICE', 'serial')
 
     try:
+        logger.info('Sending %s sightings to the server...', len(sightings))
         response = requests.post(config.get('SERVER', 'address') + config.get('SERVER', 'addsightings_uri'),
                                  json.dumps(sightings))
         logger.debug('Received from addsightings: %s', response.status_code)
@@ -58,7 +58,8 @@ def main():
 
     autoupdate.check()
 
-    subprocess.call(['/usr/sbin/hciconfig', 'hci0', 'up'])
+    # need to try catch and retry this as it some times fails...
+    subprocess.call([config.HCICONFIG_FILE_PATH, 'hci0', 'up'])
 
     ble_queue = Queue.Queue()
 

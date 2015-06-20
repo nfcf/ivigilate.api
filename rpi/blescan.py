@@ -9,7 +9,7 @@
 # should be used for BLE. Always start a struct.pack() format string with "<"
 import sys, struct, logging, Queue
 import bluetooth._bluetooth as bluez
-from datetime import datetime
+import time
 
 LE_META_EVENT = 0x3e
 LE_PUBLIC_ADDRESS = 0x00
@@ -147,21 +147,21 @@ def parse_events(sock, queue, loop_count=100):
                                 battery = 0
                                 rssi = struct.unpack('b', pkt[offset + 40])[0]
 
-                            now = int(datetime.now().strftime("%s"))
-                            previous_item = queue[0] if not queue.empty() else {}  # dict()
+                            now = int(time.time() * 1000)
+                            previous_item = queue.queue[-1] if not queue.empty() else {}  # dict()
                             if uuid != previous_item.get('beacon_uid', None) or \
                                     (uuid == previous_item.get('beacon_uid', None) and
-                                             (now-previous_item['occurred_at']) >= 1):
-                                logger.info('Raw: ', print_packet(pkt))
+                                             (now-previous_item.get('timestamp')) >= 1000):
+                                logger.info('Raw: %s', return_string_from_packet(pkt))
                                 logger.debug('Parsed: %s,%s,%i,%i,%i,%i,%i' % (mac, uuid, major, minor, power, battery, rssi))
                                 sighting = {}  # dict()
-                                sighting['occurred_at'] = now
+                                sighting['timestamp'] = now
                                 sighting['beacon_uid'] = uuid
                                 sighting['rssi'] = rssi
                                 sighting['battery'] = battery
                                 queue.put(sighting)
-                            else:
-                                logger.info('Skipping packet as a similar one happened less than 1 second ago.')
+                            # else:
+                                # logger.info('Skipping packet as a similar one happened less than 1 second ago.')
                     except Exception as ex:
                         logger.exception('Failed to parse beacon advertisement package:')
 

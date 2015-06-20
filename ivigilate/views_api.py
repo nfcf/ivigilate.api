@@ -71,6 +71,7 @@ class AddSightingsView(views.APIView):
         data = json.loads(request.body.decode('utf-8'))
 
         if (data is not None and len(data) > 0):
+            logger.info('Got %s sightings', len(data))
             for sighting in data:
                 company_id = sighting.get('company_id')
                 watcher_uid = sighting.get('watcher_uid').lower()
@@ -196,7 +197,7 @@ class AutoUpdateView(views.APIView):
         data = json.loads(request.body.decode('utf-8'))
 
         company_id = data.get('company_id')
-        watcher_uid = data.get('watcher_uid').lower()
+        receiver_uid = data.get('receiver_uid').lower()
         metadata = data.get('metadata', None)
 
         try:
@@ -205,7 +206,7 @@ class AutoUpdateView(views.APIView):
             return Response('Invalid Company ID.', status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            place = Place.objects.get(uid=watcher_uid)
+            place = Place.objects.get(uid=receiver_uid)
             try:
                 full_metadata = json.loads(place.metadata)
             except Exception as ex:
@@ -220,7 +221,7 @@ class AutoUpdateView(views.APIView):
             full_metadata['device'] = metadata
             full_metadata['auto_update'] = None
             Place.objects.create(account=account,
-                                 uid=watcher_uid,
+                                 uid=receiver_uid,
                                  metadata=json.dumps(full_metadata))
 
         # check for updates by comparing last_update_date in the metadata field

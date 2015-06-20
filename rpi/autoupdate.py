@@ -6,7 +6,6 @@ import config, blescan
 
 logger = logging.getLogger(__name__)
 
-
 def respawn_script(ble_thread=None):
     if ble_thread is not None:
         logger.info('Daily or on update re-spawn, stopping BLE thread...')
@@ -18,8 +17,8 @@ def respawn_script(ble_thread=None):
     config.set('DEVICE', 'last_respawn_date', datetime.now().strftime("%Y-%m-%d"))
     config.save()
 
-    subprocess.call(['/usr/sbin/hciconfig', 'hci0', 'down'])
-    os.execv('/usr/local/bin/ivigilate/ivigilate.py', sys.argv)
+    subprocess.call([config.HCICONFIG_FILE_PATH, 'hci0', 'down'])
+    os.execv(config.BASE_APP_PATH + 'ivigilate.py', sys.argv)
 
 
 def restart_pi():
@@ -38,7 +37,7 @@ def check():
                            'os_uname': config.get('DEVICE', 'uname'),
                            'last_update_date': config.get('DEVICE', 'last_update_date')})
     data = json.dumps({'company_id': config.get('BASE', 'company_id'),
-                       'watcher_uid': config.get('DEVICE', 'hardware') + config.get('DEVICE', 'revision') + config.get('DEVICE', 'serial'),
+                       'receiver_uid': config.get('DEVICE', 'hardware') + config.get('DEVICE', 'revision') + config.get('DEVICE', 'serial'),
                        'metadata': metadata})
 
     response = None
@@ -74,7 +73,7 @@ def check():
                     urllib.urlretrieve(file['src'], file['dst'])
                     if zipfile.is_zipfile(file['dst']):
                         logger.info('check() is unzipping the following file: \'%s\'', file['dst'])
-                        zipfile.ZipFile(file['dst']).extractall()
+                        zipfile.ZipFile(file['dst']).extractall(config.BASE_APP_PATH)
 
             except Exception:
                 logger.exception('check() failed to update file with exception:')
