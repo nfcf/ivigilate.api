@@ -88,6 +88,7 @@
                 sighting.last_seen_at = addTime(vm.seen_at, vm.duration.getHours(), vm.duration.getMinutes());
                 sighting.comment = vm.comment;
                 sighting.confirmed = true;
+                sighting.rssi = 0;
 
                 Sightings.add(sighting).then(successFn, errorFn);
             } else {

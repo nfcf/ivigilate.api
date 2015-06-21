@@ -5,9 +5,9 @@
         .module('ivigilate.detectors.services')
         .factory('Detectors', Detectors);
 
-    Detectors.$inject = ['$http'];
+    Detectors.$inject = ['$http', '$upload'];
 
-    function Detectors($http) {
+    function Detectors($http, $upload) {
 
         var Detectors = {
             destroy: destroy,
@@ -31,8 +31,21 @@
             return $http.get('/api/v1/detectors/');
         }
 
-        function update(detector) {
-            return $http.put('/api/v1/detectors/' + detector.id + '/', detector);
+        function update(detector, image) {
+            var detectorToSend = JSON.parse(JSON.stringify(detector));
+            detectorToSend.photo = undefined;
+
+            if (!!image) {
+                return $upload.upload({
+                    url: '/api/v1/detectors/' + detectorToSend.id + '/',
+                    method: 'PUT',
+                    fields: detectorToSend,
+                    file: image,
+                    fileFormDataName: 'photo'
+                });
+            } else {
+                return $http.put('/api/v1/detectors/' + detectorToSend.id + '/', detectorToSend);
+            }
         }
     }
 })();

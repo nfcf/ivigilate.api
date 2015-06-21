@@ -21,8 +21,8 @@
         vm.filterDate = vm.filterDateMax = $filter('date')(new Date(), 'yyyy-MM-dd');
         vm.filterDateIsOpen = false;
 
-        vm.placesAndUsers = [];
-        vm.filterPlacesAndUsers = [];
+        vm.fixedBeaconsAndDetectors = [];
+        vm.filterFixedBeaconsAndDetectors = [];
 
         vm.filterShowAll = false;
 
@@ -48,14 +48,13 @@
         function initAndRefresh() {
             Beacons.list().then(beaconsSuccessFn, errorFn);
             Detectors.list().then(detectorsSuccessFn, errorFn);
-            Users.list().then(usersSuccessFn, errorFn);
 
             $scope.$watch('vm.filterDate', function () {
                 vm.filterDate = $filter('date')(vm.filterDate, 'yyyy-MM-dd');
                 refresh();
             });
 
-            $scope.$watch('vm.filterPlacesAndUsers', function () {
+            $scope.$watch('vm.filterFixedBeaconsAndDetectors', function () {
                 refresh();
             });
 
@@ -71,27 +70,19 @@
             function beaconsSuccessFn(data, status, headers, config) {
                 var fixedBeacons = data.data;
                 for (var i = 0; i < fixedBeacons.length; i++) {
-                    if (fixedBeacons[i].type != 'F') fixedBeacons.splice(i--, 1);
-                    else fixedBeacons[i].kind = 'Fixed Beacon';
+                    if (fixedBeacons[i].type == 'M') fixedBeacons.splice(i--, 1);
+                    else fixedBeacons[i].kind = fixedBeacons[i].type_display + ' Beacon';
                 }
-                vm.placesAndUsers.extend(fixedBeacons);
+                vm.fixedBeaconsAndDetectors.extend(fixedBeacons);
             }
 
             function detectorsSuccessFn(data, status, headers, config) {
                 var fixedDetectors = data.data;
                 for (var i = 0; i < fixedDetectors.length; i++) {
-                    if (fixedDetectors[i].type != 'F') fixedDetectors.splice(i--, 1);
-                    else fixedDetectors[i].kind = 'Fixed Detector';
+                    if (fixedDetectors[i].type == 'M') fixedDetectors.splice(i--, 1);
+                    else fixedDetectors[i].kind = fixedDetectors[i].type_display + ' Detector';
                 }
-                vm.placesAndUsers.extend(fixedDetectors);
-            }
-
-            function usersSuccessFn(data, status, headers, config) {
-                var users = data.data;
-                users.forEach(function (placeOrUser) {
-                        placeOrUser.kind = 'User';
-                    });
-                vm.placesAndUsers.extend(users);
+                vm.fixedBeaconsAndDetectors.extend(fixedDetectors);
             }
 
             function errorFn(data, status, headers, config) {
@@ -102,7 +93,7 @@
 
         function refresh() {
             if (vm.filterDate) {
-                Sightings.list(vm.filterDate, vm.filterPlacesAndUsers, vm.filterShowAll).then(successFn, errorFn);
+                Sightings.list(vm.filterDate, vm.filterFixedBeaconsAndDetectors, vm.filterShowAll).then(successFn, errorFn);
             }
 
             function successFn(data, status, headers, config) {
@@ -145,11 +136,11 @@
 
         function applyFilterAndPreventTimesInTheFutureToSightings() {
             if (vm.sightings) {
-                var filterPlacesAndUsersIds = undefined;
-                if (vm.filterPlacesAndUsers != null && vm.filterPlacesAndUsers.length > 0) {
-                    filterPlacesAndUsersIds = [];
-                    vm.filterPlacesAndUsers.forEach(function (placeOrUser) {
-                        filterPlacesAndUsersIds.push(placeOrUser.kind.replace(' ', '') + placeOrUser.id);
+                var filterFixedBeaconsAndDetectorsIds = undefined;
+                if (vm.filterFixedBeaconsAndDetectors != null && vm.filterFixedBeaconsAndDetectors.length > 0) {
+                    filterFixedBeaconsAndDetectorsIds = [];
+                    vm.filterFixedBeaconsAndDetectors.forEach(function (fixedBeaconOrDetector) {
+                        filterFixedBeaconsAndDetectorsIds.push(fixedBeaconOrDetector.kind.replace(' ', '') + fixedBeaconOrDetector.id);
                     })
                 }
 
@@ -159,10 +150,11 @@
                         vm.sightings[i].last_seen_at = now;
                     }
                     vm.sightings[i].satisfyFilter = new Date(vm.sightings[i].last_seen_at) >= new Date(vm.filterDate) &&
-                    (filterPlacesAndUsersIds === undefined ||
-                    (!!vm.sightings[i].beacon && filterPlacesAndUsersIds.indexOf('FixedBeacon' + vm.sightings[i].beacon.id) >= 0) ||
-                    (!!vm.sightings[i].detector && filterPlacesAndUsersIds.indexOf('FixedDetector' + vm.sightings[i].detector.id) >= 0) ||
-                    (!!vm.sightings[i].user && vm.sightings[i].beacon.type == 'M' && filterPlacesAndUsersIds.indexOf('User' + vm.sightings[i].user.id) >= 0));
+                    (filterFixedBeaconsAndDetectorsIds === undefined ||
+                    (!!vm.sightings[i].beacon && filterFixedBeaconsAndDetectorsIds.indexOf('FixedBeacon' + vm.sightings[i].beacon.id) >= 0) ||
+                    (!!vm.sightings[i].detector &&
+                        (filterFixedBeaconsAndDetectorsIds.indexOf('FixedDetector' + vm.sightings[i].detector.id) >= 0 ||
+                         filterFixedBeaconsAndDetectorsIds.indexOf('UserDetector' + vm.sightings[i].detector.id) >= 0)));
                 }
             }
         }

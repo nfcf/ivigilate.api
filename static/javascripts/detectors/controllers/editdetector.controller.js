@@ -9,11 +9,14 @@
 
     function EditDetectorController($location, $scope, $timeout, $modalInstance, data, Authentication, Detectors, uiGmapGoogleMapApi) {
         var vm = this;
+        vm.fileChanged = fileChanged;
         vm.cancel = cancel;
         vm.save = save;
 
         vm.error = undefined;
         vm.detector = undefined;
+        vm.imagePreview = undefined;
+        vm.imageToUpload = undefined;
         vm.map = undefined;
         vm.showMap = false;
         vm.defaultZoomLevel = 15;
@@ -56,7 +59,7 @@
             if (user) {
                 uiGmapGoogleMapApi.then(function (maps) {
                     $timeout(function () {
-                        populateDialog(data, user);
+                        populateDialog(data);
                         vm.showMap = true;
                     }, 250);
                 });
@@ -66,8 +69,9 @@
             }
         }
 
-        function populateDialog(data, user) {
+        function populateDialog(data) {
             vm.detector = data;
+            vm.imagePreview = vm.detector.photo;
 
             $scope.$watch('vm.detector.type', function () {
                 vm.showMap = vm.detector.type == 'F';
@@ -91,11 +95,28 @@
             vm.marker.coords.longitude = vm.map.center.longitude;
         }
 
+        function fileChanged(files) {
+            if (files && files[0]) {
+                var fileReader = new FileReader();
+                fileReader.onload = function (e) {
+                    $scope.$apply(function () {
+                        vm.imageToUpload = files[0];
+                        $timeout(function () {
+                            vm.imagePreview = fileReader.result;
+                        }, 250);
+                    });
+                };
+                fileReader.readAsDataURL(files[0]);
+            } else {
+                vm.imagePreview = null;
+            }
+        }
+
         function save() {
             $scope.$broadcast('show-errors-check-validity');
 
             if (vm.form.$valid) {
-                Detectors.update(vm.detector).then(successFn, errorFn);
+                Detectors.update(vm.detector, vm.imageToUpload).then(successFn, errorFn);
             } else {
                 vm.error = 'There are invalid fields in the form.';
             }

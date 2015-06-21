@@ -12,7 +12,7 @@
                         <th st-sort="photo">Photo</th>
                         <th st-sort="reference_id">ID</th>
                         <th st-sort="name" st-sort-default="True">Name</th>
-                        <th st-sort="type">Type</th>
+                        <th class="text-center" st-sort="type">Type</th>
                         <th class="text-center" st-sort="battery">Battery</th>
                         <th class="text-center" st-sort="is_active">Active?</th>
                         <th></th>
@@ -30,12 +30,12 @@
                         </td>
                         <td class="valign-middle">{{ beacon.reference_id || beacon.uid }}</td>
                         <td class="valign-middle">{{ beacon.name }}</td>
-                        <td class="valign-middle">{{ beacon.type }}</td>
+                        <td class="valign-middle text-center">{{ beacon.type_display }}</td>
                         <td class="valign-middle text-center">{{ beacon.battery || 'N/A' }}</td>
                         <td class="valign-middle text-center">
                             <input type="checkbox" ng-model="beacon.is_active" ng-click="vm.updateBeaconState(beacon)">
                         </td>
-                        <td>
+                        <td class="valign-middle text-center">
                             <a ng-click="vm.editBeacon(beacon)">Edit</a>
                         </td>
                     </tr>

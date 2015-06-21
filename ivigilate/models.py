@@ -79,7 +79,7 @@ class AuthUserManager(BaseUserManager):
         now = datetime.now(timezone.utc)
 
         email = self.normalize_email(email)
-        user = self.model(account=account, email=email, reference_id=email,
+        user = self.model(account=account, email=email,
                           is_staff=is_staff, is_active=True,
                           is_superuser=is_superuser,
                           created_at=now, last_login=now, **extra_fields)
@@ -106,10 +106,8 @@ class AuthUser(AbstractBaseUser, PermissionsMixin):
                                                 'unique': _('The given email address has already been registered.')
                                              }
                              )
-    reference_id = models.CharField(max_length=64, blank=True)
     first_name = models.CharField(_('first name'), max_length=30, blank=True)
     last_name = models.CharField(_('last name'), max_length=30, blank=True)
-    photo = models.FileField(upload_to='photos', blank=True, null=True)
     metadata = models.TextField(blank=True)
 
     is_account_admin = models.BooleanField(_('account admin status'), default=False,
@@ -135,9 +133,6 @@ class AuthUser(AbstractBaseUser, PermissionsMixin):
         full_name = '%s %s' % (self.first_name, self.last_name)
         return full_name.strip()
 
-    def get_short_name(self):
-        return self.first_name
-
     def email_user(self, subject, message, from_email=None, **kwargs):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
@@ -157,12 +152,14 @@ class Detector(models.Model):
     TYPE = (
         ('M', 'Movable'),
         ('F', 'Fixed'),
+        ('U', 'User'),
     )
     account = models.ForeignKey(Account, related_name='detectors')
     uid = models.CharField(max_length=36)
     reference_id = models.CharField(max_length=64, blank=True)
     name = models.CharField(max_length=64, blank=True)
     type = models.CharField(max_length=1, choices=TYPE, default='F')
+    photo = models.FileField(upload_to='photos', blank=True, null=True)
     location = models.PointField(null=True)
     arrival_rssi = models.IntegerField(default=-85)
     departure_rssi = models.IntegerField(default=-95)
@@ -231,7 +228,6 @@ class Beacon(models.Model):
 class Sighting(models.Model):
     beacon = models.ForeignKey(Beacon)
     detector = models.ForeignKey(Detector, null=True)
-    user = models.ForeignKey(AuthUser, null=True)
     first_seen_at = models.DateTimeField()
     last_seen_at = models.DateTimeField()
     location = models.PointField(null=True, blank=True)
@@ -246,14 +242,6 @@ class Sighting(models.Model):
     commented_at = models.DateTimeField(null=True)
     is_current = models.BooleanField(default=True)
     objects = models.GeoManager()
-
-    def get_watcher_name(self):
-        watcher_name = None
-        if self.detector:
-            watcher_name = self.detector.name
-        elif self.user:
-            watcher_name = self.user.get_full_name()
-        return watcher_name
 
     def get_duration(self):
         return (self.last_seen_at - self.first_seen_at).seconds
@@ -275,8 +263,7 @@ class Sighting(models.Model):
         super(Sighting, self).save(*args, **kwargs)
 
     def __str__(self):
-        return "%s: beacon=%s, watcher_name=%s" % \
-               (self.id, self.beacon.name, self.get_watcher_name())
+        return "%s: beacon=%s, detector=%s" % (self.id, self.beacon.name, self.detector.name)
 
 
 class Event(models.Model):
@@ -285,7 +272,6 @@ class Event(models.Model):
     name = models.CharField(max_length=64)
     beacons = models.ManyToManyField(Beacon, blank=True, related_name='events')
     detectors = models.ManyToManyField(Detector, blank=True)
-    users = models.ManyToManyField(AuthUser, blank=True)
 
     schedule_days_of_week = models.PositiveSmallIntegerField(default=0)  # used as an 8bit field for easy logical ops
     # schedule_specific_date = models.DateTimeField()
@@ -316,8 +302,7 @@ class Event(models.Model):
         super(Event, self).save(*args, **kwargs)
 
     def __str__(self):
-        return "%s: reference_id=%s, name=%s)" % \
-               (self.account.company_id, self.reference_id, self.name)
+        return "%s: reference_id=%s, name=%s)" % (self.account.company_id, self.reference_id, self.name)
 
 
 class EventOccurrence(models.Model):

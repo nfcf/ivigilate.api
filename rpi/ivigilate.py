@@ -17,7 +17,7 @@ def init_logger(log_level):
 def send_sightings(sightings):
     for sighting in sightings:
         sighting['company_id'] = config.get('BASE', 'company_id')
-        sighting['watcher_uid'] = config.get('DEVICE', 'hardware') + config.get('DEVICE', 'revision') + config.get('DEVICE', 'serial')
+        sighting['detector_uid'] = config.get('DEVICE', 'hardware') + config.get('DEVICE', 'revision') + config.get('DEVICE', 'serial')
 
     try:
         logger.info('Sending %s sightings to the server...', len(sightings))

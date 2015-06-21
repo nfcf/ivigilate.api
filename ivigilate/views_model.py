@@ -1,3 +1,4 @@
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import Q
 from rest_framework.response import Response
@@ -86,6 +87,40 @@ class AuthUserViewSet(viewsets.ModelViewSet):
 
         return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
 
+    def update(self, request, pk=None):
+        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
+        try:
+            instance = self.queryset.get(id=pk, account=account)
+            original_email = instance.email
+        except AuthUser.DoesNotExist:
+            return Response('User does not exist or is not associated with the current logged on account.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer_class()(instance, data=request.data)
+
+        if serializer.is_valid():
+            if serializer.save():
+                user = instance
+                if instance.email != original_email:
+                    password = serializer.validated_data.get('password')
+                    if password is not None:
+                        logout(request)
+                        user = authenticate(email=instance.email, password=password)
+                        if user is not None:
+                            login(request, user)
+                    try:
+                        detector = Detector.objects.get(uid=original_email)
+                        detector.uid = user.email
+                        detector.save()
+                    except Detector.DoesNotExist:
+                        pass
+                else:
+                    update_session_auth_hash(request, user)
+
+                return Response(AuthUserReadSerializer(user, context={'request': request}).data,
+                                status=status.HTTP_202_ACCEPTED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class DetectorViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
                    mixins.RetrieveModelMixin, viewsets.GenericViewSet):
@@ -130,6 +165,9 @@ class DetectorViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
 
         if serializer.is_valid():
             if serializer.save(user=user):
+                # delete this field from the response as it isn't serializable
+                if 'photo' in serializer.validated_data:
+                    del serializer.validated_data['photo']
                 return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -224,8 +262,6 @@ class SightingViewSet(viewsets.ModelViewSet):
                     filter_beacons = request.query_params.getlist('filterBeacons')
                 if request.query_params.get('filterDetectors') is not None:
                     filter_detectors = request.query_params.getlist('filterDetectors')
-                if request.query_params.get('filterUsers') is not None:
-                    filter_users = request.query_params.getlist('filterUsers')
                 if request.query_params.get('filterShowAll') is not None:
                     filter_show_all = request.query_params.get('filterShowAll') in ['True', 'true', '1']
 
@@ -234,21 +270,18 @@ class SightingViewSet(viewsets.ModelViewSet):
                              'WHERE b.account_id = %s AND s.last_seen_at BETWEEN %s AND %s ' + \
                              'AND (%s OR s.beacon_id = ANY(%s::integer[])) ' + \
                              'AND (%s OR s.detector_id = ANY(%s::integer[])) ' + \
-                             'AND (%s OR s.user_id = ANY(%s::integer[])) ' + \
                              'AND s.last_seen_at IN (' + \
                              ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY beacon_id' + \
                              ') ORDER BY s.last_seen_at DESC'
             filteredQueryParams = [account.id, filter_date + ' 00:00:00', filter_date + ' 23:59:59',
                                    len(filter_beacons) == 0, [int(x) for x in filter_beacons],
-                                   len(filter_detectors) == 0, [int(x) for x in filter_detectors],
-                                   len(filter_users) == 0, [int(x) for x in filter_users]]
+                                   len(filter_detectors) == 0, [int(x) for x in filter_detectors]]
 
             showAllQuery = '(SELECT s.* ' + \
                             'FROM ivigilate_sighting s JOIN ivigilate_beacon b ON s.beacon_id = b.id ' + \
                             'WHERE b.account_id = %s AND s.first_seen_at >= %s AND s.last_seen_at <= %s ' + \
                             'AND (%s OR s.beacon_id = ANY(%s::integer[])) ' + \
                             'AND (%s OR s.detector_id = ANY(%s::integer[])) ' + \
-                            'AND (%s OR s.user_id = ANY(%s::integer[])) ' + \
                             'AND s.last_seen_at IN (' + \
                             ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY beacon_id' + \
                             ') ORDER BY s.last_seen_at DESC)' + \
@@ -262,7 +295,6 @@ class SightingViewSet(viewsets.ModelViewSet):
             showAllQueryParams = [account.id, filter_date + ' 00:00:00', filter_date + ' 23:59:59',
                                   len(filter_beacons) == 0, [int(x) for x in filter_beacons],
                                   len(filter_detectors) == 0, [int(x) for x in filter_detectors],
-                                  len(filter_users) == 0, [int(x) for x in filter_users],
                                   account.id, filter_date + ' 23:59:59']
 
             queryset = self.queryset.raw(showAllQuery if filter_show_all else filteredQuery,

@@ -42,8 +42,6 @@
         vm.beacons_selected = [];
         vm.detectors = [];
         vm.detectors_selected = [];
-        vm.users = [];
-        vm.users_selected = [];
 
         vm.actions_index = 0;
 

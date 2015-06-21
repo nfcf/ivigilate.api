@@ -1,4 +1,4 @@
-from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth import update_session_auth_hash, login
 from rest_framework import serializers
 from rest_framework_gis import serializers as gis_serializers
 from ivigilate.models import *
@@ -68,24 +68,14 @@ class AccountSerializer(serializers.ModelSerializer):
         return instance
 
 
-class SimpleAuthUserSerializer(serializers.ModelSerializer):
-    company_id = serializers.CharField(source='account.company_id')
-    name = serializers.CharField(source='get_full_name', read_only=True)
-
-    class Meta:
-        model = AuthUser
-        fields = ('id', 'company_id', 'email', 'reference_id', 'name', 'photo')
-
-
 class AuthUserReadSerializer(serializers.ModelSerializer):
     company_id = serializers.CharField(source='account.company_id')
-    name = serializers.CharField(source='get_full_name', read_only=True)
     license_about_to_expire = LicenseSerializer(source='account.get_license_about_to_expire', read_only=True)
     license_due_for_payment = LicenseSerializer(source='account.get_license_due_for_payment', read_only=True)
 
     class Meta:
         model = AuthUser
-        fields = ('id', 'company_id', 'email', 'name', 'photo',
+        fields = ('id', 'company_id', 'email', 'first_name', 'last_name',
                   'metadata', 'is_account_admin', 'is_active',
                   'created_at', 'updated_at', 'license_about_to_expire', 'license_due_for_payment')
 
@@ -97,7 +87,7 @@ class AuthUserWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AuthUser
-        fields = ('id', 'company_id', 'email', 'first_name', 'last_name', 'photo',
+        fields = ('id', 'company_id', 'email', 'first_name', 'last_name',
                   'metadata', 'is_account_admin', 'is_active', 'password', 'confirm_password')
 
     def validate_company_id(self, value):
@@ -114,7 +104,6 @@ class AuthUserWriteSerializer(serializers.ModelSerializer):
         instance.email = validated_data.get('email', instance.email)
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
-        instance.photo = validated_data.get('photo', instance.photo)
         instance.metadata = validated_data.get('metadata', instance.metadata)
         instance.is_account_admin = validated_data.get('is_account_admin', instance.is_account_admin)
         instance.is_active = validated_data.get('is_active', instance.is_active)
@@ -128,18 +117,17 @@ class AuthUserWriteSerializer(serializers.ModelSerializer):
             instance.set_password(password1)
             instance.save()
 
-        update_session_auth_hash(self.context.get('request'), instance)
-
         return instance
 
 
 class DetectorReadSerializer(gis_serializers.GeoModelSerializer):
     account = serializers.HyperlinkedIdentityField(view_name='account-detail')
+    type_display = serializers.CharField(source='get_type_display', read_only=True)
 
     class Meta:
         model = Detector
         geo_field = 'location'
-        fields = ('id', 'account', 'uid', 'reference_id', 'type', 'name',
+        fields = ('id', 'account', 'uid', 'reference_id', 'type', 'type_display', 'photo', 'name',
                   'location', 'arrival_rssi', 'departure_rssi',
                   'created_at', 'updated_at', 'updated_by', 'is_active')
 
@@ -148,12 +136,13 @@ class DetectorWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Detector
         geo_field = 'location'
-        fields = ('reference_id', 'type', 'name', 'location', 'arrival_rssi', 'departure_rssi',
-                  'metadata', 'is_active')
+        fields = ('reference_id', 'type', 'photo', 'name', 'location',
+                  'arrival_rssi', 'departure_rssi', 'metadata', 'is_active')
 
     def update(self, instance, validated_data):
         instance.reference_id = validated_data.get('reference_id', instance.reference_id)
         instance.type = validated_data.get('type', instance.type)
+        instance.photo = validated_data.get('photo', instance.photo)
         instance.name = validated_data.get('name', instance.name)
         instance.location = validated_data.get('location', instance.location)
         instance.arrival_rssi = validated_data.get('arrival_rssi', instance.arrival_rssi)
@@ -174,18 +163,17 @@ class SimpleEventSerializer(serializers.HyperlinkedModelSerializer):
 
 class BeaconReadSerializer(serializers.HyperlinkedModelSerializer):
     events = SimpleEventSerializer(many=True, read_only=True)
+    type_display = serializers.CharField(source='get_type_display', read_only=True)
 
     class Meta:
         model = Beacon
         geo_field = 'location'
-        fields = ('id', 'account', 'uid', 'reference_id', 'type',
+        fields = ('id', 'account', 'uid', 'reference_id', 'type', 'type_display',
                   'name', 'photo', 'location', 'reported_missing', 'events',
                   'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
 
 
 class BeaconWriteSerializer(serializers.ModelSerializer):
-    company_id = serializers.CharField(source='account.company_id', required=False)
-
     class Meta:
         model = Beacon
         geo_field = 'location'
@@ -217,14 +205,12 @@ class BeaconWriteSerializer(serializers.ModelSerializer):
 class SightingReadSerializer(gis_serializers.GeoModelSerializer):
     beacon = BeaconReadSerializer()
     detector = DetectorReadSerializer()
-    user = SimpleAuthUserSerializer()
-    watcher_name = serializers.CharField(source='get_watcher_name', read_only=True)
 
     class Meta:
         model = Sighting
         geo_field = 'location'
-        fields = ('id', 'beacon', 'detector', 'user', 'first_seen_at', 'last_seen_at',
-                  'location', 'watcher_name', 'rssi', 'battery', 'metadata', 'confirmed',
+        fields = ('id', 'beacon', 'detector', 'first_seen_at', 'last_seen_at',
+                  'location', 'rssi', 'battery', 'metadata', 'confirmed',
                   'confirmed_by', 'confirmed_at', 'comment', 'commented_by', 'commented_at', 'is_current')
 
 
@@ -252,6 +238,7 @@ class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
         if not validated_data.get('comment'):
             raise serializers.ValidationError('Comment field cannot be empty.')
 
+        del validated_data['user']
         sighting = Sighting.objects.create(**validated_data)
         check_for_events(sighting)
         return sighting

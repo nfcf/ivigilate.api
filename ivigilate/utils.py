@@ -50,9 +50,9 @@ def send_twilio_message(to, msg):
     )
 
 
-def close_sighting(sighting, new_sighting_detector=None, new_sighting_user=None):
+def close_sighting(sighting, new_sighting_detector=None):
     sighting.is_current = False
-    check_for_events(sighting, new_sighting_detector, new_sighting_user)
+    check_for_events(sighting, new_sighting_detector)
     sighting.save()
     logger.debug('Sighting \'%s\' is no longer current.', sighting)
 
@@ -79,7 +79,7 @@ def trigger_event_actions(event, sighting):
                           re.split(',|;', action['recipients']), fail_silently=False)
 
 
-def check_for_events(sighting, new_sighting_detector=None, new_sighting_user=None):
+def check_for_events(sighting, new_sighting_detector=None):
     logger.debug('Checking for events associated with sighting \'%s\'...', sighting)
     now = datetime.now(timezone.utc)
     current_week_day_representation = math.pow(2, now.weekday())
@@ -87,10 +87,10 @@ def check_for_events(sighting, new_sighting_detector=None, new_sighting_user=Non
     raw_query = Event.objects.raw('SELECT e.* ' + \
                                   'FROM ivigilate_event e ' \
                                   'LEFT OUTER JOIN ivigilate_event_beacons eb ON e.id = eb.event_id ' \
-                                  'LEFT OUTER JOIN ivigilate_event_detectors er ON e.id = er.event_id ' \
+                                  'LEFT OUTER JOIN ivigilate_event_detectors ed ON e.id = ed.event_id ' \
                                   'WHERE (e.is_active = True ' \
                                   'AND (eb.beacon_id IS NULL OR eb.beacon_id = %s) ' \
-                                  'AND (er.detector_id IS NULL OR er.detector_id = %s) ' \
+                                  'AND (ed.detector_id IS NULL OR ed.detector_id = %s) ' \
                                   'AND e.schedule_days_of_week & %s > 0 ' \
                                   'AND e.schedule_start_time <= %s + interval \'1m\' * e.schedule_timezone_offset ' \
                                   'AND e.schedule_end_time >= %s + interval \'1m\' * e.schedule_timezone_offset)',
@@ -123,8 +123,7 @@ def check_for_events(sighting, new_sighting_detector=None, new_sighting_user=Non
                     ((event.sighting_has_been_confirmed is None) or
                          (event.sighting_has_been_confirmed and sighting.confirmed) or
                          (not event.sighting_has_been_confirmed and not sighting.confirmed)) and \
-                    (new_sighting_detector is None or new_sighting_detector in event.detectors.all()) and \
-                    (new_sighting_user is None or new_sighting_user in event.users.all()):  # need to handle this new_sighting_user condition...
+                    (new_sighting_detector is None or new_sighting_detector in event.detectors.all()):
 
                 if (event.sighting_previous_event is None):
                     # Make sure we don't trigger the same actions over and over again (only once per sighting)

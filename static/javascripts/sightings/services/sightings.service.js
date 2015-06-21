@@ -28,15 +28,13 @@
             return $http.get('/api/v1/sightings/' + id + '/');
         }
 
-        function list(filterDate, filterPlacesAndUsers, filterShowAll) {
+        function list(filterDate, filterFixedBeaconsAndDetectors, filterShowAll) {
             var filterBeaconsIds = [];
             var filterDetectorsIds = [];
-            var filterUsersIds = [];
-            if (filterPlacesAndUsers != null && filterPlacesAndUsers.length > 0) {
-                filterPlacesAndUsers.forEach(function(placeOrUser) {
-                    if (placeOrUser.kind == 'Fixed Beacon') filterBeaconsIds.push(placeOrUser.id);
-                    else if (placeOrUser.kind == 'Fixed Detector') filterDetectorsIds.push(placeOrUser.id);
-                    else if (placeOrUser.kind == 'User') filterUsersIds.push(placeOrUser.id);
+            if (filterFixedBeaconsAndDetectors != null && filterFixedBeaconsAndDetectors.length > 0) {
+                filterFixedBeaconsAndDetectors.forEach(function(fixedBeaconOrDetector) {
+                    if (fixedBeaconOrDetector.kind.indexOf('Beacon') >= 0) filterBeaconsIds.push(fixedBeaconOrDetector.id);
+                    else if (fixedBeaconOrDetector.kind.indexOf('Detector') >= 0) filterDetectorsIds.push(fixedBeaconOrDetector.id);
                 })
             }
             return $http.get('/api/v1/sightings/',
@@ -45,7 +43,6 @@
                         filterDate: filterDate,
                         filterBeacons: filterBeaconsIds.length > 0 ? filterBeaconsIds : undefined,
                         filterDetectors: filterDetectorsIds.length > 0 ? filterDetectorsIds : undefined,
-                        filterUsers: filterUsersIds.length > 0 ? filterUsersIds : undefined,
                         filterShowAll: filterShowAll}
                 }
             );
@@ -59,7 +56,6 @@
             var sightingToSend = JSON.parse(JSON.stringify(sighting));
             sightingToSend.beacon = sighting.beacon.id;  // Required for the REST serializer
             sightingToSend.detector = !!sighting.detector ? sighting.detector.id : null;  // Required for the REST serializer
-            sightingToSend.user = !!sighting.user ? sighting.user.id : null;  // Required for the REST serializer
             return $http.put('/api/v1/sightings/' + sightingToSend.id + '/', sightingToSend);
         }
     }

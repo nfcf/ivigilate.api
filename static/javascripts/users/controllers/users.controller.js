@@ -9,7 +9,6 @@
 
     function UsersController($location, $scope, $timeout, Authentication, Users) {
         var vm = this;
-        vm.fileChanged = fileChanged;
         vm.update = update;
         vm.updateUserActiveState = updateUserActiveState;
         vm.updateUserAdminState = updateUserAdminState;
@@ -19,8 +18,7 @@
 
         vm.user = undefined;
         vm.users = undefined;
-        vm.imagePreview = undefined;
-        vm.imageToUpload = undefined;
+        vm.original_email = undefined;
 
         activate();
 
@@ -35,7 +33,7 @@
 
             function getUserSuccessFn(data, status, headers, config) {
                 vm.user = data.data;
-                vm.imagePreview = vm.user.photo;
+                vm.original_email = vm.user.email;
 
                 if (vm.user.is_account_admin) {
                     Users.list().then(listUsersSuccessFn, errorFn);
@@ -51,34 +49,26 @@
             }
         }
 
-        function fileChanged(files) {
-            if (files && files[0]) {
-                var fileReader = new FileReader();
-                fileReader.onload = function (e) {
-                    $scope.$apply(function () {
-                        vm.imageToUpload = files[0];
-                        $timeout(function () {
-                            vm.imagePreview = fileReader.result;
-                        }, 250);
-                    });
-                };
-                fileReader.readAsDataURL(files[0]);
-            } else {
-                vm.imagePreview = null;
-            }
-        }
-
         function update() {
+            if (vm.user.password !== undefined && vm.user.password.trim() === '') vm.user.password = undefined;
+            if (vm.user.confirm_password !== undefined && vm.user.confirm_password.trim() === '') vm.user.confirm_password = undefined;
+
             $scope.$broadcast('show-errors-check-validity');
 
             if (vm.form.$valid) {
-                if (vm.user.password !== undefined && vm.user.password.trim() === '') vm.user.password = undefined;
-                Users.update(vm.user, vm.imageToUpload).then(successFn, errorFn);
+                Users.update(vm.user).then(successFn, errorFn);
             } else {
-                vm.error = 'There are invalid fields in the form.';
+                if (vm.user.email != vm.original_email &&
+                    (vm.user.password == undefined || vm.user.confirm_password == undefined)) {
+                    vm.error = 'You need to provide your password to be able to change your email address.';
+                } else {
+                    vm.error = 'There are invalid fields in the form.';
+                }
+                vm.success = null;
             }
 
             function successFn(data, status, headers, config) {
+                Authentication.setAuthenticatedUser(data.data);
                 vm.error = null;
                 vm.success = 'Your settings have been updated.';
             }

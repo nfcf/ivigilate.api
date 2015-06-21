@@ -78,7 +78,7 @@
         <fieldset>
             <legend>Trigger conditions</legend>
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="form-group">
                         <label>Beacon(s)</label>
                         <ui-select multiple='true' ng-model="vm.beacons_selected"
@@ -89,13 +89,13 @@
                                     repeat="beacon in vm.beacons | propsFilter: {name: $select.search, reference_id: $select.search} track by beacon.id">
                                 <div ng-bind-html="beacon.name | highlight: $select.search"></div>
                                 <small>
-                                    ID: <span ng-bind-html="beacon.reference_id | highlight: $select.search"></span>
+                                    {{ beacon.type_display }} with ID: <span ng-bind-html="beacon.reference_id | highlight: $select.search"></span>
                                 </small>
                             </ui-select-choices>
                         </ui-select>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="form-group">
                         <label>Detector(s)</label>
                         <ui-select multiple='true' ng-model="vm.detectors_selected"
@@ -106,24 +106,7 @@
                                     repeat="detector in vm.detectors | propsFilter: {name: $select.search, reference_id: $select.search} track by detector.id">
                                 <div ng-bind-html="detector.name | highlight: $select.search"></div>
                                 <small>
-                                    ID: <span ng-bind-html="detector.reference_id | highlight: $select.search"></span>
-                                </small>
-                            </ui-select-choices>
-                        </ui-select>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label>User(s)</label>
-                        <ui-select multiple='true' ng-model="vm.users_selected"
-                                   theme="select2" ng-disabled="disabled" style="width: 100%;">
-                            <ui-select-match placeholder="Select user(s) or leave empty for all...">
-                                {{$item.name}}</ui-select-match>
-                            <ui-select-choices
-                                    repeat="user in vm.users | propsFilter: {name: $select.search, reference_id: $select.search} track by user.id">
-                                <div ng-bind-html="user.name | highlight: $select.search"></div>
-                                <small>
-                                    ID: <span ng-bind-html="user.reference_id | highlight: $select.search"></span>
+                                    {{ detector.type_display }} with ID: <span ng-bind-html="detector.reference_id | highlight: $select.search"></span>
                                 </small>
                             </ui-select-choices>
                         </ui-select>

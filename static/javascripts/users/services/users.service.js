@@ -5,9 +5,9 @@
         .module('ivigilate.users.services')
         .factory('Users', Users);
 
-    Users.$inject = ['$http', '$upload'];
+    Users.$inject = ['$http'];
 
-    function Users($http, $upload) {
+    function Users($http) {
 
         var Users = {
             destroy: destroy,
@@ -31,20 +31,8 @@
             return $http.get('/api/v1/users/');
         }
 
-        function update(user, image) {
-            var userToSend = JSON.parse(JSON.stringify(user));
-            userToSend.photo = undefined;
-            if (!!image) {
-                return $upload.upload({
-                    url: '/api/v1/users/' + userToSend.id + '/',
-                    method: 'PUT',
-                    fields: userToSend,
-                    file: image,
-                    fileFormDataName: 'photo'
-                });
-            } else {
-                return $http.put('/api/v1/users/' + userToSend.id + '/', userToSend);
-            }
+        function update(user) {
+            return $http.put('/api/v1/users/' + user.id + '/', user);
         }
     }
 })();

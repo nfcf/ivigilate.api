@@ -44,9 +44,7 @@
         function editDetector(detector) {
             var dlg = dialogs.create('static/templates/detectors/editdetector.html', 'EditDetectorController as vm', detector, {'size': 'lg'});
             dlg.result.then(function (editedDetector) {
-                for (var k in editedDetector) { //Copy the object attributes to the currently displayed on the table
-                    detector[k] = editedDetector[k];
-                }
+                refresh()
             });
         }
 

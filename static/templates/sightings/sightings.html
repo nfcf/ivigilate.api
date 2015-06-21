@@ -22,16 +22,16 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <label for="filterPlacesAndUsers">Seen at / by</label>
+                    <label for="filterFixedBeaconsAndDetectors">Seen at / by</label>
 
                     <div class="form-group">
-                        <ui-select multiple ng-model="vm.filterPlacesAndUsers" theme="select2" ng-disabled="disabled" style="width: 100%">
-                            <ui-select-match placeholder="Select place(s) or user(s)...">{{$item.name}}</ui-select-match>
+                        <ui-select multiple ng-model="vm.filterFixedBeaconsAndDetectors" theme="select2" ng-disabled="disabled" style="width: 100%">
+                            <ui-select-match placeholder="Select fixed beacon(s) or detector(s)...">{{$item.name}}</ui-select-match>
                             <ui-select-choices
-                                    repeat="placeOrUser in vm.placesAndUsers | propsFilter: {name: $select.search, reference_id: $select.search}">
-                                <div ng-bind-html="placeOrUser.name | highlight: $select.search"></div>
+                                    repeat="fixedBeaconOrDetector in vm.fixedBeaconsAndDetectors | propsFilter: {name: $select.search, reference_id: $select.search}">
+                                <div ng-bind-html="fixedBeaconOrDetector.name | highlight: $select.search"></div>
                                 <small>
-                                    {{ placeOrUser.kind }} with ID: <span ng-bind-html="placeOrUser.reference_id"></span>
+                                    {{ fixedBeaconOrDetector.kind }} with ID: <span ng-bind-html="fixedBeaconOrDetector.reference_id"></span>
                                 </small>
                             </ui-select-choices>
                         </ui-select>
@@ -77,34 +77,30 @@
                         <td class="valign-middle text-center"></td>
                         <td style="height:56px">
                             <img height="40px"
-                                 ng-src="{{ !!sighting.user && sighting.beacon.type == 'F' ?
-                                         sighting.user.photo :
+                                 ng-src="{{ sighting.beacon.type == 'Fixed' ?
+                                         sighting.detector.photo :
                                          sighting.beacon.photo }}"
-                                 ng-if="!!sighting.user && sighting.beacon.type == 'F' ?
-                                    sighting.user.photo :
+                                 ng-if="sighting.beacon.type == 'Fixed' ?
+                                    sighting.detector.photo :
                                     sighting.beacon.photo"/>
                         </td>
                         <td class="valign-middle">
-                            {{ !!sighting.user && sighting.beacon.type == 'F' ?
-                                    sighting.user.reference_id || sighting.user.email :
+                            {{ sighting.beacon.type == 'Fixed' ?
+                                    sighting.detector.reference_id || sighting.detector.uid :
                                     sighting.beacon.reference_id || sighting.beacon.uid }}
                         </td>
                         <td class="valign-middle">
-                            {{ !!sighting.user && sighting.beacon.type == 'F' ?
-                                    sighting.user.name :
+                            {{ sighting.beacon.type == 'Fixed' ?
+                                    sighting.detector.name :
                                     sighting.beacon.name }}
                         </td>
                         <td class="valign-middle">
                             {{ sighting.last_seen_at | relativeDate }}
-                            {{ !!sighting.user ?
-                                    sighting.beacon.type == 'F' ?
+                            {{ sighting.beacon.type == 'Fixed' ?
                                     'at' :
-                                    'by' :
-                                    'at' }}
-                            {{ !!sighting.user ?
-                                    sighting.beacon.type == 'F' ?
+                                    'by' }}
+                            {{ sighting.beacon.type == 'Fixed' ?
                                     sighting.beacon.name :
-                                    sighting.user.name :
                                     sighting.detector.name }}
                         </td>
                         <td class="valign-middle text-center">

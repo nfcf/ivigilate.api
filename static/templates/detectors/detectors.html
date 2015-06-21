@@ -9,38 +9,42 @@
                 <table st-table="vm.displayedDetectors" st-safe-src="vm.detectors" class="table table-striped">
                     <thead>
                     <tr>
+                        <th st-sort="photo">Photo</th>
                         <th st-sort="reference_id">ID</th>
                         <th st-sort="name" st-sort-default="True">Name</th>
-                        <th st-sort="type">Type</th>
-                        <th st-sort="arrival_rssi">Arrival Proximity</th>
-                        <th st-sort="departure_rssi">Departure Proximity</th>
+                        <th class="text-center" st-sort="type">Type</th>
+                        <th class="text-center" st-sort="arrival_rssi">Arrival Proximity</th>
+                        <th class="text-center" st-sort="departure_rssi">Departure Proximity</th>
                         <th class="text-center" st-sort="is_active">Active?</th>
                         <th></th>
                     </tr>
                     <tr>
-                        <th colspan="7">
+                        <th colspan="8">
                             <input st-search placeholder="Global Search" class="input-sm form-control" type="search"/>
                         </th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr ng-repeat="detector in vm.displayedDetectors">
-                        <td>{{ detector.reference_id || detector.uid }}</td>
-                        <td>{{ detector.name }}</td>
-                        <td>{{ detector.type }}</td>
-                        <td>{{ detector.arrival_rssi }}</td>
-                        <td>{{ detector.departure_rssi }}</td>
-                        <td class="text-center">
+                        <td style="height:56px">
+                            <img ng-src="{{ detector.photo }}" height="40px" ng-if="detector.photo"/>
+                        </td>
+                        <td class="valign-middle">{{ detector.reference_id || detector.uid }}</td>
+                        <td class="valign-middle">{{ detector.name }}</td>
+                        <td class="valign-middle text-center">{{ detector.type_display }}</td>
+                        <td class="valign-middle text-center">{{ detector.arrival_rssi }}</td>
+                        <td class="valign-middle text-center">{{ detector.departure_rssi }}</td>
+                        <td class="valign-middle text-center">
                             <input type="checkbox" ng-model="detector.is_active" ng-click="vm.updateDetectorState(detector)">
                         </td>
-                        <td>
+                        <td class="valign-middle text-center">
                             <a ng-click="vm.editDetector(detector)">Edit</a>
                         </td>
                     </tr>
                     </tbody>
                     <tfoot>
                     <tr>
-                        <td colspan="7" class="text-center">
+                        <td colspan="8" class="text-center">
                             <div st-pagination="" st-items-by-page="10" st-displayed-pages="5"></div>
                         </td>
                     </tr>

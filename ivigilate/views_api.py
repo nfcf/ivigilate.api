@@ -39,19 +39,35 @@ class LoginView(views.APIView):
         if user is not None:
             if user.is_active:
                 login(request, user)
-                if (metadata is not None and user.metadata is None) or \
-                    (metadata != user.metadata):
-                    user.metadata = metadata
+                if metadata is not None and len(metadata.strip()) > 0:
+                    now = datetime.datetime.now(timezone.utc)
+                    metadata = json.loads(metadata)
+                    metadata['device']['last_login_date'] = now.strftime("%Y-%m-%d %H:%M")
+                    if user.metadata is not None and len(user.metadata.strip()) > 0:
+                        user_metadata = json.loads(user.metadata)
+                        existing_device = next((device for device in user_metadata['devices'] if device['imei'] == metadata['device']['imei']), None)
+                        if existing_device is not None:
+                            existing_device['last_login_date'] = now.strftime("%Y-%m-%d %H:%M")
+                    else:
+                        user_metadata = {}
+                        user_metadata['devices'] = []
+                        user_metadata['devices'].append(metadata['device'])
+
+                    user.metadata = json.dumps(user_metadata)
                     user.save()
 
+                    try:
+                        Detector.objects.get(uid=user.email)
+                    except Detector.DoesNotExist:
+                        Detector.objects.create(account=user.account,uid=user.email,reference_id=user.email,
+                                                name=user.get_full_name(), type='U')
+
                 serialized = AuthUserReadSerializer(user, context={'request': request})
-                return Response(serialized.data)
+                return Response(serialized.data, status=status.HTTP_200_OK)
             else:
-                return Response('This user has been disabled.',
-                                status=status.HTTP_401_UNAUTHORIZED)
+                return Response('This user has been disabled.', status=status.HTTP_401_UNAUTHORIZED)
         else:
-            return Response('Invalid email/password combination.',
-                            status=status.HTTP_401_UNAUTHORIZED)
+            return Response('Invalid email/password combination.', status=status.HTTP_401_UNAUTHORIZED)
 
 
 class LogoutView(views.APIView):
@@ -74,13 +90,11 @@ class AddSightingsView(views.APIView):
             logger.info('Got %s sightings', len(data))
             for sighting in data:
                 company_id = sighting.get('company_id')
-                watcher_uid = sighting.get('watcher_uid').lower()
                 beacon_uid = sighting.get('beacon_uid', None)
+                detector_uid = sighting.get('detector_uid').lower()
                 rssi = sighting.get('rssi', None)
                 battery = sighting.get('battery', None)
                 location = sighting.get('location', None)
-                detector = None
-                user = None
 
                 try:
                     account = Account.objects.get(company_id=company_id)
@@ -93,31 +107,24 @@ class AddSightingsView(views.APIView):
 
                 try:
                     beacon = Beacon.objects.get(uid=beacon_uid)
+                    if not beacon.is_active:
+                        return Response('Ignoring sighting as the Beacon is not active on the system.',
+                                        status=status.HTTP_412_PRECONDITION_FAILED)
                 except Beacon.DoesNotExist:
                     beacon = Beacon.objects.create(account=account, uid=beacon_uid)
 
-                if '@' in watcher_uid:
-                    try:
-                        user = AuthUser.objects.get(email=watcher_uid)
-                        if not user.is_active:
-                            return Response('Ignoring sighting as the User is not active on the system.',
+                try:
+                    detector = Detector.objects.get(uid=detector_uid)
+                    if not detector.is_active:
+                        return Response('Ignoring sighting as the Detector is not active on the system.',
                                         status=status.HTTP_412_PRECONDITION_FAILED)
-                        elif location is not None:
-                            location = json.dumps(location)
-                    except AuthUser.DoesNotExist:
-                        return Response('Invalid Watcher UID (couldn\'t find corresponding user).',
-                                        status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    try:
-                        detector = Detector.objects.get(uid=watcher_uid)
-                        if not detector.is_active:
-                            return Response('Ignoring sighting as the Detector is not active on the system.',
-                                        status=status.HTTP_412_PRECONDITION_FAILED)
-                        else:
-                            location = detector.location
-                    except Detector.DoesNotExist:
-                        return Response('Invalid Watcher UID (couldn\'t find corresponding detector).',
-                                        status=status.HTTP_400_BAD_REQUEST)
+                    elif location is not None:
+                        location = json.dumps(location)
+                    else:
+                        location = detector.location
+                except Detector.DoesNotExist:
+                    return Response('Invalid Watcher UID (couldn\'t find corresponding detector).',
+                                    status=status.HTTP_400_BAD_REQUEST)
 
                 now = datetime.datetime.now(timezone.utc)
                 previous_sightings = Sighting.objects.filter(is_current=True, beacon=beacon).order_by('-last_seen_at')[:1]
@@ -125,16 +132,15 @@ class AddSightingsView(views.APIView):
                 new_sighting = None
                 if previous_sightings:
                     previous_sighting = previous_sightings[0]
-                    if (detector is not None and rssi < detector.departure_rssi):
+                    if detector is not None and rssi < detector.departure_rssi:
                         logger.info('Closing previous related sighting \'%s\' as the rssi dropped below the ' + \
                                     'departure_rssi configured for this detector (%s < %s).',
                                     previous_sighting, rssi, detector.departure_rssi)
-                        utils.close_sighting(previous_sighting, detector, user)
-                    elif ((previous_sighting.detector != detector or previous_sighting.user != user) and
-                            rssi > previous_sighting.rssi):
+                        utils.close_sighting(previous_sighting, detector)
+                    elif previous_sighting.detector != detector and rssi > (previous_sighting.rssi if previous_sighting.rssi is not None else 0):
                         logger.info('Closing previous related sighting \'%s\' as the beacon moved to another location.',
                                     previous_sighting)
-                        utils.close_sighting(previous_sighting, detector, user)
+                        utils.close_sighting(previous_sighting, detector)
                     else:
                         logger.debug('Updating previous related sighting \'%s\'.', previous_sighting)
                         new_sighting = previous_sighting
@@ -152,7 +158,7 @@ class AddSightingsView(views.APIView):
                         if (previous_sighting_occurred_at is None or
                             (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60):
                             logger.info('Reported missing beacon was seen at / by \'%s\'. ' +
-                                        'Notifying corresponding account owners...', detector if detector is not None else user)
+                                        'Notifying corresponding account owners...', detector)
                             try:
                                 send_mail('Reported missing: {0}'.format(beacon.name),
                                           '{0} was seen near the following coordinates: {1}'.format(beacon.name, detector.location),
@@ -162,24 +168,21 @@ class AddSightingsView(views.APIView):
                                 logger.exception('Failed to send reported missing email to account admins!')
                         else:
                             logger.info('Reported missing beacon was seen at / by \'%s\'. ' + \
-                                        'Skipping notification as the last one was triggered less than 1 minute ago...',
-                                        detector if detector is not None else user)
+                                        'Skipping notification as the last one was triggered less than 1 minute ago...', detector)
                             return Response('Ignored sighting as the beacon doesn\'t belong to this account.')
                     else:
                         logger.info('Ignoring current sighting as the beacon \'%s\' was seen at / by another account\'s ' +
-                                    'detector / user \'%s\' but has not been reported missing.',
-                                    beacon, detector if detector is not None else user)
+                                    'detector / user \'%s\' but has not been reported missing.', beacon, detector)
                         return Response('Ignored sighting as the beacon doesn\'t belong to this account.')
 
                 if new_sighting is None:
                     if detector is not None and rssi < detector.arrival_rssi and \
                             (beacon.account_id == account.id or not beacon.reported_missing):
                         logger.info('Ignoring sighting of beacon \'%s\' at / by \'%s\' as the rssi is lower than the ' +
-                                    'arrival_rssi configured for this detector / user (%s < %s).',
-                                    beacon, detector if detector is not None else user, rssi, detector.arrival_rssi)
+                                    'arrival_rssi configured for this detector / user (%s < %s).', beacon, detector, rssi, detector.arrival_rssi)
                         return Response('Ignored sighting due to weak rssi.')
                     else:
-                        new_sighting = Sighting.objects.create(beacon=beacon, detector=detector, user=user,
+                        new_sighting = Sighting.objects.create(beacon=beacon, detector=detector,
                                                                location=location, rssi=rssi, battery=battery)
                         logger.debug('Created new sighting \'%s\'.', new_sighting)
 
@@ -220,9 +223,7 @@ class AutoUpdateView(views.APIView):
             full_metadata = {}  # dict()
             full_metadata['device'] = metadata
             full_metadata['auto_update'] = None
-            Detector.objects.create(account=account,
-                                 uid=detector_uid,
-                                 metadata=json.dumps(full_metadata))
+            Detector.objects.create(account=account,uid=detector_uid,metadata=json.dumps(full_metadata))
 
         # check for updates by comparing last_update_date in the metadata field
         if 'auto_update' in full_metadata and \
