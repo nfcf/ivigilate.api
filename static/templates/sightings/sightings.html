@@ -77,29 +77,29 @@
                         <td class="valign-middle text-center"></td>
                         <td style="height:56px">
                             <img height="40px"
-                                 ng-src="{{ sighting.beacon.type == 'Fixed' ?
+                                 ng-src="{{ sighting.beacon.type == 'F' ?
                                          sighting.detector.photo :
                                          sighting.beacon.photo }}"
-                                 ng-if="sighting.beacon.type == 'Fixed' ?
+                                 ng-if="sighting.beacon.type == 'F' ?
                                     sighting.detector.photo :
                                     sighting.beacon.photo"/>
                         </td>
                         <td class="valign-middle">
-                            {{ sighting.beacon.type == 'Fixed' ?
+                            {{ sighting.beacon.type == 'F' ?
                                     sighting.detector.reference_id || sighting.detector.uid :
                                     sighting.beacon.reference_id || sighting.beacon.uid }}
                         </td>
                         <td class="valign-middle">
-                            {{ sighting.beacon.type == 'Fixed' ?
+                            {{ sighting.beacon.type == 'F' ?
                                     sighting.detector.name :
                                     sighting.beacon.name }}
                         </td>
                         <td class="valign-middle">
                             {{ sighting.last_seen_at | relativeDate }}
-                            {{ sighting.beacon.type == 'Fixed' ?
+                            {{ sighting.beacon.type == 'F' ?
                                     'at' :
                                     'by' }}
-                            {{ sighting.beacon.type == 'Fixed' ?
+                            {{ sighting.beacon.type == 'F' ?
                                     sighting.beacon.name :
                                     sighting.detector.name }}
                         </td>
