@@ -113,7 +113,6 @@ def check_for_events(sighting, new_sighting_detector=None):
         logger.debug('Found %s event(s) active for sighting \'%s\'.', len(events), sighting)
         for event in events:
             logger.debug('Checking if \'%s\' event conditions are met.', event)
-            duration = sighting.get_duration()
             if event.sighting_is_current == sighting.is_current and \
                             event.sighting_has_battery_below >= (sighting.battery or 0) and \
                             event.sighting_duration_in_seconds <= sighting.get_duration() and \

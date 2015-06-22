@@ -1,3 +1,4 @@
+from django.db.models import Count
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.platypus import *
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -8,7 +9,7 @@ from reportlab.lib.enums import TA_CENTER
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import cm, mm
 from reportlab.lib import colors
-from ivigilate.models import AuthUser
+from ivigilate.models import AuthUser, EventOccurrence
 
 
 class NumberedCanvas(canvas.Canvas):
@@ -32,7 +33,7 @@ class NumberedCanvas(canvas.Canvas):
     def draw_page_number(self, page_count):
         # Change the position of this to wherever you want the page number to be
         self.setFont("Helvetica", 8)
-        self.drawCentredString(self._pagesize[0] / 2, 2 * mm,
+        self.drawCentredString(self._pagesize[0] / 2, 5 * mm,
                              "Page %d of %d" % (self._pageNumber, page_count))
 
 
@@ -53,11 +54,11 @@ class Report:
 
         # Header
         header1 = Paragraph('iVigilate', styles['Heading4'])
-        header2 = Paragraph('http://www.ivigilate.com', styles['Heading4'])
+        header2 = Paragraph('www.ivigilate.com', styles['Heading4'])
         w, h = header1.wrap(doc.width, doc.topMargin)
         header1.drawOn(canvas, doc.leftMargin, doc.height + doc.topMargin - h)
         w, h = header2.wrap(doc.width, doc.topMargin)
-        header2.drawOn(canvas, doc.width - (3*doc.leftMargin), doc.height + doc.topMargin - h)
+        header2.drawOn(canvas, doc.width - (2*doc.leftMargin), doc.height + doc.topMargin - h)
 
         canvas.line(doc.leftMargin, doc.height + doc.topMargin - h, doc.leftMargin + w, doc.height + doc.topMargin - h)
         canvas.line(doc.leftMargin, doc.topMargin - h, doc.leftMargin + w, doc.topMargin - h)
@@ -92,7 +93,9 @@ class Report:
         drawing.add(graph)
         return drawing
 
-    def print_users(self):
+    # https://www.reportlab.com/docs/reportlab-userguide.pdf
+    # https://www.reportlab.com/docs/reportlab-graphics-reference.pdf
+    def print_event_occurrences(self, account):
         buffer = self.buffer
 
         doc = SimpleDocTemplate(buffer,
@@ -108,35 +111,69 @@ class Report:
 
         # Our container for 'Flowable' objects
         elements = []
-        elements.append(Paragraph("iVigilate Report", styles["Heading1"]))
-        elements.append(Paragraph("http://www.ivigilate.com", styles["Normal"]))
+        elements.append(Paragraph("Event Occurrence's Report", styles["Heading1"]))
+        if account is not None:
+            elements.append(Paragraph(account.name, styles["Heading2"]))
+        elements.append(Spacer(5*mm, 5*mm))
 
-        # Draw things on the PDF. Here's where the PDF generation happens.
-        # See the ReportLab documentation for the full list of functionality.
-        users = AuthUser.objects.all()
-        elements.append(Paragraph('List of Users', styles['Heading1']))
-        for i, user in enumerate(users):
-            elements.append(Paragraph(user.get_full_name(), styles['Normal']))
+
+        # Here's where the PDF meaningful data starts.
+        eos = EventOccurrence.objects
+        if account is not None:
+            eos = eos.filter(beacon__account_id=account.id)
+        eos = eos.values('event__name', 'beacon__name').annotate(num_occurrences=Count('sighting'))
 
         # Need a place to store our table rows
         table_data = []
-        for i, user in enumerate(users):
-            # Add a row to the table
-            table_data.append([user.get_full_name(), user.email, user.last_login])
-        # Create the table
-        user_table = Table(table_data, colWidths=[doc.width/3.0]*3)
-        user_table.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
-                                        ('BOX', (0, 0), (-1, -1), 0.25, colors.black)]))
-        elements.append(user_table)
 
-        # elements.append(Spacer(5*mm, 5*mm))
+        different_events = []
+        different_beacons = []
+        handy_dict_event_first = {}
+        handy_dict_beacon_first = {}
+        for eo in eos:
+            if eo['event__name'] not in different_events:
+                different_events.append(eo['event__name'])
+            if eo['beacon__name'] not in different_beacons:
+                different_beacons.append(eo['beacon__name'])
+            handy_dict_event_first[(eo['event__name'], eo['beacon__name'])] = eo['num_occurrences']
+            handy_dict_beacon_first[(eo['beacon__name'], eo['event__name'])] = eo['num_occurrences']
+
+        if len(different_events) <= len(different_beacons):
+            rows = different_beacons
+            columns = different_events
+            dict_to_use = handy_dict_beacon_first
+            table_data.append(['Beacon \ Event'] + sorted(different_events))
+        else:
+            rows = different_events
+            columns = different_beacons
+            dict_to_use = handy_dict_event_first
+            table_data.append(['Event \ Beacon'] + sorted(different_beacons))
+
+        for row in rows:
+            row_items = []
+            row_items.append(row)
+            for column in columns:
+                row_items.append(dict_to_use.get((row, column), 0))
+            table_data.append(row_items)
+
+
+        # Create the table
+        event_occurrence_table = Table(table_data, colWidths=[doc.width / 5.0] * 5)
+        event_occurrence_table.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+                                                    ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                                                    ('BACKGROUND', (0, 0), (-1, -1), colors.lightgrey),
+                                                    ('BACKGROUND', (1, 1), (-1, -1), colors.white),
+                                                    ('ALIGNMENT', (1, 0), (-1, -1), 'CENTER')]))
+
+        elements.append(event_occurrence_table)
+
+        # elements.append(PageBreakIfNotEmpty())
 
         # Add pie chart
-        pie_chart = self._graphout(doc, ['AAA','BBB','CCC'], [5,15,1])
-        elements.append(pie_chart)
+        # pie_chart = self._graphout(doc, ['AAA','BBB','CCC'], [5,15,1])
+        # elements.append(pie_chart)
 
-        doc.build(elements, onFirstPage=self._header, onLaterPages=self._header,
-                  canvasmaker=NumberedCanvas)
+        doc.build(elements, onFirstPage=self._header, onLaterPages=self._header, canvasmaker=NumberedCanvas)
 
 
         # Get the value of the BytesIO buffer and write it to the response.
