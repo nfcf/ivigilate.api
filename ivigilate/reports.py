@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.db.models import Count
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.platypus import *
@@ -95,7 +96,10 @@ class Report:
 
     # https://www.reportlab.com/docs/reportlab-userguide.pdf
     # https://www.reportlab.com/docs/reportlab-graphics-reference.pdf
-    def print_event_occurrences(self, account):
+    def print_event_occurrences(self, account, from_date, to_date):
+        MAX_COLUMNS = 4
+        MAX_ROWS = 34
+
         buffer = self.buffer
 
         doc = SimpleDocTemplate(buffer,
@@ -111,70 +115,85 @@ class Report:
 
         # Our container for 'Flowable' objects
         elements = []
-        elements.append(Paragraph("Event Occurrence's Report", styles["Heading1"]))
+        elements.append(Paragraph('Event Occurrence\'s Report', styles['Heading1']))
         if account is not None:
-            elements.append(Paragraph(account.name, styles["Heading2"]))
-        elements.append(Spacer(5*mm, 5*mm))
+            sub_title = '{0} - from \'{1}\' to \'{2}\''.format(account.name,
+                                                               datetime.strftime(from_date, '%Y-%m-%d %H:%M'),
+                                                               datetime.strftime(to_date, '%Y-%m-%d %H:%M'))
+            elements.append(Paragraph(sub_title, styles['Heading2']))
+            elements.append(Spacer(5*mm, 5*mm))
 
+            # Here's where the PDF meaningful data starts.
+            eos = EventOccurrence.objects.filter(beacon__account_id=account.id,occurred_at__gte=from_date,occurred_at__lte=to_date)\
+                .values('event__name', 'beacon__name')\
+                .annotate(num_occurrences=Count('sighting'))
 
-        # Here's where the PDF meaningful data starts.
-        eos = EventOccurrence.objects
-        if account is not None:
-            eos = eos.filter(beacon__account_id=account.id)
-        eos = eos.values('event__name', 'beacon__name').annotate(num_occurrences=Count('sighting'))
+            if eos is not None and len(eos) > 0:
+                different_events = []
+                different_beacons = []
+                handy_dict_event_first = {}
+                handy_dict_beacon_first = {}
+                column_offset = 0
+                for eo in eos:
+                    if eo['event__name'] not in different_events:
+                        different_events.append(eo['event__name'])
+                    if eo['beacon__name'] not in different_beacons:
+                        different_beacons.append(eo['beacon__name'])
+                    handy_dict_event_first[(eo['event__name'], eo['beacon__name'])] = eo['num_occurrences']
+                    handy_dict_beacon_first[(eo['beacon__name'], eo['event__name'])] = eo['num_occurrences']
 
-        # Need a place to store our table rows
-        table_data = []
+                if len(different_events) <= len(different_beacons):
+                    rows = different_beacons
+                    columns = different_events
+                    dict_to_use = handy_dict_beacon_first
+                    table_fixed_header = 'Beacon \ Event'
+                else:
+                    rows = different_events
+                    columns = different_beacons
+                    dict_to_use = handy_dict_event_first
+                    table_fixed_header = 'Event \ Beacon'
 
-        different_events = []
-        different_beacons = []
-        handy_dict_event_first = {}
-        handy_dict_beacon_first = {}
-        for eo in eos:
-            if eo['event__name'] not in different_events:
-                different_events.append(eo['event__name'])
-            if eo['beacon__name'] not in different_beacons:
-                different_beacons.append(eo['beacon__name'])
-            handy_dict_event_first[(eo['event__name'], eo['beacon__name'])] = eo['num_occurrences']
-            handy_dict_beacon_first[(eo['beacon__name'], eo['event__name'])] = eo['num_occurrences']
+                while len(columns) - column_offset > 0:
+                    row_offset = 0
+                    while len(rows) - row_offset > 0:
+                        table_data = []
+                        table_data.append([table_fixed_header] + sorted(columns[column_offset : column_offset + MAX_COLUMNS]))
 
-        if len(different_events) <= len(different_beacons):
-            rows = different_beacons
-            columns = different_events
-            dict_to_use = handy_dict_beacon_first
-            table_data.append(['Beacon \ Event'] + sorted(different_events))
+                        for row in rows[row_offset : row_offset + MAX_ROWS]:
+                            row_items = []
+                            row_items.append(row)
+                            for column in columns[column_offset : column_offset + MAX_COLUMNS]:
+                                row_items.append(dict_to_use.get((row, column), 0))
+                            table_data.append(row_items)
+
+                        # Create the table
+                        event_occurrence_table = Table(table_data, colWidths=[doc.width / 5.0] * 5)
+                        event_occurrence_table.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
+                                                                    ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                                                                    ('BACKGROUND', (0, 0), (-1, -1), colors.lightgrey),
+                                                                    ('BACKGROUND', (1, 1), (-1, -1), colors.white),
+                                                                    ('ALIGNMENT', (1, 0), (-1, -1), 'CENTER')]))
+
+                        elements.append(event_occurrence_table)
+                        row_offset += MAX_ROWS
+                        if len(rows) - row_offset > 0:
+                            elements.append(PageBreakIfNotEmpty())
+
+                    column_offset += MAX_COLUMNS
+                    if len(columns) - column_offset > 0:
+                        elements.append(PageBreakIfNotEmpty())
+
+                # elements.append(PageBreakIfNotEmpty())
+
+                # Add pie chart
+                # pie_chart = self._graphout(doc, ['AAA','BBB','CCC'], [5,15,1])
+                # elements.append(pie_chart)
+            else:
+                elements.append(Paragraph('Zero items returned', styles['centered']))
         else:
-            rows = different_events
-            columns = different_beacons
-            dict_to_use = handy_dict_event_first
-            table_data.append(['Event \ Beacon'] + sorted(different_beacons))
-
-        for row in rows:
-            row_items = []
-            row_items.append(row)
-            for column in columns:
-                row_items.append(dict_to_use.get((row, column), 0))
-            table_data.append(row_items)
-
-
-        # Create the table
-        event_occurrence_table = Table(table_data, colWidths=[doc.width / 5.0] * 5)
-        event_occurrence_table.setStyle(TableStyle([('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
-                                                    ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
-                                                    ('BACKGROUND', (0, 0), (-1, -1), colors.lightgrey),
-                                                    ('BACKGROUND', (1, 1), (-1, -1), colors.white),
-                                                    ('ALIGNMENT', (1, 0), (-1, -1), 'CENTER')]))
-
-        elements.append(event_occurrence_table)
-
-        # elements.append(PageBreakIfNotEmpty())
-
-        # Add pie chart
-        # pie_chart = self._graphout(doc, ['AAA','BBB','CCC'], [5,15,1])
-        # elements.append(pie_chart)
+            elements.append(Paragraph('Current user doesn\'t belong to an account', styles['centered']))
 
         doc.build(elements, onFirstPage=self._header, onLaterPages=self._header, canvasmaker=NumberedCanvas)
-
 
         # Get the value of the BytesIO buffer and write it to the response.
         pdf = buffer.getvalue()

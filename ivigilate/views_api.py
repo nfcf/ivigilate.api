@@ -42,12 +42,12 @@ class LoginView(views.APIView):
                 if metadata is not None and len(metadata.strip()) > 0:
                     now = datetime.datetime.now(timezone.utc)
                     metadata = json.loads(metadata)
-                    metadata['device']['last_login_date'] = now.strftime("%Y-%m-%d %H:%M")
+                    metadata['device']['last_login_date'] = now.strftime('%Y-%m-%d %H:%M')
                     if user.metadata is not None and len(user.metadata.strip()) > 0:
                         user_metadata = json.loads(user.metadata)
                         existing_device = next((device for device in user_metadata['devices'] if device['imei'] == metadata['device']['imei']), None)
                         if existing_device is not None:
-                            existing_device['last_login_date'] = now.strftime("%Y-%m-%d %H:%M")
+                            existing_device['last_login_date'] = now.strftime('%Y-%m-%d %H:%M')
                     else:
                         user_metadata = {}
                         user_metadata['devices'] = []

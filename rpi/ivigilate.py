@@ -68,13 +68,13 @@ def main():
     ble_thread.start()
     logger.info('BLE scanner thread started')
 
-    last_respawn_date = datetime.strptime(config.get('DEVICE', 'last_respawn_date'), "%Y-%m-%d").date()
+    last_respawn_date = datetime.strptime(config.get('DEVICE', 'last_respawn_date'), '%Y-%m-%d').date()
     while True:
         now = datetime.now()
         # if configured daily_respawn_hour, stop the ble_thread and respawn the process
         if now.date() > last_respawn_date and now.hour == config.getint('BASE', 'daily_respawn_hour'):
             # update configuration with current date
-            config.set('DEVICE', 'last_respawn_date', now.strftime("%Y-%m-%d"))
+            config.set('DEVICE', 'last_respawn_date', now.strftime('%Y-%m-%d'))
             config.save()
             autoupdate.respawn_script(ble_thread)
 
