@@ -15,7 +15,7 @@
     "angular-cookies": "~1.4.0",
     "angular-route": "~1.4.0",
     "angular-bootstrap": "~0.11",
-    " angular-bootstrap-show-errors": "~2.3.0",
+    "angular-bootstrap-show-errors": "~2.3.0",
     "angular-toggle-switch": "~1.2.1",
     "angular-smart-table": "~1.4.0",
     "angular-google-maps": "^2.0.14",
@@ -31,13 +31,15 @@
     "selectize": "~0.8.5",
     "select2": "~3.5.2",
     "bootstrap": "~3.3.0",
+    "bootstrap-ui-datetime-picker": "~1.1.0",
     "bootstrap-toggle": "~2.2.0",
     "jquery": "~2.1.1",
     "ng-lodash": "~0.2.0",
     "ng-password-strength": "~0.1.0",
     "ng-file-upload": "~3.2.1",
     "underscore": "~1.7.0",
-    "underscore.string": "~3.0.0"
+    "underscore.string": "~3.0.0",
+    "bootstrap-ui-datetime-picker": "~1.1.0"
   },
   "resolutions": {
     "underscore": "~1.5.x",

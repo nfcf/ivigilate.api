@@ -22,17 +22,21 @@ class EventOccurrenceReportView(views.APIView):
         now = datetime.now(timezone.utc)
         from_date_default = datetime.strftime(datetime(now.year, now.month, now.day-1, now.hour, now.minute, now.second), '%Y-%m-%dT%H:%M:%S')
         to_date_default = datetime.strftime(datetime(now.year, now.month, now.day, now.hour, now.minute, now.second), '%Y-%m-%dT%H:%M:%S')
-        from_date = datetime.strptime(request.query_params.get('from', from_date_default), '%Y-%m-%dT%H:%M:%S')
-        to_date = datetime.strptime(request.query_params.get('to', to_date_default), '%Y-%m-%dT%H:%M:%S')
+        report_type = request.query_params.get('report_type', None)
+        from_date = datetime.strptime(request.query_params.get('from_date', from_date_default), '%Y-%m-%dT%H:%M:%S')
+        to_date = datetime.strptime(request.query_params.get('to_date', to_date_default), '%Y-%m-%dT%H:%M:%S')
 
         # Create the HttpResponse object with the appropriate PDF headers.
         response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="Report.pdf"'
+        response['Content-Disposition'] = 'attachment; filename="report.pdf"'
 
         buffer = BytesIO()
 
         report = Report(buffer, 'A4')
-        pdf = report.print_event_occurrences(account, from_date, to_date)
+        if report_type == 'EO':
+            pdf = report.print_event_occurrences(account, from_date, to_date)
 
-        response.write(pdf)
-        return response
+            response.write(pdf)
+            return response
+        else:
+            return Response('Invalid report type...', status=status.HTTP_400_BAD_REQUEST)

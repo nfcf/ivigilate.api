@@ -56,3 +56,6 @@ a, th { cursor: pointer; }
     background-color: mintcream;
 }
 
+/*.datetime-picker div > table .btn-default {
+    border: 0;
+}*/

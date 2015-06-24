@@ -20,6 +20,10 @@
             controller: 'UsersController',
             controllerAs: 'vm',
             templateUrl: '/static/templates/settings/settings.html'
+        }).when('/reports', {
+            controller: 'ReportsController',
+            controllerAs: 'vm',
+            templateUrl: '/static/templates/reports/reports.html'
         }).when('/detectors', {
             controller: 'DetectorsController',
             controllerAs: 'vm',

@@ -1,0 +1,64 @@
+<div class="col-md-8 col-md-offset-2">
+    <h1>Reports</h1>
+
+    <div class="well">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
+                <div class="alert alert-success" ng-show="vm.success" ng-bind="vm.success"></div>
+            </div>
+        </div>
+
+        <form name="vm.form" novalidate>
+            <div class="row">
+                <div class="col-xs-12 col-md-6">
+                    <div class="form-group">
+                        <label for="report_type">Type</label>
+                        <select name="report_type" ng-model="vm.filter.report_type" class="form-control" ng-disabled="true">
+                            <option value="EO" selected>Event Occurrences</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-xs-12 col-md-6">
+                    <label for="from_date">From</label>
+
+                    <div class="input-group" show-errors>
+                        <input type="text" name="from_date" class="form-control" datetime-picker="yyyy-MM-dd HH:mm"
+                               show-button-bar="false" max-date="vm.max_date"
+                               datepicker-options="vm.date_options" timepicker-options="vm.time_options"
+                               ng-model="vm.filter.from_date" is-open="vm.from_date_is_open" required/>
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default"
+                                    ng-click="vm.openFromDateCalendar($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-md-6">
+                    <label for="from_date">To</label>
+
+                    <div class="input-group" show-errors>
+                        <input type="text" name="to_date" class="form-control" datetime-picker="yyyy-MM-dd HH:mm"
+                               show-button-bar="false" max-date="vm.max_date"
+                               datepicker-options="vm.date_options" timepicker-options="vm.time_options"
+                               ng-model="vm.filter.to_date" is-open="vm.to_date_is_open" required/>
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default"
+                                    ng-click="vm.openToDateCalendar($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <br/>
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="form-group text-right">
+                        <button ng-click="vm.generate()" class="btn btn-primary">Generate Report</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
