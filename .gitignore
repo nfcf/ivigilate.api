@@ -57,7 +57,7 @@ docs/_build/
 target/
 
 # bower
-static/bower_components/
+static/bower_components/*
 
 #PyCharm
 .idea/
