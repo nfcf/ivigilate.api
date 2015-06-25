@@ -11,7 +11,7 @@
     function AddSightingController($location, $scope, $filter, $modalInstance, data, Authentication,
                                    Detectors, Beacons, Sightings) {
         var vm = this;
-        vm.openDatePicker = openDatePicker;
+        vm.openDateTimePicker = openDateTimePicker;
         vm.cancel = cancel;
         vm.save = save;
 
@@ -21,15 +21,21 @@
         vm.detectors = undefined;
         vm.detector = undefined;
 
-        vm.datepickerOpen = false;
-        vm.seen_at_date = vm.maxDate = $filter('date')(new Date(), 'yyyy-MM-dd');
-        vm.seen_at = new Date();
+        vm.seen_at_is_open = false;
+        vm.duration_is_open = false;
+        vm.max_date = $filter('date')(new Date(), 'yyyy-MM-dd');
+        var now =  new Date();
+        vm.seen_at = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), (Math.ceil(now.getMinutes() / 5) * 5) - 15, 0);
         vm.duration = new Date(0, 0, 0, 0, 15);
         vm.comment = undefined;
 
-        vm.datepickerOptions = {
+        vm.date_options = {
             showWeeks: false,
             startingDay: 1
+        };
+        vm.time_options = {
+            showMeridian: false,
+            minuteStep: 5
         };
 
         activate();
@@ -38,11 +44,6 @@
             var user = Authentication.getAuthenticatedUser();
             if (user) {
                 populateDialog();
-
-                $scope.$watch('vm.seen_at_date', function () {
-                    var dateParts = (vm.seen_at_date instanceof Date) ? vm.seen_at_date.toISOString().split('-') : vm.seen_at_date.split('-');
-                    vm.seen_at = new Date(dateParts[0], dateParts[1] - 1, dateParts[2].slice(0, 2), vm.seen_at.getHours(), vm.seen_at.getMinutes());
-                });
             }
             else {
                 $location.url('/');
@@ -71,7 +72,7 @@
             }
         }
 
-        function openDatePicker($event, isOpen) {
+        function openDateTimePicker($event, isOpen) {
             $event.preventDefault();
             $event.stopPropagation();
             vm[isOpen] = !vm[isOpen];

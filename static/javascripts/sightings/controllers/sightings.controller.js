@@ -108,7 +108,7 @@
         }
 
         function addSighting() {
-            var dlg = dialogs.create('static/templates/sightings/addsighting.html', 'AddSightingController as vm', null, {'size': 'lg'});
+            var dlg = dialogs.create('static/templates/sightings/addsighting.html', 'AddSightingController as vm', null, {'size': 'md'});
             dlg.result.then(function (newSighting) {
                 refresh();
             });

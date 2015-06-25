@@ -32,7 +32,7 @@
                                ng-model="vm.filter.from_date" is-open="vm.from_date_is_open" required/>
                         <span class="input-group-btn">
                             <button type="button" class="btn btn-default"
-                                    ng-click="vm.openFromDateCalendar($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                                    ng-click="vm.openDateTimePicker($event, 'from_date_is_open')"><i class="glyphicon glyphicon-calendar"></i></button>
                         </span>
                     </div>
                 </div>
@@ -46,7 +46,7 @@
                                ng-model="vm.filter.to_date" is-open="vm.to_date_is_open" required/>
                         <span class="input-group-btn">
                             <button type="button" class="btn btn-default"
-                                    ng-click="vm.openToDateCalendar($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                                    ng-click="vm.openDateTimePicker($event, 'to_date_is_open')"><i class="glyphicon glyphicon-calendar"></i></button>
                         </span>
                     </div>
                 </div>

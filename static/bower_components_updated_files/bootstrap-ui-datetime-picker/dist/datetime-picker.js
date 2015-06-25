@@ -255,7 +255,7 @@ angular.module('ui.bootstrap.datetimepicker', ['ui.bootstrap.dateparser', 'ui.bo
 
                             $document.bind('mousedown', documentClickBind);
                         } else {
-                            scope.showPicker = 'date';
+                            scope.showPicker = scope.enableDate ? 'date' : 'time';
                             $document.unbind('mousedown', documentClickBind);
                         }
                     });

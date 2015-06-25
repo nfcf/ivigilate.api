@@ -11,7 +11,7 @@
             <div class="col-md-6">
                 <div class="form-group">
                     <label>Which beacon was detected?</label>
-                    <ui-select ng-model="vm.beacon" theme="selectize" ng-disabled="disabled">
+                    <ui-select ng-model="vm.beacon" theme="selectize" ng-disabled="disabled" required>
                         <ui-select-match placeholder="Select a beacon from the list...">
                             {{ $select.selected.name }}
                         </ui-select-match>
@@ -47,38 +47,35 @@
         <div class="row">
             <div class="col-md-6">
                 <label for="seen_at">When and at what time?</label>
+
+                <div class="input-group" show-errors>
+                    <input type="text" name="seen_at" class="form-control" datetime-picker="yyyy-MM-dd HH:mm"
+                           show-button-bar="false" max-date="vm.max_date"
+                           datepicker-options="vm.date_options" timepicker-options="vm.time_options"
+                           ng-model="vm.seen_at" is-open="vm.seen_at_is_open" placeholder="YYYY-MM-DD HH:MM" required/>
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default"
+                                    ng-click="vm.openDateTimePicker($event, 'seen_at_is_open')"><i class="glyphicon glyphicon-calendar"></i></button>
+                        </span>
+                </div>
             </div>
             <div class="col-md-6">
                 <label for="duration">For how long?</label>
+
+                <div class="input-group" show-errors>
+                    <input type="text" name="duration" class="form-control"  datetime-picker="HH:mm"
+                           show-button-bar="false" enable-date="false" timepicker-options="vm.time_options"
+                           ng-model="vm.duration" is-open="vm.duration_is_open" placeholder="HH:MM" required/>
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default"
+                                    ng-click="vm.openDateTimePicker($event, 'duration_is_open')"><i class="glyphicon glyphicon-time"></i></button>
+                        </span>
+                </div>
             </div>
         </div>
 
-        <div class="row vertical-align">
-            <div class="col-md-4">
-                <div class="input-group">
-                    <input id="fromDate" type="text" class="form-control" datepicker-popup="yyyy-MM-dd"
-                           datepicker-options="vm.datepickerOptions" max-date="vm.maxDate" show-button-bar="false"
-                           is-open="vm.datepickerIsOpen" ng-model="vm.seen_at_date" placeholder="YYYY-MM-DD" readonly/>
-                <span class="input-group-btn">
-                    <button type="button" class="btn btn-default"
-                            ng-click="vm.openDatePicker($event, 'datepickerIsOpen')">
-                        <i class="glyphicon glyphicon-calendar"></i>
-                    </button>
-                </span>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <timepicker ng-model="vm.seen_at" hour-step="1" minute-step="15" show-meridian="false"></timepicker>
-            </div>
-            <div class="col-md-4">
-                <div class="input-group">
-                    <timepicker ng-model="vm.duration" hour-step="1" minute-step="15"
-                                show-meridian="false"></timepicker>
-                </div>
-            </div>
-        </div>
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-12" style="margin-top: 1em;">
                 <div class="form-group" show-errors>
                     <label for="comment">Comment</label>
                     <textarea type="text" class="form-control" name="comment" ng-model="vm.comment" required/>

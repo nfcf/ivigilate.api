@@ -9,8 +9,7 @@
 
     function ReportsController($location, $scope, $filter, $timeout, Authentication, Reports) {
         var vm = this;
-        vm.openFromDateCalendar = openFromDateCalendar;
-        vm.openToDateCalendar = openToDateCalendar;
+        vm.openDateTimePicker = openDateTimePicker;
         vm.generate = generate;
 
         vm.success = undefined;
@@ -45,18 +44,10 @@
             }
         }
 
-        function openFromDateCalendar(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            vm.from_date_is_open = true;
-        }
-
-        function openToDateCalendar(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            vm.to_date_is_open = true;
+        function openDateTimePicker($event, isOpen) {
+            $event.preventDefault();
+            $event.stopPropagation();
+            vm[isOpen] = !vm[isOpen];
         }
 
         function generate() {
