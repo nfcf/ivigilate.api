@@ -26,20 +26,23 @@
         function activate() {
             var user = Authentication.getAuthenticatedUser();
             if (user) {
-                if (user.license_about_to_expire != null) {
+                if (user.license_about_to_expire != null && new Date(user.license_about_to_expire.valid_until) > new Date()) {
                     vm.license = user.license_about_to_expire;
-                    var metadata = JSON.parse(vm.license.metadata);
                     vm.title = 'Your license is about to expire...';
                     vm.header = 'Please renew you subscription before ' +
                     date2str(new Date(vm.license.valid_until), 'yyyy-MM-dd hh:mm');
+
+                    vm.license = user.license_due_for_payment;
+                    var metadata = JSON.parse(vm.license.metadata);
                     vm.license.max_beacons = metadata.max_beacons;
                     vm.license.max_users = metadata.max_users;
                     vm.canSkip = true;
                 } else {
-                    vm.license = user.license_due_for_payment;
-                    var metadata = JSON.parse(vm.license.metadata);
                     vm.title = 'Your license is due for payment...';
                     vm.header = 'Please renew you subscription.';
+
+                    vm.license = user.license_due_for_payment;
+                    var metadata = JSON.parse(vm.license.metadata);
                     vm.license.max_beacons = metadata.max_beacons;
                     vm.license.max_users = metadata.max_users;
                 }
@@ -81,18 +84,18 @@
 
         function date2str(x, y) {
             var z = {
-                M: x.getMonth() + 1,
-                d: x.getDate(),
-                h: x.getHours(),
-                m: x.getMinutes(),
-                s: x.getSeconds()
+                M: x.getUTCMonth() + 1,
+                d: x.getUTCDate(),
+                h: x.getUTCHours(),
+                m: x.getUTCMinutes(),
+                s: x.getUTCSeconds()
             };
             y = y.replace(/(M+|d+|h+|m+|s+)/g, function (v) {
                 return ((v.length > 1 ? "0" : "") + eval('z.' + v.slice(-1))).slice(-2)
             });
 
             return y.replace(/(y+)/g, function (v) {
-                return x.getFullYear().toString().slice(-v.length)
+                return x.getUTCFullYear().toString().slice(-v.length)
             });
         }
     }

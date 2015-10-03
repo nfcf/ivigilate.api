@@ -123,7 +123,7 @@ class AddSightingsView(views.APIView):
                     else:
                         location = detector.location
                 except Detector.DoesNotExist:
-                    return Response('Invalid Watcher UID (couldn\'t find corresponding detector).',
+                    return Response('Invalid Detector UID (couldn\'t find corresponding detector).',
                                     status=status.HTTP_400_BAD_REQUEST)
 
                 now = datetime.datetime.now(timezone.utc)

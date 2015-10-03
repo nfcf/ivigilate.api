@@ -97,6 +97,7 @@
                         <td class="valign-middle">
                             {{ sighting.last_seen_at | relativeDate }}
                             {{ sighting.beacon.type == 'F' ?
+                                    'at' : sighting.detector.type == 'F' ?
                                     'at' :
                                     'by' }}
                             {{ sighting.beacon.type == 'F' ?

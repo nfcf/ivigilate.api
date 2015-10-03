@@ -6,10 +6,10 @@
         .controller('SightingsController', SightingsController);
 
     SightingsController.$inject = ['$location', '$scope', '$filter', '$interval', 'Authentication',
-        'Users', 'Beacons', 'Detectors', 'Sightings', 'Payments', 'dialogs'];
+        'Users', 'Beacons', 'Detectors', 'Sightings', 'Payments', 'dialogs', 'Notifications'];
 
     function SightingsController($location, $scope, $filter, $interval, Authentication,
-                                 Users, Beacons, Detectors, Sightings, Payments, dialogs) {
+                                 Users, Beacons, Detectors, Sightings, Payments, dialogs, Notifications) {
         var vm = this;
         vm.refresh = refresh;
         vm.addSighting = addSighting;
@@ -94,6 +94,7 @@
         function refresh() {
             if (vm.filterDate) {
                 Sightings.list(vm.filterDate, vm.filterFixedBeaconsAndDetectors, vm.filterShowAll).then(successFn, errorFn);
+                Notifications.checkForNotifications();
             }
 
             function successFn(data, status, headers, config) {

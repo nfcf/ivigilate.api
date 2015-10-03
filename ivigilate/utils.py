@@ -42,19 +42,23 @@ def replace_message_tags(msg, event, sighting):
 
 
 def send_twilio_message(to, msg):
-    client = TwilioRestClient(os.environ['TWILIO_ACCOUNT_SID'], os.environ['TWILIO_AUTH_TOKEN'])
+    account_sid = os.environ.get('TWILIO_ACCOUNT_SID', 'AC1b8158faf55b96ed86dee884e1d94beb' if settings.DEBUG else None)
+    auth_token = os.environ.get('TWILIO_AUTH_TOKEN', '3941cff26f237a3540627a5f52ca6e85' if settings.DEBUG else None)
+    caller_id = os.environ.get('TWILIO_DEFAULT_CALLERID', '14158438604' if settings.DEBUG else None)
+
+    client = TwilioRestClient(account_sid, auth_token)
     message = client.messages.create(
         body=msg,
         to=to,
-        from_=os.environ['TWILIO_DEFAULT_CALLERID'],
+        from_=caller_id,
     )
 
 
 def close_sighting(sighting, new_sighting_detector=None):
     sighting.is_current = False
-    check_for_events(sighting, new_sighting_detector)
     sighting.save()
     logger.debug('Sighting \'%s\' is no longer current.', sighting)
+    check_for_events(sighting, new_sighting_detector)
 
 
 def trigger_event_actions(event, sighting):
@@ -74,8 +78,9 @@ def trigger_event_actions(event, sighting):
             elif action['type'] == 'EMAIL':
                 logger.info('Action for event \'%s\': Sending EMAIL to %s recipient(s).',
                              event, len(re.split(',|;', action['recipients'])))
-                body = replace_message_tags(action['body'], event, sighting)
-                send_mail(action['subject'], body, settings.DEFAULT_FROM_EMAIL,
+                body = replace_message_tags(action['body'], event, sighting) if action.get('body') is not None else ''
+                subject = replace_message_tags(action['subject'], event, sighting) if action.get('subject') is not None else ''
+                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                           re.split(',|;', action['recipients']), fail_silently=False)
 
 
@@ -112,7 +117,7 @@ def check_for_events(sighting, new_sighting_detector=None):
     if events:
         logger.debug('Found %s event(s) active for sighting \'%s\'.', len(events), sighting)
         for event in events:
-            logger.debug('Checking if \'%s\' event conditions are met.', event)
+            logger.debug('Checking if \'%s\' event conditions are met...', event)
             if event.sighting_is_current == sighting.is_current and \
                             event.sighting_has_battery_below >= (sighting.battery or 0) and \
                             event.sighting_duration_in_seconds <= sighting.get_duration() and \
@@ -122,7 +127,7 @@ def check_for_events(sighting, new_sighting_detector=None):
                     ((event.sighting_has_been_confirmed is None) or
                          (event.sighting_has_been_confirmed and sighting.confirmed) or
                          (not event.sighting_has_been_confirmed and not sighting.confirmed)) and \
-                    (new_sighting_detector is None or new_sighting_detector in event.detectors.all()):
+                    (new_sighting_detector is None or len(event.detectors.all()) == 0 or new_sighting_detector in event.detectors.all()):
 
                 if (event.sighting_previous_event is None):
                     # Make sure we don't trigger the same actions over and over again (only once per sighting)

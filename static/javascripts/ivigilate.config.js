@@ -6,14 +6,14 @@
         .config(config);
 
     config.$inject = ['$locationProvider', 'uiGmapGoogleMapApiProvider', 'dialogsProvider', '$translateProvider',
-        'stripeProvider', 'showErrorsConfigProvider'];
+        'stripeProvider', 'showErrorsConfigProvider', 'toastrConfig'];
 
     /**
      * @name config
      * @desc Enable HTML5 routing
      */
     function config($locationProvider, uiGmapGoogleMapApiProvider, dialogsProvider, $translateProvider,
-                    stripeProvider, showErrorsConfigProvider) {
+                    stripeProvider, showErrorsConfigProvider, toastrConfig) {
         $locationProvider.html5Mode(true);
         $locationProvider.hashPrefix('!');
 
@@ -72,6 +72,24 @@
         });
 
         $translateProvider.preferredLanguage('en');
+
+        angular.extend(toastrConfig, {
+            autoDismiss: false,
+            containerId: 'toast-container',
+            maxOpened: 0,
+            newestOnTop: true,
+            positionClass: 'toast-bottom-right',
+            preventDuplicates: true,
+            preventOpenDuplicates: true,
+            target: 'body',
+
+            allowHTML: false,
+            closeButton: true,
+            timeOut: 30000,
+            extendedTimeOut: 30000,
+            tapToDismiss: false,
+            progressBar: true
+        });
     }
 
 })();

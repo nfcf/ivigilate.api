@@ -342,3 +342,20 @@ class EventLimit(models.Model):
         else:
             self.updated_at = now
         super(EventLimit, self).save(*args, **kwargs)
+
+
+class Notification(models.Model):
+    metadata = models.TextField(blank=True)  # populated with title and message by event occurrence / limit actions
+    created_at = models.DateTimeField(editable=False)
+    updated_at = models.DateTimeField(editable=False)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
+    is_active = models.BooleanField(default=True)
+
+    def save(self, *args, **kwargs):
+        now = datetime.now(timezone.utc)
+        if not self.id:
+            self.created_at = now
+            self.updated_at = now
+        else:
+            self.updated_at = now
+        super(Notification, self).save(*args, **kwargs)

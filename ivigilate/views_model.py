@@ -24,9 +24,7 @@ class AccountViewSet(viewsets.ModelViewSet):
         if request.user and request.user.is_staff:
             # return only the list of active accounts
             queryset = self.queryset.filter(Q(licenses__valid_until=None) | Q(licenses__valid_until__gt=datetime.now(timezone.utc))).distinct()
-            page = self.paginate_queryset(queryset)
-            serializer = self.get_pagination_serializer(page)
-            return Response(serializer.data)
+            return utils.view_list(request, None, queryset, self.get_serializer_class())
         else:
             logger.critical('The user \'%s\' tried to access the accounts list without admin permissions.',
                             request.user)
@@ -212,26 +210,29 @@ class BeaconViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
         serializer = self.get_serializer_class()(instance, data=request.data)
 
         if serializer.is_valid():
-            if serializer.save(user=user):
-                # work around to handle the M2M field as DRF doesn't handle them well...
+            beacon = serializer.save(user=user)
+            if beacon:
                 events = self.request.DATA.get('events', None)
-                if events:
-                    beacon = Beacon.objects.get(uid=serializer.validated_data['uid'])
+                self.update_m2m_fields(beacon, events)
 
-                    new_list = json.loads(events)
-                    old_list = beacon.events.all().values_list('id', flat=True)
-                    to_add_list = list(set(new_list) - set(old_list))
-                    to_remove_list = list(set(old_list) - set(new_list))
-                    for id in to_add_list:
-                        beacon.events.add(id)
-                    for id in to_remove_list:
-                        beacon.events.remove(id)
                 # delete this field from the response as it isn't serializable
                 if 'photo' in serializer.validated_data:
                     del serializer.validated_data['photo']
                 return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update_m2m_fields(self, beacon, events):
+        # work around to handle the M2M field as DRF doesn't handle them well...
+        if isinstance(events, list):
+            new_list = events
+            old_list = beacon.events.all().values_list('id', flat=True)
+            to_add_list = list(set(new_list) - set(old_list))
+            to_remove_list = list(set(old_list) - set(new_list))
+            for id in to_add_list:
+                beacon.events.add(id)
+            for id in to_remove_list:
+                beacon.events.remove(id)
 
 
 class SightingViewSet(viewsets.ModelViewSet):
@@ -378,30 +379,6 @@ class EventViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer_class()(queryset, many=False, context={'request': request})
         return Response(serializer.data)
 
-    def add_m2m_fields(self, event, beacons, detectors):
-        # work around to handle the M2M field as DRF doesn't handle them well...
-        if beacons:
-            new_list = beacons
-            old_list = event.beacons.all().values_list('id', flat=True)
-            to_add_list = list(set(new_list) - set(old_list))
-            to_remove_list = list(set(old_list) - set(new_list))
-            for id in to_add_list:
-                event.beacons.add(id)
-            for id in to_remove_list:
-                event.beacons.remove(id)
-
-        # work around to handle the M2M field as DRF doesn't handle them well...
-        if detectors:
-            new_list = detectors
-            old_list = event.detectors.all().values_list('id', flat=True)
-            to_add_list = list(set(new_list) - set(old_list))
-            to_remove_list = list(set(old_list) - set(new_list))
-            for id in to_add_list:
-                event.detectors.add(id)
-            for id in to_remove_list:
-                event.detectors.remove(id)
-
-
     def create(self, request):
         user = request.user if not isinstance(request.user, AnonymousUser) else None
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
@@ -412,7 +389,7 @@ class EventViewSet(viewsets.ModelViewSet):
             if event:
                 beacons = self.request.DATA.get('beacons', None)
                 detectors = self.request.DATA.get('detectors', None)
-                self.add_m2m_fields(event, beacons, detectors)
+                self.update_m2m_fields(event, beacons, detectors)
 
                 # remove fields from the response as they aren't serializable nor needed
                 if 'sighting_previous_event' in serializer.validated_data:
@@ -421,7 +398,6 @@ class EventViewSet(viewsets.ModelViewSet):
                 return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
     def update(self, request, pk=None):
         user = request.user if not isinstance(request.user, AnonymousUser) else None
@@ -439,7 +415,7 @@ class EventViewSet(viewsets.ModelViewSet):
             if event:
                 beacons = self.request.DATA.get('beacons', None)
                 detectors = self.request.DATA.get('detectors', None)
-                self.add_m2m_fields(event, beacons, detectors)
+                self.update_m2m_fields(event, beacons, detectors)
 
                 # remove fields from the response as they aren't serializable nor needed
                 if 'sighting_previous_event' in serializer.validated_data:
@@ -449,4 +425,62 @@ class EventViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def update_m2m_fields(self, event, beacons, detectors):
+        # work around to handle the M2M field as DRF doesn't handle them well...
+        if isinstance(beacons, list):
+            new_list = beacons
+            old_list = event.beacons.all().values_list('id', flat=True)
+            to_add_list = list(set(new_list) - set(old_list))
+            to_remove_list = list(set(old_list) - set(new_list))
+            for id in to_add_list:
+                event.beacons.add(id)
+            for id in to_remove_list:
+                event.beacons.remove(id)
 
+        # work around to handle the M2M field as DRF doesn't handle them well...
+        if isinstance(detectors, list):
+            new_list = detectors
+            old_list = event.detectors.all().values_list('id', flat=True)
+            to_add_list = list(set(new_list) - set(old_list))
+            to_remove_list = list(set(old_list) - set(new_list))
+            for id in to_add_list:
+                event.detectors.add(id)
+            for id in to_remove_list:
+                event.detectors.remove(id)
+
+
+class NotificationViewSet(viewsets.ModelViewSet):
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+
+    def get_permissions(self):
+        if self.request.method in ['HEAD', 'OPTIONS']:
+            return (permissions.AllowAny(), )
+        return (permissions.IsAuthenticated(), )
+
+    def list(self, request):
+        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
+        if account:
+            queryset = self.queryset.filter(event__account=account, is_active=True)
+            return utils.view_list(request, account, queryset, self.get_serializer_class())
+        else:
+            return Response('The current logged on user is not associated with any account.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk=None):
+        user = request.user if not isinstance(request.user, AnonymousUser) else None
+        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
+        try:
+            instance = self.queryset.get(id=pk, event__account=account)
+        except Event.DoesNotExist:
+            return Response('Notification does not exist or is not associated with the current logged on account.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer_class()(instance, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save(updated_by=user)
+
+            return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
