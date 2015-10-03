@@ -26,7 +26,7 @@
                     for (var i = 0; i < notifications.length; i++) {
                         var notification = notifications[i];
                         var metadata = JSON.parse(notification.metadata);
-                        toastr.info(metadata.message, metadata.title, {
+                        toastr[metadata.category](metadata.message, metadata.title, {
                             onHidden: (function (notification) {
                                 return function (clicked) {
                                     closeNotification(notification);

@@ -30,6 +30,10 @@
         vm.schedule_end_time = undefined;
         vm.schedule_timezone_offset = undefined;
 
+        vm.notification_categories = ['success', 'info', 'warning', 'error'];
+        vm.action_notification_title = undefined;
+        vm.action_notification_category = 'info';
+        vm.action_notification_message = undefined;
         vm.action_sms_recipients = undefined;
         vm.action_sms_message = undefined;
         vm.action_email_recipients = undefined;
@@ -73,7 +77,11 @@
 
                     var metadata = JSON.parse(vm.event.metadata);
                     for (var i = 0; i < metadata.actions.length; i++) {  // Required for the REST serializer
-                        if (metadata.actions[i].type == 'SMS') {
+                        if (metadata.actions[i].type == 'NOTIFICATION') {
+                            vm.action_notification_title = metadata.actions[i].title;
+                            vm.action_notification_category = metadata.actions[i].category;
+                            vm.action_notification_message = metadata.actions[i].message;
+                        } else if (metadata.actions[i].type == 'SMS') {
                             vm.action_sms_recipients = metadata.actions[i].recipients;
                             vm.action_sms_message = metadata.actions[i].message;
                         } else if (metadata.actions[i].type == 'EMAIL') {
@@ -133,6 +141,14 @@
                 pad('00', vm.schedule_end_time.getMinutes(), true) + ':59';
 
                 var metadata = {'actions': []};
+                if (vm.action_notification_message) {
+                    metadata.actions.push({
+                        'type': 'NOTIFICATION',
+                        'title': vm.action_notification_title,
+                        'category': vm.action_notification_category,
+                        'message': vm.action_notification_message
+                    });
+                }
                 if (vm.action_sms_recipients && vm.action_sms_message) {
                     metadata.actions.push({
                         'type': 'SMS',

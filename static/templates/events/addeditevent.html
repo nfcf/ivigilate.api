@@ -18,7 +18,7 @@
             <div class="col-md-6">
                 <div class="form-group" show-errors>
                     <label for="name">Name</label>
-                    <input type="text" class="form-control" name="name" ng-model="vm.event.name" required />
+                    <input type="text" class="form-control" name="name" ng-model="vm.event.name" required/>
                 </div>
             </div>
         </div>
@@ -89,7 +89,8 @@
                                     repeat="beacon in vm.beacons | propsFilter: {name: $select.search, reference_id: $select.search} track by beacon.id">
                                 <div ng-bind-html="beacon.name | highlight: $select.search"></div>
                                 <small>
-                                    {{ beacon.type_display }} with ID: <span ng-bind-html="beacon.reference_id | highlight: $select.search"></span>
+                                    {{ beacon.type_display }} with ID: <span
+                                        ng-bind-html="beacon.reference_id | highlight: $select.search"></span>
                                 </small>
                             </ui-select-choices>
                         </ui-select>
@@ -106,7 +107,8 @@
                                     repeat="detector in vm.detectors | propsFilter: {name: $select.search, reference_id: $select.search} track by detector.id">
                                 <div ng-bind-html="detector.name | highlight: $select.search"></div>
                                 <small>
-                                    {{ detector.type_display }} with ID: <span ng-bind-html="detector.reference_id | highlight: $select.search"></span>
+                                    {{ detector.type_display }} with ID: <span
+                                        ng-bind-html="detector.reference_id | highlight: $select.search"></span>
                                 </small>
                             </ui-select-choices>
                         </ui-select>
@@ -175,6 +177,43 @@
                 <div class="col-md-offset-1 col-md-10">
                     <div class="form-group">
                         <ul rn-carousel rn-carousel-controls rn-carousel-index="vm.actions_index" class="custom-carousel">
+                            <li>
+                                <div class="col-md-12">
+                                    <div class="form-group text-center">
+                                        <label>On-Screen Notification</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="action_notification_title">Title</label>
+                                        <input type="text" class="form-control" id="action_notification_title"
+                                               ng-model="vm.action_notification_title"/>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="action_notification_category">Category</label>
+                                        <ui-select ng-model="vm.action_notification_category" theme="bootstrap" ng-disabled="disabled">
+                                            <ui-select-match>
+                                                {{ $select.selected }}
+                                            </ui-select-match>
+                                            <ui-select-choices repeat="notification_category in vm.notification_categories">
+                                                <div ng-bind-html="notification_category  | highlight: $select.search"></div>
+                                            </ui-select-choices>
+                                        </ui-select>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label for="action_notification_message">Message</label>
+                                <textarea class="form-control" id="action_notification_message" ng-model="vm.action_notification_message">
+                                </textarea>
+                                        <small>Note: The following tags can be used: %event_id%, %event_name%, %beacon_id%,
+                                            %beacon_name%, %detector_id%, %detector_name%.
+                                        </small>
+                                    </div>
+                                </div>
+                            </li>
                             <li>
                                 <div class="col-md-12">
                                     <div class="form-group text-center">

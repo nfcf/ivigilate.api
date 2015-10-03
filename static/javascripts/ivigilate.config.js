@@ -85,8 +85,8 @@
 
             allowHTML: false,
             closeButton: true,
-            timeOut: 30000,
-            extendedTimeOut: 30000,
+            timeOut: 60000,
+            extendedTimeOut: 60000,
             tapToDismiss: false,
             progressBar: true
         });

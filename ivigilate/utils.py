@@ -4,7 +4,7 @@ from rest_framework import status
 from twilio.rest import TwilioRestClient
 from django.core.mail import send_mail
 from ivigilate import settings
-from ivigilate.models import Sighting, Event, EventOccurrence
+from ivigilate.models import Sighting, Event, EventOccurrence, Notification
 from django.db.models import Q
 import math, json, re, logging, os
 
@@ -69,10 +69,17 @@ def trigger_event_actions(event, sighting):
     actions = metadata['actions']
     if actions:
         for action in actions:
-            if action['type'] == 'SMS':
+            if action['type'] == 'NOTIFICATION':
+                logger.info('Action for event \'%s\': Generating On-Screen Notification.', event)
+                action_metadata = {}
+                action_metadata.category = action['category']
+                action_metadata.title = replace_message_tags(action['title'], event, sighting) if action.get('title') is not None else ''
+                action_metadata.message = replace_message_tags(action['message'], event, sighting) if action.get('message') is not None else ''
+                Notification.objects.create(account=event.account, metadata=action_metadata)
+            elif action['type'] == 'SMS':
                 logger.info('Action for event \'%s\': Sending SMS to %s recipient(s).',
                              event, len(re.split(',|;', action['recipients'])))
-                message = replace_message_tags(action['message'], event, sighting)
+                message = replace_message_tags(action['message'], event, sighting) if action.get('message') is not None else ''
                 for to in re.split(',|;', action['recipients']):
                     send_twilio_message(to, message)
             elif action['type'] == 'EMAIL':

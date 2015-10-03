@@ -461,7 +461,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         if account:
-            queryset = self.queryset.filter(event__account=account, is_active=True)
+            queryset = self.queryset.filter(account=account, is_active=True)
             return utils.view_list(request, account, queryset, self.get_serializer_class())
         else:
             return Response('The current logged on user is not associated with any account.',
@@ -471,7 +471,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
         user = request.user if not isinstance(request.user, AnonymousUser) else None
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         try:
-            instance = self.queryset.get(id=pk, event__account=account)
+            instance = self.queryset.get(id=pk, account=account)
         except Event.DoesNotExist:
             return Response('Notification does not exist or is not associated with the current logged on account.',
                             status=status.HTTP_400_BAD_REQUEST)
