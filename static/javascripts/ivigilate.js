@@ -35,6 +35,7 @@
             'ivigilate.detectors',
             'ivigilate.beacons',
             'ivigilate.events',
+            'ivigilate.limits',
             'ivigilate.sightings'
         ]);
 

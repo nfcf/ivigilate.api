@@ -36,6 +36,10 @@
             controller: 'EventsController',
             controllerAs: 'vm',
             templateUrl: '/static/templates/events/events.html'
+        }).when('/limits', {
+            controller: 'LimitsController',
+            controllerAs: 'vm',
+            templateUrl: '/static/templates/limits/limits.html'
         }).when('/sightings', {
             controller: 'SightingsController',
             controllerAs: 'vm',

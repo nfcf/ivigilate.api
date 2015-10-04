@@ -333,8 +333,37 @@ class EventWriteSerializer(serializers.ModelSerializer):
         return instance
 
 
-class NotificationSerializer(serializers.ModelSerializer):
+class EventLimitReadSerializer(serializers.ModelSerializer):
+    event = EventReadSerializer()
+    beacon = BeaconReadSerializer()
 
+    class Meta:
+        model = EventLimit
+        fields = ('id', 'event', 'beacon', 'occurrence_date_limit', 'occurrence_count_limit',
+                  'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
+
+
+class EventLimitWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventLimit
+        fields = ('id', 'event', 'beacon', 'occurrence_date_limit', 'occurrence_count_limit',
+                  'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
+
+    def update(self, instance, validated_data):
+        instance.event = validated_data.get('event', instance.event)
+        instance.beacon = validated_data.get('beacon', instance.beacon)
+        instance.occurrence_date_limit = validated_data.get('occurrence_date_limit', instance.occurrence_date_limit)
+        instance.occurrence_count_limit = validated_data.get('occurrence_count_limit', instance.occurrence_count_limit)
+
+        instance.metadata = validated_data.get('metadata', instance.metadata)
+        instance.updated_by = validated_data.get('updated_by')
+        instance.is_active = validated_data.get('is_active', instance.is_active)
+        instance.save()
+
+        return instance
+
+
+class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ('id', 'metadata', 'created_at', 'is_active')

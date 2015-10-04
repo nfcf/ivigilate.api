@@ -1,0 +1,58 @@
+<div class="row">
+    <div class="col-md-10 col-md-offset-1">
+        <h1>Limits</h1>
+
+        <div class="well">
+            <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
+
+            <div class="table-responsive">
+                <table st-table="vm.displayedLimits" st-safe-src="vm.limits" class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th st-sort="reference_id">ID</th>
+                        <th st-sort="beacon">Beacon</th>
+                        <th st-sort="event">Event</th>
+                        <th st-sort="created_at" st-sort-default="True">Start Date</th>
+                        <th st-sort="occurrence_date_limit">End Date</th>
+                        <th st-sort="occurrence_count_limit">Max Occurrences</th>
+                        <th class="text-center" st-sort="is_active">Active?</th>
+                        <th class="text-right">
+                            <button ng-click="vm.addLimit()" class="btn btn-sm btn-success">
+                                <span class="glyphicon glyphicon-plus"></span> Add
+                            </button>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th colspan="7">
+                            <input st-search placeholder="Global Search" class="input-sm form-control" type="search"/>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="limit in vm.displayedLimits">
+                        <td>{{ limit.reference_id }}</td>
+                        <td>{{ limit.beacon.name }}</td>
+                        <td>{{ limit.event.name }}</td>
+                        <td>{{ limit.created_at }}</td>
+                        <td>{{ limit.occurrence_date_limit }}</td>
+                        <td class="text-center" >{{ limit.occurrence_count_limit }}</td>
+                        <td class="text-center">
+                            <input type="checkbox" ng-model="limit.is_active" ng-click="vm.updateLimitState(limit)">
+                        </td>
+                        <td class="text-center">
+                            <a ng-click="vm.editLimit(limit)">Edit</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                    <tfoot>
+                    <tr>
+                        <td colspan="7" class="text-center">
+                            <div st-pagination="" st-items-by-page="10" st-displayed-pages="5"></div>
+                        </td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

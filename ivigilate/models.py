@@ -289,7 +289,7 @@ class Event(models.Model):
     sighting_has_been_confirmed = models.NullBooleanField(default=None)
     sighting_previous_event = models.ForeignKey('Event', null=True)
 
-    metadata = models.TextField(blank=True) # event actions: SMS, Email, REST call
+    metadata = models.TextField(blank=True) # event actions: Notification, SMS, Email, REST call
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(editable=False)
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
@@ -328,7 +328,7 @@ class EventLimit(models.Model):
     occurrence_date_limit = models.DateTimeField()
     occurrence_count_limit = models.IntegerField()
 
-    metadata = models.TextField(blank=True) # event limit actions: SMS, Email, REST call
+    metadata = models.TextField(blank=True) # event limit actions: Notification, SMS, Email, REST call
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(editable=False)
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
@@ -346,7 +346,7 @@ class EventLimit(models.Model):
 
 class Notification(models.Model):
     account = models.ForeignKey(Account)
-    metadata = models.TextField(blank=True)  # populated with title and message by event occurrence / limit actions
+    metadata = models.TextField(blank=True)  # populated with title, category and message by event occurrence / limit actions
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(editable=False)
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')

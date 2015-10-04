@@ -367,7 +367,6 @@ class EventViewSet(viewsets.ModelViewSet):
         queryset = self.queryset.filter(account=account)
         return utils.view_list(request, account, queryset, self.get_serializer_class())
 
-
     def retrieve(self, request, pk=None):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         try:
@@ -449,6 +448,64 @@ class EventViewSet(viewsets.ModelViewSet):
                 event.detectors.remove(id)
 
 
+class LimitViewSet(viewsets.ModelViewSet):
+    queryset = EventLimit.objects.all()
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return EventLimitReadSerializer
+        return EventLimitWriteSerializer
+
+    def get_permissions(self):
+        if self.request.method in ['HEAD', 'OPTIONS']:
+            return (permissions.AllowAny(), )
+        return (permissions.IsAuthenticated(), )
+
+    def list(self, request):
+        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
+        queryset = self.queryset.filter(event__account=account)
+        return utils.view_list(request, account, queryset, self.get_serializer_class())
+
+    def retrieve(self, request, pk=None):
+        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
+        try:
+            queryset = self.queryset.get(id=pk, event__account=account)
+        except EventLimit.DoesNotExist:
+            return Response('EventLimit does not exist or is not associated with the current logged on account.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer_class()(queryset, many=False, context={'request': request})
+        return Response(serializer.data)
+
+    def create(self, request):
+        user = request.user if not isinstance(request.user, AnonymousUser) else None
+        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
+        serializer = self.get_serializer_class()(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save(updated_by=user, event__account=account)
+            return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk=None):
+        user = request.user if not isinstance(request.user, AnonymousUser) else None
+        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
+        try:
+            instance = self.queryset.get(id=pk, event__account=account)
+        except EventLimit.DoesNotExist:
+            return Response('EventLimit does not exist or is not associated with the current logged on account.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer_class()(instance, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save(updated_by=user)
+            return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
@@ -472,7 +529,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         try:
             instance = self.queryset.get(id=pk, account=account)
-        except Event.DoesNotExist:
+        except Notification.DoesNotExist:
             return Response('Notification does not exist or is not associated with the current logged on account.',
                             status=status.HTTP_400_BAD_REQUEST)
 
