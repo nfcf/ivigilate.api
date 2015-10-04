@@ -322,9 +322,9 @@ class EventOccurrence(models.Model):
 
 
 class EventLimit(models.Model):
+    reference_id = models.CharField(max_length=64, blank=True)
     event = models.ForeignKey(Event)
     beacon = models.ForeignKey(Beacon)
-
     occurrence_date_limit = models.DateTimeField()
     occurrence_count_limit = models.IntegerField()
 

@@ -339,17 +339,18 @@ class EventLimitReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EventLimit
-        fields = ('id', 'event', 'beacon', 'occurrence_date_limit', 'occurrence_count_limit',
+        fields = ('id', 'reference_id', 'event', 'beacon', 'occurrence_date_limit', 'occurrence_count_limit',
                   'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
 
 
 class EventLimitWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = EventLimit
-        fields = ('id', 'event', 'beacon', 'occurrence_date_limit', 'occurrence_count_limit',
+        fields = ('id', 'reference_id', 'event', 'beacon', 'occurrence_date_limit', 'occurrence_count_limit',
                   'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
 
     def update(self, instance, validated_data):
+        instance.reference_id = validated_data.get('reference_id', instance.reference_id)
         instance.event = validated_data.get('event', instance.event)
         instance.beacon = validated_data.get('beacon', instance.beacon)
         instance.occurrence_date_limit = validated_data.get('occurrence_date_limit', instance.occurrence_date_limit)
