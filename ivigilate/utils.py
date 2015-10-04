@@ -72,10 +72,10 @@ def trigger_event_actions(event, sighting):
             if action['type'] == 'NOTIFICATION':
                 logger.info('Action for event \'%s\': Generating On-Screen Notification.', event)
                 action_metadata = {}
-                action_metadata.category = action['category']
-                action_metadata.title = replace_message_tags(action['title'], event, sighting) if action.get('title') is not None else ''
-                action_metadata.message = replace_message_tags(action['message'], event, sighting) if action.get('message') is not None else ''
-                Notification.objects.create(account=event.account, metadata=action_metadata)
+                action_metadata['category'] = action['category']
+                action_metadata['title'] = replace_message_tags(action['title'], event, sighting) if action.get('title') is not None else ''
+                action_metadata['message'] = replace_message_tags(action['message'], event, sighting) if action.get('message') is not None else ''
+                Notification.objects.create(account=event.account, metadata=json.dumps(action_metadata))
             elif action['type'] == 'SMS':
                 logger.info('Action for event \'%s\': Sending SMS to %s recipient(s).',
                              event, len(re.split(',|;', action['recipients'])))
@@ -104,8 +104,8 @@ def check_for_events(sighting, new_sighting_detector=None):
                                   'AND (eb.beacon_id IS NULL OR eb.beacon_id = %s) ' \
                                   'AND (ed.detector_id IS NULL OR ed.detector_id = %s) ' \
                                   'AND e.schedule_days_of_week & %s > 0 ' \
-                                  'AND e.schedule_start_time <= %s + interval \'1m\' * e.schedule_timezone_offset ' \
-                                  'AND e.schedule_end_time >= %s + interval \'1m\' * e.schedule_timezone_offset)',
+                                  'AND e.schedule_start_time <= (%s + interval \'1m\' * e.schedule_timezone_offset) :: time ' \
+                                  'AND e.schedule_end_time >= (%s + interval \'1m\' * e.schedule_timezone_offset) :: time)',
                                   [sighting.beacon.id, sighting.detector.id if sighting.detector is not None else 0,
                                    int(current_week_day_representation),
                                    now.strftime('%H:%M:%S'), now.strftime('%H:%M:%S')])

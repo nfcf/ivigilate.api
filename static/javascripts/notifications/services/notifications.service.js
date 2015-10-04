@@ -24,14 +24,19 @@
                 var notifications = data.data;
                 if (!!notifications) {
                     for (var i = 0; i < notifications.length; i++) {
-                        var notification = notifications[i];
-                        var metadata = JSON.parse(notification.metadata);
-                        toastr[metadata.category](metadata.message, metadata.title, {
-                            onHidden: (function (notification) {
-                                return function (clicked) {
-                                    closeNotification(notification);
-                                }}(notification))
-                        });
+                        try {
+                            var notification = notifications[i];
+                            var metadata = JSON.parse(notification.metadata);
+                            toastr[metadata.category](metadata.message, metadata.title, {
+                                onHidden: (function (notification) {
+                                    return function (clicked) {
+                                        if (clicked) closeNotification(notification);
+                                    }
+                                }(notification))
+                            });
+                        } catch (ex) {
+                            console.log('Failed to parse notification data with error: ' + ex.message);
+                        }
                     }
                 }
             }

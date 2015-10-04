@@ -1,8 +1,10 @@
+import threading
 from django.contrib.auth import update_session_auth_hash, login
+from multiprocessing import Process
 from rest_framework import serializers
 from rest_framework_gis import serializers as gis_serializers
+from ivigilate import utils
 from ivigilate.models import *
-from ivigilate.utils import get_file_extension, check_for_events
 import logging
 
 logger = logging.getLogger(__name__)
@@ -32,7 +34,7 @@ class Base64ImageField(serializers.ImageField):
             # Generate file name:
             file_name = str(uuid.uuid4())[:12]  # 12 characters are more than enough.
             # Get the file name extension:
-            file_extension = get_file_extension(file_name, decoded_file)
+            file_extension = utils.get_file_extension(file_name, decoded_file)
 
             complete_file_name = "%s.%s" % (file_name, file_extension, )
 
@@ -240,7 +242,11 @@ class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
 
         del validated_data['user']
         sighting = Sighting.objects.create(**validated_data)
-        check_for_events(sighting)
+
+        # check for events associated with this sighting in a different  thread
+        t = threading.Thread(target=utils.check_for_events, args=(sighting,))
+        t.start()
+
         return sighting
 
     def update(self, instance, validated_data):
@@ -339,6 +345,7 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.is_active = validated_data.get('is_active', instance.is_active)
+        instance.updated_by = validated_data.get('updated_by')
         instance.save()
 
         return instance
