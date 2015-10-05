@@ -483,8 +483,15 @@ class LimitViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer_class()(data=request.data)
 
         if serializer.is_valid():
-            serializer.save(updated_by=user, event__account=account)
-            return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
+            limit = serializer.save(updated_by=user, event__account=account)
+            if limit:
+                # remove fields from the response as they aren't serializable nor needed
+                if 'event' in serializer.validated_data:
+                    del serializer.validated_data['event']
+                if 'beacon' in serializer.validated_data:
+                    del serializer.validated_data['beacon']
+
+                return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -500,7 +507,14 @@ class LimitViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer_class()(instance, data=request.data)
 
         if serializer.is_valid():
-            serializer.save(updated_by=user)
+            limit = serializer.save(updated_by=user)
+            if limit:
+                # remove fields from the response as they aren't serializable nor needed
+                if 'event' in serializer.validated_data:
+                    del serializer.validated_data['event']
+                if 'beacon' in serializer.validated_data:
+                    del serializer.validated_data['beacon']
+
             return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

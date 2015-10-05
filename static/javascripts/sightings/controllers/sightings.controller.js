@@ -62,7 +62,7 @@
                 refresh();
             });
 
-            var refreshInterval = $interval(refresh, 15000);
+            var refreshInterval = $interval(refresh, 10000);
             $scope.$on('$destroy', function () {
                 $interval.cancel(refreshInterval);
             });

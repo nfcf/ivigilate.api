@@ -40,7 +40,7 @@ class Account(models.Model):
     def get_license_about_to_expire(self):
         now = datetime.now(timezone.utc)
         filter_datetime = now + timedelta(weeks=2)
-        licenses_about_to_expire = self.licenses.filter(valid_until__lt=filter_datetime)
+        licenses_about_to_expire = self.licenses.filter(valid_until__gt=now, valid_until__lt=filter_datetime)
         return licenses_about_to_expire[0] if len(licenses_about_to_expire) > 0 else None
 
     def get_license_due_for_payment(self):
