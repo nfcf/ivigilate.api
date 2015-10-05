@@ -324,9 +324,9 @@ class EventOccurrence(models.Model):
 class EventLimit(models.Model):
     reference_id = models.CharField(max_length=64, blank=True)
     event = models.ForeignKey(Event)
-    beacon = models.ForeignKey(Beacon)
-    occurrence_date_limit = models.DateTimeField()
-    occurrence_count_limit = models.IntegerField()
+    beacon = models.ForeignKey(Beacon, null=True)
+    occurrence_date_limit = models.DateField(blank=True, null=True)
+    occurrence_count_limit = models.IntegerField(default=-1)
 
     metadata = models.TextField(blank=True) # event limit actions: Notification, SMS, Email, REST call
     created_at = models.DateTimeField(editable=False)

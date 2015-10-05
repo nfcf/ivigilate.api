@@ -2,14 +2,14 @@
     'use strict';
 
     angular
-        .module('ivigilate.events.controllers')
-        .controller('AddEditEventController', AddEditEventController);
+        .module('ivigilate.limits.controllers')
+        .controller('AddEditLimitController', AddEditLimitController);
 
-    AddEditEventController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data',
-        'Authentication', 'Beacons', 'Detectors', 'Events'];
+    AddEditLimitController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data',
+        'Authentication', 'Beacons', 'Events', 'Limits'];
 
-    function AddEditEventController($location, $scope, $timeout, $modalInstance, data,
-                                    Authentication, Beacons, Detectors, Events) {
+    function AddEditLimitController($location, $scope, $timeout, $modalInstance, data,
+                                    Authentication, Beacons, Events, Limits) {
         var vm = this;
         vm.cancel = cancel;
         vm.destroy = destroy;

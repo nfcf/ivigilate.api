@@ -63,6 +63,8 @@
 
         function updateLimitState(limit) {
             var limitToSend = JSON.parse(JSON.stringify(limit));
+            limitToSend.event = limitToSend.event.id;
+            limitToSend.beacon = limitToSend.beacon.id;
             Limits.update(limitToSend).then(successFn, errorFn);
 
             function successFn(data, status, headers, config) {
