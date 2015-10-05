@@ -483,7 +483,7 @@ class LimitViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer_class()(data=request.data)
 
         if serializer.is_valid():
-            limit = serializer.save(updated_by=user, event__account=account)
+            limit = serializer.save(updated_by=user)
             if limit:
                 # remove fields from the response as they aren't serializable nor needed
                 if 'event' in serializer.validated_data:
@@ -499,7 +499,7 @@ class LimitViewSet(viewsets.ModelViewSet):
         user = request.user if not isinstance(request.user, AnonymousUser) else None
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         try:
-            instance = self.queryset.get(id=pk, event__account=account)
+            instance = self.queryset.get(id=pk)
         except EventLimit.DoesNotExist:
             return Response('EventLimit does not exist or is not associated with the current logged on account.',
                             status=status.HTTP_400_BAD_REQUEST)

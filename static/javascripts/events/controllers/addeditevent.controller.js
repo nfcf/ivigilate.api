@@ -30,9 +30,9 @@
         vm.schedule_end_time = undefined;
         vm.schedule_timezone_offset = undefined;
 
-        vm.notification_categories = ['success', 'info', 'warning', 'error'];
+        vm.notification_categories = ['Success', 'Info', 'Warning', 'Error'];
         vm.action_notification_title = undefined;
-        vm.action_notification_category = 'info';
+        vm.action_notification_category = 'Info';
         vm.action_notification_message = undefined;
         vm.action_sms_recipients = undefined;
         vm.action_sms_message = undefined;
@@ -75,19 +75,21 @@
                     var end_time_parts = vm.event.schedule_end_time.split(':');
                     vm.schedule_end_time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), end_time_parts[0], end_time_parts[1]);
 
-                    var metadata = JSON.parse(vm.event.metadata);
-                    for (var i = 0; i < metadata.actions.length; i++) {  // Required for the REST serializer
-                        if (metadata.actions[i].type == 'NOTIFICATION') {
-                            vm.action_notification_title = metadata.actions[i].title;
-                            vm.action_notification_category = metadata.actions[i].category;
-                            vm.action_notification_message = metadata.actions[i].message;
-                        } else if (metadata.actions[i].type == 'SMS') {
-                            vm.action_sms_recipients = metadata.actions[i].recipients;
-                            vm.action_sms_message = metadata.actions[i].message;
-                        } else if (metadata.actions[i].type == 'EMAIL') {
-                            vm.action_email_recipients = metadata.actions[i].recipients;
-                            vm.action_email_subject = metadata.actions[i].subject;
-                            vm.action_email_body = metadata.actions[i].body;
+                    if (!!vm.event.metadata) {
+                        var metadata = JSON.parse(vm.event.metadata);
+                        for (var i = 0; i < metadata.actions.length; i++) {  // Required for the REST serializer
+                            if (metadata.actions[i].type == 'NOTIFICATION') {
+                                vm.action_notification_title = metadata.actions[i].title;
+                                vm.action_notification_category = metadata.actions[i].category;
+                                vm.action_notification_message = metadata.actions[i].message;
+                            } else if (metadata.actions[i].type == 'SMS') {
+                                vm.action_sms_recipients = metadata.actions[i].recipients;
+                                vm.action_sms_message = metadata.actions[i].message;
+                            } else if (metadata.actions[i].type == 'EMAIL') {
+                                vm.action_email_recipients = metadata.actions[i].recipients;
+                                vm.action_email_subject = metadata.actions[i].subject;
+                                vm.action_email_body = metadata.actions[i].body;
+                            }
                         }
                     }
                 } else {

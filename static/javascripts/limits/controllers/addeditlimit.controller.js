@@ -11,6 +11,7 @@
     function AddEditLimitController($location, $scope, $timeout, $modalInstance, data,
                                     Authentication, Beacons, Events, Limits) {
         var vm = this;
+        vm.openDateTimePicker = openDateTimePicker;
         vm.cancel = cancel;
         vm.destroy = destroy;
         vm.save = save;
@@ -18,21 +19,14 @@
         vm.error = undefined;
         vm.title = undefined;
 
-        vm.event = undefined;
-        vm.schedule_monday = 1;
-        vm.schedule_tuesday = 2;
-        vm.schedule_wednesday = 4;
-        vm.schedule_thursday = 8;
-        vm.schedule_friday = 16;
-        vm.schedule_saturday = 32;
-        vm.schedule_sunday = 64;
-        vm.schedule_start_time = undefined;
-        vm.schedule_end_time = undefined;
-        vm.schedule_timezone_offset = undefined;
+        vm.limit = undefined;
 
-        vm.notification_categories = ['success', 'info', 'warning', 'error'];
+        vm.occurrence_date_limit = undefined;
+        vm.occurrence_count_limit = undefined;
+
+        vm.notification_categories = ['Success', 'Info', 'Warning', 'Error'];
         vm.action_notification_title = undefined;
-        vm.action_notification_category = 'info';
+        vm.action_notification_category = 'Info';
         vm.action_notification_message = undefined;
         vm.action_sms_recipients = undefined;
         vm.action_sms_message = undefined;
@@ -40,16 +34,23 @@
         vm.action_email_subject = undefined;
         vm.action_email_body = undefined;
 
-        vm.events = [];
-        vm.nullEventOption = {"name": "-- Don't care --"};
-        vm.beacons = [];
-        vm.beacons_selected = [];
-        vm.detectors = [];
-        vm.detectors_selected = [];
-
         vm.actions_index = 0;
 
+        vm.events = [];
+        vm.beacons = [];
+        vm.nullBeaconOption = {"name": "-- Any Beacon --"};
+
         vm.is_edit = data !== null;
+
+        vm.occurrence_date_limit_is_open = false;
+        vm.date_options = {
+            showWeeks: false,
+            startingDay: 1
+        };
+        vm.time_options = {
+            showMeridian: false,
+            minuteStep: 5
+        };
 
         activate();
 
@@ -58,49 +59,32 @@
             var user = Authentication.getAuthenticatedUser();
             if (user) {
                 if (vm.is_edit) {
-                    vm.title = 'Event';
-                    vm.event = data;
-                    vm.event.schedule_timezone_offset = Math.abs(now.getTimezoneOffset());
+                    vm.title = 'Limit';
+                    vm.limit = data;
 
-                    vm.schedule_monday = vm.event.schedule_days_of_week & Math.pow(2, 0);
-                    vm.schedule_tuesday = vm.event.schedule_days_of_week & Math.pow(2, 1);
-                    vm.schedule_wednesday = vm.event.schedule_days_of_week & Math.pow(2, 2);
-                    vm.schedule_thursday = vm.event.schedule_days_of_week & Math.pow(2, 3);
-                    vm.schedule_friday = vm.event.schedule_days_of_week & Math.pow(2, 4);
-                    vm.schedule_saturday = vm.event.schedule_days_of_week & Math.pow(2, 5);
-                    vm.schedule_sunday = vm.event.schedule_days_of_week & Math.pow(2, 6);
-
-                    var start_time_parts = vm.event.schedule_start_time.split(':');
-                    vm.schedule_start_time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), start_time_parts[0], start_time_parts[1]);
-                    var end_time_parts = vm.event.schedule_end_time.split(':');
-                    vm.schedule_end_time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), end_time_parts[0], end_time_parts[1]);
-
-                    var metadata = JSON.parse(vm.event.metadata);
-                    for (var i = 0; i < metadata.actions.length; i++) {  // Required for the REST serializer
-                        if (metadata.actions[i].type == 'NOTIFICATION') {
-                            vm.action_notification_title = metadata.actions[i].title;
-                            vm.action_notification_category = metadata.actions[i].category;
-                            vm.action_notification_message = metadata.actions[i].message;
-                        } else if (metadata.actions[i].type == 'SMS') {
-                            vm.action_sms_recipients = metadata.actions[i].recipients;
-                            vm.action_sms_message = metadata.actions[i].message;
-                        } else if (metadata.actions[i].type == 'EMAIL') {
-                            vm.action_email_recipients = metadata.actions[i].recipients;
-                            vm.action_email_subject = metadata.actions[i].subject;
-                            vm.action_email_body = metadata.actions[i].body;
+                    if (!!vm.limit.metadata) {
+                        var metadata = JSON.parse(vm.limit.metadata);
+                        for (var i = 0; i < metadata.actions.length; i++) {  // Required for the REST serializer
+                            if (metadata.actions[i].type == 'NOTIFICATION') {
+                                vm.action_notification_title = metadata.actions[i].title;
+                                vm.action_notification_category = metadata.actions[i].category;
+                                vm.action_notification_message = metadata.actions[i].message;
+                            } else if (metadata.actions[i].type == 'SMS') {
+                                vm.action_sms_recipients = metadata.actions[i].recipients;
+                                vm.action_sms_message = metadata.actions[i].message;
+                            } else if (metadata.actions[i].type == 'EMAIL') {
+                                vm.action_email_recipients = metadata.actions[i].recipients;
+                                vm.action_email_subject = metadata.actions[i].subject;
+                                vm.action_email_body = metadata.actions[i].body;
+                            }
                         }
                     }
                 } else {
-                    vm.title = 'New Event';
-                    vm.event = {'is_active': true, 'sighting_duration_in_seconds': 0, 'sighting_has_battery_below': 100,
-                                'schedule_timezone_offset': Math.abs(now.getTimezoneOffset())};
-
-                    vm.schedule_start_time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0);
-                    vm.schedule_end_time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59);
+                    vm.title = 'New Limit';
+                    vm.limit = { 'is_active': true };
                 }
 
                 Beacons.list().then(beaconsSuccessFn, errorFn);
-                Detectors.list().then(detectorsSuccessFn, errorFn);
                 Events.list().then(eventsSuccessFn, errorFn);
             }
             else {
@@ -109,17 +93,11 @@
 
             function beaconsSuccessFn(data, status, headers, config) {
                 vm.beacons = data.data;
-                if (vm.is_edit) vm.beacons_selected = vm.event.beacons;
-            }
-
-            function detectorsSuccessFn(data, status, headers, config) {
-                vm.detectors = data.data;
-                if (vm.is_edit) vm.detectors_selected = vm.event.detectors;
+                vm.beacons.splice(0, 0, vm.nullBeaconOption);
             }
 
             function eventsSuccessFn(data, status, headers, config) {
                 vm.events = data.data;
-                vm.events.splice(0, 0, vm.nullEventOption);
             }
 
             function errorFn(data, status, headers, config) {
@@ -127,19 +105,16 @@
             }
         }
 
+        function openDateTimePicker($event, isOpen) {
+            $event.preventDefault();
+            $event.stopPropagation();
+            vm[isOpen] = !vm[isOpen];
+        }
+
         function save() {
             $scope.$broadcast('show-errors-check-validity');
 
             if (vm.form.$valid) {
-                vm.event.schedule_days_of_week = vm.schedule_monday + vm.schedule_tuesday + vm.schedule_wednesday +
-                vm.schedule_thursday + vm.schedule_friday + vm.schedule_saturday +
-                vm.schedule_sunday;
-
-                vm.event.schedule_start_time = pad('00', vm.schedule_start_time.getHours(), true) + ':' +
-                pad('00', vm.schedule_start_time.getMinutes(), true) + ':00';
-                vm.event.schedule_end_time = pad('00', vm.schedule_end_time.getHours(), true) + ':' +
-                pad('00', vm.schedule_end_time.getMinutes(), true) + ':59';
-
                 var metadata = {'actions': []};
                 if (vm.action_notification_message) {
                     metadata.actions.push({
@@ -164,34 +139,27 @@
                         'body': vm.action_email_body
                     });
                 }
-                vm.event.metadata = JSON.stringify(metadata);
+                vm.limit.metadata = JSON.stringify(metadata);
 
-                var eventToSend = JSON.parse(JSON.stringify(vm.event));
-                eventToSend.beacons = [];
-                for (var i = 0; i < vm.beacons_selected.length; i++) {  // Required for the REST serializer
-                    eventToSend.beacons.push(vm.beacons_selected[i].id);
+                var limitToSend = JSON.parse(JSON.stringify(vm.limit));
+                if (!!vm.limit.beacon) {
+                    limitToSend.beacon = vm.limit.beacon.id;
                 }
-                eventToSend.detectors = [];
-                for (var i = 0; i < vm.detectors_selected.length; i++) {  // Required for the REST serializer
-                    eventToSend.detectors.push(vm.detectors_selected[i].id);
-                }
-                if (vm.event.sighting_previous_event) {
-                    eventToSend.sighting_previous_event = vm.event.sighting_previous_event.id;
+                if (!!vm.limit.event) {
+                    limitToSend.event = vm.limit.event.id;
                 }
 
                 if (vm.is_edit) {
-                    Events.update(eventToSend).then(successFn, errorFn);
+                    Limits.update(limitToSend).then(successFn, errorFn);
                 } else {
-                    Events.add(eventToSend).then(successFn, errorFn);
+                    Limits.add(limitToSend).then(successFn, errorFn);
                 }
             } else {
                 vm.error = 'There are invalid fields in the form.';
             }
 
             function successFn(data, status, headers, config) {
-                vm.event.beacons = vm.beacons_selected;
-                vm.event.detectors = vm.detectors_selected;
-                $modalInstance.close(vm.event);
+                $modalInstance.close(vm.limit);
             }
 
             function errorFn(data, status, headers, config) {
@@ -200,7 +168,7 @@
         }
 
         function destroy() {
-            Events.destroy(vm.event);
+            Limits.destroy(vm.limit);
             $modalInstance.close(null);
         }
 
@@ -216,38 +184,5 @@
                 return (str + pad).substring(0, pad.length);
             }
         }
-
-        /*function populateEventTypes() {
-         event_types.push({
-         name: 'Gone out of sight',
-         description: 'Triggered as soon as a movable gets out of the configured place(s) detector\'s range.',
-         sighting_is_current: false,
-         sighting_duration_in_seconds: 5,
-         sighting_has_battery_below: 100,
-         sighting_has_comment: null,
-         sighting_has_been_confirmed: null,
-         sighting_previous_event_occurrence: null
-         });
-         event_types.push({
-         name: 'Seen at place',
-         description: 'Triggered immediately after a movable is seen at any of the configured places.',
-         sighting_is_current: true,
-         sighting_duration_in_seconds: 0,
-         sighting_has_battery_below: 100,
-         sighting_has_comment: null,
-         sighting_has_been_confirmed: null,
-         sighting_previous_event_occurrence: null
-         });
-         event_types.push({
-         name: 'Same place for more than X minutes',
-         description: 'Triggered if a movable stays in the same place for more than the configured time.',
-         sighting_is_current: true,
-         sighting_duration_in_seconds: 5,
-         sighting_has_battery_below: 100,
-         sighting_has_comment: null,
-         sighting_has_been_confirmed: null,
-         sighting_previous_event_occurrence: null
-         });
-         }*/
     }
 })();

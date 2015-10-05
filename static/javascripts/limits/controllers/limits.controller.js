@@ -48,7 +48,7 @@
         }
 
         function editLimit(limit) {
-            var dlg = dialogs.create('static/templates/limits/addeditlimit.html', 'AddEditLimitController as vm', event, {'size': 'lg'});
+            var dlg = dialogs.create('static/templates/limits/addeditlimit.html', 'AddEditLimitController as vm', limit, {'size': 'lg'});
             dlg.result.then(function (editedLimit) {
                 if (editedLimit) {
                     for (var k in editedLimit) { //Copy the object attributes to the currently displayed on the table

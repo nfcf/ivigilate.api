@@ -1,6 +1,6 @@
 <div class="modal-header">
     <button ng-click="vm.cancel()" class="close">×</button>
-    <h3 class="modal-title" ng-bind="vm.title">Event</h3>
+    <h3 class="modal-title" ng-bind="vm.title">Limit</h3>
 </div>
 
 <div class="modal-body">
@@ -8,164 +8,68 @@
 
     <form name="vm.form" novalidate>
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="form-group">
                     <label for="reference_id">Reference ID</label>
-                    <input type="text" class="form-control" id="reference_id" ng-model="vm.event.reference_id"
+                    <input type="text" class="form-control" id="reference_id" ng-model="vm.limit.reference_id"
                            placeholder="Reference to another system"/>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="form-group" show-errors>
-                    <label for="name">Name</label>
-                    <input type="text" class="form-control" name="name" ng-model="vm.event.name" required/>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Event</label>
+                    <ui-select ng-model="vm.limit.event" theme="bootstrap" ng-disabled="disabled">
+                        <ui-select-match placeholder="Select or search for an event...">
+                            {{ $select.selected.name }}
+                        </ui-select-match>
+                        <ui-select-choices
+                                repeat="event in vm.events | propsFilter: {name: $select.search, reference_id: $select.search}">
+                            <div ng-bind-html="event.name  | highlight: $select.search"></div>
+                            <small ng-bind-html="event.reference_id | highlight: $select.search"/>
+                        </ui-select-choices>
+                    </ui-select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Beacon</label>
+                    <ui-select ng-model="vm.limit.beacon" theme="bootstrap" ng-disabled="disabled">
+                        <ui-select-match placeholder="Select or search for a beacon...">
+                            {{ $select.selected.name }}
+                        </ui-select-match>
+                        <ui-select-choices null-option="vm.nullBeaconOption" loose-null
+                                           repeat="beacon in vm.beacons | propsFilter: {name: $select.search, reference_id: $select.search}">
+                            <div ng-bind-html="beacon.name  | highlight: $select.search"></div>
+                            <small ng-bind-html="beacon.reference_id | highlight: $select.search"/>
+                        </ui-select-choices>
+                    </ui-select>
                 </div>
             </div>
         </div>
 
         <fieldset>
-            <legend>Schedule</legend>
+            <legend>Conditions</legend>
             <div class="row">
                 <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="schedule_days_of_week">Days of the week</label><br/><br/><br/>
-                        <table class="text-justify" style="width: 100%;">
-                            <tr>
-                                <td class="text-center">
-                                    <input type="checkbox" ng-model="vm.schedule_monday" ng-true-value="1"/></td>
-                                <td class="text-center">
-                                    <input type="checkbox" ng-model="vm.schedule_tuesday" ng-true-value="2"/></td>
-                                <td class="text-center">
-                                    <input type="checkbox" ng-model="vm.schedule_wednesday" ng-true-value="4"/></td>
-                                <td class="text-center">
-                                    <input type="checkbox" ng-model="vm.schedule_thursday" ng-true-value="8"/></td>
-                                <td class="text-center">
-                                    <input type="checkbox" ng-model="vm.schedule_friday" ng-true-value="16"/></td>
-                                <td class="text-center">
-                                    <input type="checkbox" ng-model="vm.schedule_saturday" ng-true-value="32"/></td>
-                                <td class="text-center">
-                                    <input type="checkbox" ng-model="vm.schedule_sunday" ng-true-value="64"/></td>
-                            </tr>
-                            <tfoot>
-                            <td class="text-center">Mon</td>
-                            <td class="text-center">Tue</td>
-                            <td class="text-center">Wed</td>
-                            <td class="text-center">Thu</td>
-                            <td class="text-center">Fri</td>
-                            <td class="text-center">Sat</td>
-                            <td class="text-center">Sun</td>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-                <div class="col-xs-6 col-md-3">
-                    <div class="form-group text-justify" style="width: 100%;">
-                        <label>From:</label><br/>
-                        <timepicker ng-model="vm.schedule_start_time" hour-step="1" minute-step="15"
-                                    show-meridian="false"></timepicker>
-                    </div>
-                </div>
-                <div class="col-xs-6 col-md-3">
-                    <div class="form-group text-justify">
-                        <label for="schedule_end_time">To:</label><br/>
-                        <timepicker ng-model="vm.schedule_end_time" hour-step="1" minute-step="15"
-                                    show-meridian="false"></timepicker>
-                    </div>
-                </div>
-            </div>
-        </fieldset>
-
-        <fieldset>
-            <legend>Trigger conditions</legend>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label>Beacon(s)</label>
-                        <ui-select multiple='true' ng-model="vm.beacons_selected"
-                                   theme="select2" ng-disabled="disabled" style="width: 100%">
-                            <ui-select-match placeholder="Select beacon(s) or leave empty for all...">
-                                {{$item.name}}</ui-select-match>
-                            <ui-select-choices
-                                    repeat="beacon in vm.beacons | propsFilter: {name: $select.search, reference_id: $select.search} track by beacon.id">
-                                <div ng-bind-html="beacon.name | highlight: $select.search"></div>
-                                <small>
-                                    {{ beacon.type_display }} with ID: <span
-                                        ng-bind-html="beacon.reference_id | highlight: $select.search"></span>
-                                </small>
-                            </ui-select-choices>
-                        </ui-select>
+                    <label for="seen_at">End Date</label>
+                    <div class="input-group" show-errors>
+                        <input type="text" name="occurrence_date_limit" class="form-control" datetime-picker="yyyy-MM-dd HH:mm"
+                               show-button-bar="false" max-date="vm.max_date"
+                               datepicker-options="vm.date_options" timepicker-options="vm.time_options"
+                               ng-model="vm.seen_at" is-open="vm.occurrence_date_limit_is_open" placeholder="YYYY-MM-DD HH:MM"/>
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default"
+                                    ng-click="vm.openDateTimePicker($event, 'occurrence_date_limit_is_open')"><i class="glyphicon glyphicon-calendar"></i>
+                            </button>
+                        </span>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="form-group">
-                        <label>Detector(s)</label>
-                        <ui-select multiple='true' ng-model="vm.detectors_selected"
-                                   theme="select2" ng-disabled="disabled" style="width: 100%">
-                            <ui-select-match placeholder="Select detector(s) or leave empty for all...">
-                                {{$item.name}}</ui-select-match>
-                            <ui-select-choices
-                                    repeat="detector in vm.detectors | propsFilter: {name: $select.search, reference_id: $select.search} track by detector.id">
-                                <div ng-bind-html="detector.name | highlight: $select.search"></div>
-                                <small>
-                                    {{ detector.type_display }} with ID: <span
-                                        ng-bind-html="detector.reference_id | highlight: $select.search"></span>
-                                </small>
-                            </ui-select-choices>
-                        </ui-select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-xs-4 col-md-4">
-                    <div class="form-group">
-                        <label for="sighting_is_current">Is Sighting Current?</label><br/>
-                        <input type="checkbox" id="sighting_is_current" ng-model="vm.event.sighting_is_current"/>
-                    </div>
-                </div>
-                <div class="col-xs-4 col-md-4">
-                    <div class="form-group">
-                        <label for="sighting_has_comment">Has comment?</label><br/>
-                        <input type="checkbox" id="sighting_has_comment" ng-model="vm.event.sighting_has_comment"/>
-                    </div>
-                </div>
-                <div class="col-xs-4 col-md-4">
-                    <div class="form-group">
-                        <label for="sighting_has_been_confirmed">Was confirmed?</label><br/>
-                        <input type="checkbox" id="sighting_has_been_confirmed"
-                               ng-model="vm.event.sighting_has_been_confirmed"/>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-xs-4 col-md-4">
                     <div class="form-group" show-errors>
-                        <label for="sighting_duration_in_seconds">Duration (sec)</label><br/>
-                        <input type="number" class="form-control" name="sighting_duration_in_seconds"
-                               ng-model="vm.event.sighting_duration_in_seconds" required/>
-                    </div>
-                </div>
-                <div class="col-xs-4 col-md-4">
-                    <div class="form-group" show-errors>
-                        <label for="sighting_has_battery_below">Battery below (%)</label><br/>
-                        <input type="number" class="form-control" name="sighting_has_battery_below"
-                               ng-model="vm.event.sighting_has_battery_below" required/>
-                    </div>
-                </div>
-                <div class="col-xs-4 col-md-4">
-                    <div class="form-group">
-                        <label>Previous Event Ocurrence</label>
-                        <ui-select ng-model="vm.event.sighting_previous_event" theme="bootstrap" ng-disabled="disabled">
-                            <ui-select-match placeholder="Select or search for an event...">
-                                {{ $select.selected.name }}
-                            </ui-select-match>
-                            <ui-select-choices null-option="vm.nullEventOption" loose-null
-                                               repeat="event in vm.events | propsFilter: {name: $select.search, reference_id: $select.search}">
-                                <div ng-bind-html="event.name  | highlight: $select.search"></div>
-                                <small ng-bind-html="event.reference_id | highlight: $select.search"/>
-                            </ui-select-choices>
-                        </ui-select>
+                        <label for="occurrence_count_limit">Max Occurrences</label><br/>
+                        <input type="number" class="form-control" name="occurrence_count_limit"
+                               ng-model="vm.limit.occurrence_count_limit"
+                               placeholder="Leave empty to use 'End Date' only" required/>
                     </div>
                 </div>
             </div>
@@ -208,8 +112,8 @@
                                         <label for="action_notification_message">Message</label>
                                 <textarea class="form-control" id="action_notification_message" ng-model="vm.action_notification_message">
                                 </textarea>
-                                        <small>Note: The following tags can be used: %event_id%, %event_name%, %beacon_id%,
-                                            %beacon_name%, %detector_id%, %detector_name%.
+                                        <small>Note: The following tags can be used: %limit_id%, %event_id%, %event_name%, %beacon_id%,
+                                            %beacon_name%.
                                         </small>
                                     </div>
                                 </div>
@@ -233,8 +137,8 @@
                                         <label for="action_sms_message">Message</label>
                                 <textarea class="form-control" id="action_sms_message" ng-model="vm.action_sms_message">
                                 </textarea>
-                                        <small>Note: The following tags can be used: %event_id%, %event_name%, %beacon_id%,
-                                            %beacon_name%, %detector_id%, %detector_name%.
+                                        <small>Note: The following tags can be used: %limit_id%, %event_id%, %event_name%, %beacon_id%,
+                                            %beacon_name%.
                                         </small>
                                     </div>
                                 </div>
@@ -266,8 +170,8 @@
                                 <textarea class="form-control" id="action_email_body"
                                           ng-model="vm.action_email_body">
                                 </textarea>
-                                        <small>Note: The following tags can be used: %event_id%, %event_name%, %beacon_id%,
-                                            %beacon_name%, %detector_id%, %detector_name%.
+                                        <small>Note: The following tags can be used: %limit_id%, %event_id%, %event_name%, %beacon_id%,
+                                            %beacon_name%.
                                         </small>
                                     </div>
                                 </div>
@@ -302,8 +206,8 @@
                                         <label for="action_rest_body">Body</label>
                                 <textarea class="form-control" id="action_rest_body" ng-model="vm.action_rest_body">
                                 </textarea>
-                                        <small>Note: The following tags can be used: %event_id%, %event_name%, %beacon_id%,
-                                            %beacon_name%, %detector_id%, %detector_name%.
+                                        <small>Note: The following tags can be used: %limit_id%, %event_id%, %event_name%, %beacon_id%,
+                                            %beacon_name%.
                                         </small>
                                     </div>
                                 </div>

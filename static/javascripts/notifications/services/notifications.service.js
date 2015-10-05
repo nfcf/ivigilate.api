@@ -27,7 +27,7 @@
                         try {
                             var notification = notifications[i];
                             var metadata = JSON.parse(notification.metadata);
-                            toastr[metadata.category](metadata.message, metadata.title, {
+                            toastr[metadata.category.toLowerCase()](metadata.message, metadata.title, {
                                 onHidden: (function (notification) {
                                     return function (clicked) {
                                         if (clicked) closeNotification(notification);
