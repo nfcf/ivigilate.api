@@ -12,8 +12,8 @@
                         <th st-sort="reference_id">ID</th>
                         <th st-sort="event">Event</th>
                         <th st-sort="beacon">Beacon</th>
-                        <th st-sort="created_at" st-sort-default="True">Start Date</th>
-                        <th class="text-center" st-sort="occurrence_date_limit">End Date</th>
+                        <th class="text-center" st-sort="occurrence_date_start_limit" st-sort-default="True">Start Date</th>
+                        <th class="text-center" st-sort="occurrence_date_end_limit">End Date</th>
                         <th class="text-center" st-sort="occurrence_count_limit">Max Occurrences</th>
                         <th class="text-center" st-sort="is_active">Active?</th>
                         <th class="text-right">
@@ -33,8 +33,8 @@
                         <td>{{ limit.reference_id || limit.id }}</td>
                         <td>{{ limit.event.name }}</td>
                         <td>{{ !!limit.beacon ? limit.beacon.name : '(Any)' }}</td>
-                        <td>{{ limit.created_at | limitTo:10 }}</td>
-                        <td class="text-center">{{ limit.occurrence_date_limit || 'N/A'}}</td>
+                        <td class="text-center">{{ limit.occurrence_date_start_limit | limitTo:10 }}</td>
+                        <td class="text-center">{{ (limit.occurrence_date_end_limit || 'N/A') | limitTo:10}}</td>
                         <td class="text-center">{{ limit.occurrence_count_limit }}</td>
                         <td class="text-center">
                             <input type="checkbox" ng-model="limit.is_active" ng-click="vm.updateLimitState(limit)">

@@ -50,21 +50,35 @@
         <fieldset>
             <legend>Conditions</legend>
             <div class="row">
-                <div class="col-md-6">
-                    <label for="seen_at">End Date</label>
+                <div class="col-md-4">
+                    <label for="seen_at">Start Date</label>
                     <div class="input-group" show-errors>
-                        <input type="text" name="occurrence_date_limit" class="form-control" datetime-picker="yyyy-MM-dd HH:mm"
-                               show-button-bar="false" max-date="vm.max_date"
-                               datepicker-options="vm.date_options" timepicker-options="vm.time_options"
-                               ng-model="vm.seen_at" is-open="vm.occurrence_date_limit_is_open" placeholder="YYYY-MM-DD HH:MM"/>
+                        <input type="text" name="occurrence_date_start_limit" class="form-control" datetime-picker="yyyy-MM-dd"
+                               show-button-bar="false" max-date="vm.limit.occurrence_date_end_limit" datepicker-options="vm.date_options"
+                               ng-model="vm.limit.occurrence_date_start_limit" is-open="vm.occurrence_date_start_limit_is_open"
+                               enable-time="false" placeholder="YYYY-MM-DD" required />
                         <span class="input-group-btn">
                             <button type="button" class="btn btn-default"
-                                    ng-click="vm.openDateTimePicker($event, 'occurrence_date_limit_is_open')"><i class="glyphicon glyphicon-calendar"></i>
+                                    ng-click="vm.openDateTimePicker($event, 'occurrence_date_start_limit_is_open')"><i class="glyphicon glyphicon-calendar"></i>
                             </button>
                         </span>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
+                    <label for="seen_at">End Date</label>
+                    <div class="input-group" show-errors>
+                        <input type="text" name="occurrence_date_end_limit" class="form-control" datetime-picker="yyyy-MM-dd"
+                               show-button-bar="false" min-date="vm.limit.occurrence_date_start_limit" datepicker-options="vm.date_options"
+                               ng-model="vm.limit.occurrence_date_end_limit" is-open="vm.occurrence_date_end_limit_is_open"
+                               enable-time="false" placeholder="YYYY-MM-DD" />
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default"
+                                    ng-click="vm.openDateTimePicker($event, 'occurrence_date_end_limit_is_open')"><i class="glyphicon glyphicon-calendar"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-4">
                     <div class="form-group" show-errors>
                         <label for="occurrence_count_limit">Max Occurrences</label><br/>
                         <input type="number" class="form-control" name="occurrence_count_limit"

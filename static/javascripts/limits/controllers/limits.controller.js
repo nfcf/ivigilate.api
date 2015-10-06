@@ -33,6 +33,12 @@
 
             function successFn(data, status, headers, config) {
                 vm.limits = data.data;
+                for (var i = 0; i < vm.limits.length; i++) {
+                    vm.limits[i].occurrence_date_start_limit = date2str(new Date(vm.limits[i].occurrence_date_start_limit), 'yyyy-MM-dd');
+                    if (!!vm.limits[i].occurrence_date_end_limit) {
+                        vm.limits[i].occurrence_date_end_limit = date2str(new Date(vm.limits[i].occurrence_date_end_limit), 'yyyy-MM-dd');
+                    }
+                }
             }
 
             function errorFn(data, status, headers, config) {
@@ -75,6 +81,23 @@
                 vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
                 limit.is_active = !limit.is_active;
             }
+        }
+
+        function date2str(x, y) {
+            var z = {
+                M: x.getUTCMonth() + 1,
+                d: x.getUTCDate(),
+                h: x.getUTCHours(),
+                m: x.getUTCMinutes(),
+                s: x.getUTCSeconds()
+            };
+            y = y.replace(/(M+|d+|h+|m+|s+)/g, function (v) {
+                return ((v.length > 1 ? "0" : "") + eval('z.' + v.slice(-1))).slice(-2)
+            });
+
+            return y.replace(/(y+)/g, function (v) {
+                return x.getUTCFullYear().toString().slice(-v.length)
+            });
         }
     }
 })();

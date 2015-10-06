@@ -21,9 +21,6 @@
 
         vm.limit = undefined;
 
-        vm.occurrence_date_limit = undefined;
-        vm.occurrence_count_limit = undefined;
-
         vm.notification_categories = ['Success', 'Info', 'Warning', 'Error'];
         vm.action_notification_title = undefined;
         vm.action_notification_category = 'Info';
@@ -42,7 +39,8 @@
 
         vm.is_edit = data !== null;
 
-        vm.occurrence_date_limit_is_open = false;
+        vm.occurrence_date_start_limit_is_open = false;
+        vm.occurrence_date_end_limit_is_open = false;
         vm.date_options = {
             showWeeks: false,
             startingDay: 1
@@ -61,6 +59,11 @@
                 if (vm.is_edit) {
                     vm.title = 'Limit';
                     vm.limit = data;
+
+                    vm.limit.occurrence_date_start_limit = new Date(vm.limit.occurrence_date_start_limit);
+                    if (!!vm.limit.occurrence_date_end_limit) {
+                        vm.limit.occurrence_date_end_limit = new Date(vm.limit.occurrence_date_end_limit);
+                    }
 
                     if (!!vm.limit.metadata) {
                         var metadata = JSON.parse(vm.limit.metadata);
@@ -159,6 +162,10 @@
             }
 
             function successFn(data, status, headers, config) {
+                vm.limit.occurrence_date_start_limit = vm.limit.occurrence_date_start_limit.toISOString();
+                if (!!vm.limit.occurrence_date_end_limit) {
+                    vm.limit.occurrence_date_end_limit = vm.limit.occurrence_date_end_limit.toISOString();
+                }
                 $modalInstance.close(vm.limit);
             }
 
