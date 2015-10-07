@@ -243,7 +243,7 @@ class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
         del validated_data['user']
         sighting = Sighting.objects.create(**validated_data)
 
-        # check for events associated with this sighting in a different  thread
+        # check for events associated with this sighting in a different thread
         t = threading.Thread(target=utils.check_for_events, args=(sighting,))
         t.start()
 

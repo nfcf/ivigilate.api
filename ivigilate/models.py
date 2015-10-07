@@ -310,7 +310,6 @@ class Event(models.Model):
 
 class EventOccurrence(models.Model):
     event = models.ForeignKey(Event)
-    beacon = models.ForeignKey(Beacon)
     sighting = models.ForeignKey(Sighting)
     occurred_at = models.DateTimeField(editable=False)
 
@@ -319,6 +318,10 @@ class EventOccurrence(models.Model):
         if not self.id:
             self.occurred_at = now
         super(EventOccurrence, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return "%s: event_reference_id=%s, occurred_at=%s" % \
+               (self.event.account.company_id, self.event.reference_id, self.occurred_at)
 
 
 class EventLimit(models.Model):
@@ -343,6 +346,9 @@ class EventLimit(models.Model):
         else:
             self.updated_at = now
         super(EventLimit, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return "%s: reference_id=%s" % (self.event.account.company_id, self.reference_id)
 
 
 class Notification(models.Model):
