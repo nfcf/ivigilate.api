@@ -47,8 +47,6 @@
                             </small>
                         </ui-select-choices>
                     </ui-select>
-                    <small>&nbsp;Consider each beacon separately?&nbsp;
-                        <input type="checkbox" ng-model="vm.consider_each_beacon_separately"/></small>
                 </div>
             </div>
         </div>
@@ -94,6 +92,8 @@
                         <input type="number" class="form-control" name="occurrence_count_limit"
                                ng-model="vm.limit.occurrence_count_limit"
                                placeholder="Leave empty to use 'End Date' only" required/>
+                        <small>&nbsp;Consider each beacon separately?&nbsp;
+                        <input type="checkbox" ng-model="vm.consider_each_beacon_separately"/></small>
                     </div>
                 </div>
             </div>

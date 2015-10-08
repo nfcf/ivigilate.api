@@ -224,16 +224,20 @@ def check_for_limits(event_occurrence):
                 logger.debug('Found %s limit(s) active for event_occurrence \'%s\'.', len(limits), event_occurrence)
                 trigger_limit_actions(limit, event_occurrence.sighting.beacon)
             else:
-                eos = EventOccurrence.objects.filter(event=limit.event,
-                                                     occurred_at__gte=limit.occurrence_date_start_limit)
+                eos = EventOccurrence.objects.all()
+                if (limit.occurrence_date_end_limit is not None):
+                    eos = eos.filter(event=limit.event,
+                                     occurred_at__gte=limit.occurrence_date_start_limit,
+                                     occurred_at__lt=filter_date_end_limit)
+                else:
+                    eos = eos.filter(event=limit.event,
+                                     occurred_at__gte=limit.occurrence_date_start_limit)
+
                 metadata = json.loads(limit.metadata)
                 if (metadata['consider_each_beacon_separately']):
-                    eos.filter(sighting__beacon=event_occurrence.sighting.beacon)
-                elif (limit.beacons is not None):
-                        eos.filter(sighting__beacon__in=limit.beacons)
-
-                if (limit.occurrence_date_end_limit is not None):
-                    eos.filter(occurred_at__lt=filter_date_end_limit)
+                    eos = eos.filter(sighting__beacon=event_occurrence.sighting.beacon)
+                elif (limit.beacons and limit.beacons.count() > 0):
+                    eos = eos.filter(sighting__beacon__in=limit.beacons.all())
 
                 if (eos.count() > limit.occurrence_count_limit):
                     trigger_limit_actions(limit, event_occurrence.sighting.beacon)

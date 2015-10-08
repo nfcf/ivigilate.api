@@ -30,7 +30,7 @@
                             toastr[metadata.category.toLowerCase()](metadata.message, metadata.title, {
                                 onHidden: (function (notification) {
                                     return function (clicked) {
-                                        if (clicked) closeNotification(notification);
+                                        closeNotification(notification);
                                     }
                                 }(notification)),
                                 timeOut: !!metadata.timeout ? metadata.timeout * 1000 : 0,
