@@ -88,6 +88,7 @@ def trigger_event_actions(event, sighting):
                 logger.info('Action for event \'%s\': Generating On-Screen Notification.', event)
                 action_metadata = {}
                 action_metadata['category'] = action['category']
+                action_metadata['timeout'] = action['timeout']
                 action_metadata['title'] = replace_event_message_tags(action['title'], event, sighting) if action.get('title') is not None else ''
                 action_metadata['message'] = replace_event_message_tags(action['message'], event, sighting) if action.get('message') is not None else ''
                 Notification.objects.create(account=event.account, metadata=json.dumps(action_metadata))
@@ -117,6 +118,7 @@ def trigger_limit_actions(limit, beacon):
                 logger.info('Action for limit \'%s\': Generating On-Screen Notification.', limit)
                 action_metadata = {}
                 action_metadata['category'] = action['category']
+                action_metadata['timeout'] = action['timeout']
                 action_metadata['title'] = replace_limit_message_tags(action['title'], limit, beacon) if action.get('title') is not None else ''
                 action_metadata['message'] = replace_limit_message_tags(action['message'], limit, beacon) if action.get('message') is not None else ''
                 Notification.objects.create(account=limit.event.account, metadata=json.dumps(action_metadata))
@@ -210,13 +212,13 @@ def check_for_limits(event_occurrence):
 
     limits = EventLimit.objects.filter(Q(is_active=True),
                                        Q(event=event_occurrence.event),
-                                       Q(beacon=None)|Q(beacon=event_occurrence.sighting.beacon),
+                                       Q(beacons=None)|Q(beacons__id__exact=event_occurrence.sighting.beacon.id),
                                        Q(occurrence_date_start_limit__lte=event_occurrence.occurred_at))
 
     if limits:
         logger.debug('Found %s limit(s) active for event_occurrence \'%s\'.', len(limits), event_occurrence)
         for limit in limits:
-            filter_date_end_limit = limit.occurrence_date_end_limit + timedelta(days=1)
+            filter_date_end_limit = limit.occurrence_date_end_limit + timedelta(days=1) if limit.occurrence_date_end_limit is not None else None
             if (limit.occurrence_date_end_limit is not None and
                         event_occurrence.occurred_at >= filter_date_end_limit):
                 logger.debug('Found %s limit(s) active for event_occurrence \'%s\'.', len(limits), event_occurrence)
@@ -224,8 +226,12 @@ def check_for_limits(event_occurrence):
             else:
                 eos = EventOccurrence.objects.filter(event=limit.event,
                                                      occurred_at__gte=limit.occurrence_date_start_limit)
-                if (limit.beacon is not None):
-                    eos.filter(sighting__beacon=limit.beacon)
+                metadata = json.loads(limit.metadata)
+                if (metadata['consider_each_beacon_separately']):
+                    eos.filter(sighting__beacon=event_occurrence.sighting.beacon)
+                elif (limit.beacons is not None):
+                        eos.filter(sighting__beacon__in=limit.beacons)
+
                 if (limit.occurrence_date_end_limit is not None):
                     eos.filter(occurred_at__lt=filter_date_end_limit)
 

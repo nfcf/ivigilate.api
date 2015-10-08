@@ -20,10 +20,12 @@
         vm.title = undefined;
 
         vm.limit = undefined;
+        vm.consider_each_beacon_separately = undefined;
 
         vm.notification_categories = ['Success', 'Info', 'Warning', 'Error'];
         vm.action_notification_title = undefined;
         vm.action_notification_category = 'Info';
+        vm.action_notification_timeout = undefined;
         vm.action_notification_message = undefined;
         vm.action_sms_recipients = undefined;
         vm.action_sms_message = undefined;
@@ -35,7 +37,7 @@
 
         vm.events = [];
         vm.beacons = [];
-        vm.nullBeaconOption = {"name": "-- Any Beacon --"};
+        vm.beacons_selected = [];
 
         vm.is_edit = data !== null;
 
@@ -67,10 +69,13 @@
 
                     if (!!vm.limit.metadata) {
                         var metadata = JSON.parse(vm.limit.metadata);
+                        vm.consider_each_beacon_separately = !!metadata.consider_each_beacon_separately;
+
                         for (var i = 0; i < metadata.actions.length; i++) {  // Required for the REST serializer
                             if (metadata.actions[i].type == 'NOTIFICATION') {
                                 vm.action_notification_title = metadata.actions[i].title;
                                 vm.action_notification_category = metadata.actions[i].category;
+                                vm.action_notification_timeout = metadata.actions[i].timeout;
                                 vm.action_notification_message = metadata.actions[i].message;
                             } else if (metadata.actions[i].type == 'SMS') {
                                 vm.action_sms_recipients = metadata.actions[i].recipients;
@@ -96,7 +101,7 @@
 
             function beaconsSuccessFn(data, status, headers, config) {
                 vm.beacons = data.data;
-                vm.beacons.splice(0, 0, vm.nullBeaconOption);
+                if (vm.is_edit) vm.beacons_selected = vm.limit.beacons;
             }
 
             function eventsSuccessFn(data, status, headers, config) {
@@ -118,12 +123,16 @@
             $scope.$broadcast('show-errors-check-validity');
 
             if (vm.form.$valid) {
-                var metadata = {'actions': []};
+                var metadata = {};
+                metadata.consider_each_beacon_separately = vm.consider_each_beacon_separately;
+                metadata.actions = [];
+
                 if (vm.action_notification_message) {
                     metadata.actions.push({
                         'type': 'NOTIFICATION',
                         'title': vm.action_notification_title,
                         'category': vm.action_notification_category,
+                        'timeout': vm.action_notification_timeout,
                         'message': vm.action_notification_message
                     });
                 }
@@ -145,9 +154,11 @@
                 vm.limit.metadata = JSON.stringify(metadata);
 
                 var limitToSend = JSON.parse(JSON.stringify(vm.limit));
-                if (!!vm.limit.beacon) {
-                    limitToSend.beacon = vm.limit.beacon.id;
+                limitToSend.beacons = [];
+                for (var i = 0; i < vm.beacons_selected.length; i++) {  // Required for the REST serializer
+                    limitToSend.beacons.push(vm.beacons_selected[i].id);
                 }
+
                 if (!!vm.limit.event) {
                     limitToSend.event = vm.limit.event.id;
                 }
@@ -162,6 +173,8 @@
             }
 
             function successFn(data, status, headers, config) {
+                vm.limit.beacons = vm.beacons_selected;
+
                 vm.limit.occurrence_date_start_limit = vm.limit.occurrence_date_start_limit.toISOString();
                 if (!!vm.limit.occurrence_date_end_limit) {
                     vm.limit.occurrence_date_end_limit = vm.limit.occurrence_date_end_limit.toISOString();
@@ -181,15 +194,6 @@
 
         function cancel() {
             $modalInstance.dismiss();
-        }
-
-        function pad(pad, str, padLeft) {
-            if (str == undefined) return pad;
-            if (padLeft) {
-                return (pad + str).slice(-pad.length);
-            } else {
-                return (str + pad).substring(0, pad.length);
-            }
         }
     }
 })();

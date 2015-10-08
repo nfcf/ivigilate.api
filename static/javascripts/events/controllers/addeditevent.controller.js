@@ -33,6 +33,7 @@
         vm.notification_categories = ['Success', 'Info', 'Warning', 'Error'];
         vm.action_notification_title = undefined;
         vm.action_notification_category = 'Info';
+        vm.action_notification_timeout = undefined;
         vm.action_notification_message = undefined;
         vm.action_sms_recipients = undefined;
         vm.action_sms_message = undefined;
@@ -81,6 +82,7 @@
                             if (metadata.actions[i].type == 'NOTIFICATION') {
                                 vm.action_notification_title = metadata.actions[i].title;
                                 vm.action_notification_category = metadata.actions[i].category;
+                                vm.action_notification_timeout = metadata.actions[i].timeout;
                                 vm.action_notification_message = metadata.actions[i].message;
                             } else if (metadata.actions[i].type == 'SMS') {
                                 vm.action_sms_recipients = metadata.actions[i].recipients;
@@ -148,6 +150,7 @@
                         'type': 'NOTIFICATION',
                         'title': vm.action_notification_title,
                         'category': vm.action_notification_category,
+                        'timeout': vm.action_notification_timeout,
                         'message': vm.action_notification_message
                     });
                 }

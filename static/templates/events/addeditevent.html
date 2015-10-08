@@ -84,7 +84,8 @@
                         <ui-select multiple='true' ng-model="vm.beacons_selected"
                                    theme="select2" ng-disabled="disabled" style="width: 100%">
                             <ui-select-match placeholder="Select beacon(s) or leave empty for all...">
-                                {{$item.name}}</ui-select-match>
+                                {{$item.name}}
+                            </ui-select-match>
                             <ui-select-choices
                                     repeat="beacon in vm.beacons | propsFilter: {name: $select.search, reference_id: $select.search} track by beacon.id">
                                 <div ng-bind-html="beacon.name | highlight: $select.search"></div>
@@ -183,14 +184,14 @@
                                         <label>On-Screen Notification</label>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="action_notification_title">Title</label>
                                         <input type="text" class="form-control" id="action_notification_title"
                                                ng-model="vm.action_notification_title"/>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="action_notification_category">Category</label>
                                         <ui-select ng-model="vm.action_notification_category" theme="bootstrap" ng-disabled="disabled">
@@ -201,6 +202,13 @@
                                                 <div ng-bind-html="notification_category  | highlight: $select.search"></div>
                                             </ui-select-choices>
                                         </ui-select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="action_notification_timeout">Timeout (in seconds)</label>
+                                        <input type="number" class="form-control" id="action_notification_timeout"
+                                               ng-model="vm.action_notification_timeout" placeholder="Or leave empty..."/>
                                     </div>
                                 </div>
                                 <div class="col-md-12">

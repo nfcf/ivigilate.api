@@ -32,7 +32,9 @@
                                     return function (clicked) {
                                         if (clicked) closeNotification(notification);
                                     }
-                                }(notification))
+                                }(notification)),
+                                timeOut: !!metadata.timeout ? metadata.timeout * 1000 : 0,
+                                extendedTimeOut: !!metadata.timeout ? metadata.timeout * 1000 : 0
                             });
                         } catch (ex) {
                             console.log('Failed to parse notification data with error: ' + ex.message);

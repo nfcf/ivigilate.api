@@ -485,6 +485,9 @@ class LimitViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             limit = serializer.save(updated_by=user)
             if limit:
+                beacons = self.request.DATA.get('beacons', None)
+                self.update_m2m_fields(limit, beacons)
+
                 # remove fields from the response as they aren't serializable nor needed
                 if 'event' in serializer.validated_data:
                     del serializer.validated_data['event']
@@ -509,6 +512,9 @@ class LimitViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             limit = serializer.save(updated_by=user)
             if limit:
+                beacons = self.request.DATA.get('beacons', None)
+                self.update_m2m_fields(limit, beacons)
+
                 # remove fields from the response as they aren't serializable nor needed
                 if 'event' in serializer.validated_data:
                     del serializer.validated_data['event']
@@ -519,6 +525,17 @@ class LimitViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def update_m2m_fields(self, limit, beacons):
+        # work around to handle the M2M field as DRF doesn't handle them well...
+        if isinstance(beacons, list):
+            new_list = beacons
+            old_list = limit.beacons.all().values_list('id', flat=True)
+            to_add_list = list(set(new_list) - set(old_list))
+            to_remove_list = list(set(old_list) - set(new_list))
+            for id in to_add_list:
+                limit.beacons.add(id)
+            for id in to_remove_list:
+                limit.beacons.remove(id)
 
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()

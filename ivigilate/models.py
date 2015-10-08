@@ -327,7 +327,7 @@ class EventOccurrence(models.Model):
 class EventLimit(models.Model):
     reference_id = models.CharField(max_length=64, blank=True)
     event = models.ForeignKey(Event)
-    beacon = models.ForeignKey(Beacon, null=True)
+    beacons = models.ManyToManyField(Beacon, blank=True, related_name='event_limits')
     occurrence_date_start_limit = models.DateTimeField()
     occurrence_date_end_limit = models.DateTimeField(blank=True, null=True)
     occurrence_count_limit = models.IntegerField(default=-1)
@@ -353,7 +353,7 @@ class EventLimit(models.Model):
 
 class Notification(models.Model):
     account = models.ForeignKey(Account)
-    metadata = models.TextField(blank=True)  # populated with title, category and message by event occurrence / limit actions
+    metadata = models.TextField(blank=True)  # populated with title, category, duration and message by event occurrence / limit actions
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(editable=False)
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
