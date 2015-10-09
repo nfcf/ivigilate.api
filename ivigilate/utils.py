@@ -233,7 +233,7 @@ def check_for_limits(event_occurrence):
                         event_occurrence.occurred_at >= filter_date_end_limit):
                 logger.debug('Found %s limit(s) active for event_occurrence \'%s\'.', len(limits), event_occurrence)
                 trigger_limit_actions(limit, event_occurrence.sighting.beacon)
-            else:
+            elif (limit.occurrence_count_limit >= 0):
                 eos = EventOccurrence.objects.all()
                 if (limit.occurrence_date_end_limit is not None):
                     eos = eos.filter(event=limit.event,

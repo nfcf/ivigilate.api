@@ -124,8 +124,8 @@ class Report:
             elements.append(Spacer(5*mm, 5*mm))
 
             # Here's where the PDF meaningful data starts.
-            eos = EventOccurrence.objects.filter(beacon__account_id=account.id,occurred_at__gte=from_date,occurred_at__lte=to_date)\
-                .values('event__name', 'beacon__name')\
+            eos = EventOccurrence.objects.filter(sighting__beacon__account_id=account.id,occurred_at__gte=from_date,occurred_at__lte=to_date)\
+                .values('event__name', 'sighting__beacon__name')\
                 .annotate(num_occurrences=Count('sighting'))
 
             if eos is not None and len(eos) > 0:
@@ -137,10 +137,10 @@ class Report:
                 for eo in eos:
                     if eo['event__name'] not in different_events:
                         different_events.append(eo['event__name'])
-                    if eo['beacon__name'] not in different_beacons:
-                        different_beacons.append(eo['beacon__name'])
-                    handy_dict_event_first[(eo['event__name'], eo['beacon__name'])] = eo['num_occurrences']
-                    handy_dict_beacon_first[(eo['beacon__name'], eo['event__name'])] = eo['num_occurrences']
+                    if eo['sighting__beacon__name'] not in different_beacons:
+                        different_beacons.append(eo['sighting__beacon__name'])
+                    handy_dict_event_first[(eo['event__name'], eo['sighting__beacon__name'])] = eo['num_occurrences']
+                    handy_dict_beacon_first[(eo['sighting__beacon__name'], eo['event__name'])] = eo['num_occurrences']
 
                 if len(different_events) <= len(different_beacons):
                     rows = different_beacons

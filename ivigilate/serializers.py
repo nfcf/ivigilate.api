@@ -238,7 +238,7 @@ class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
                                                     detector=validated_data.get('detector'),
                                                     first_seen_at__lte=validated_data.get('first_seen_at'),
                                                     last_seen_at__gt=validated_data.get('first_seen_at'),
-                                                    last_seen_at__lt=validated_data.get('last_seen_at')).order_by('-id')[:1]
+                                                    last_seen_at__lte=validated_data.get('last_seen_at')).order_by('-id')[:1]
 
         if (existing_sighting is not None and len(existing_sighting) > 0):
             sighting = existing_sighting[0]
@@ -360,6 +360,7 @@ class EventLimitReadSerializer(serializers.ModelSerializer):
 
 
 class EventLimitWriteSerializer(serializers.ModelSerializer):
+    occurrence_count_limit = serializers.IntegerField(allow_null=True)
     class Meta:
         model = EventLimit
         fields = ('id', 'reference_id', 'event',
@@ -371,7 +372,7 @@ class EventLimitWriteSerializer(serializers.ModelSerializer):
         instance.event = validated_data.get('event', instance.event)
         instance.occurrence_date_start_limit = validated_data.get('occurrence_date_start_limit', instance.occurrence_date_start_limit)
         instance.occurrence_date_end_limit = validated_data.get('occurrence_date_end_limit', instance.occurrence_date_end_limit)
-        instance.occurrence_count_limit = validated_data.get('occurrence_count_limit', instance.occurrence_count_limit)
+        instance.occurrence_count_limit = validated_data.get('occurrence_count_limit') if validated_data.get('occurrence_count_limit') is not None else -1
 
         instance.metadata = validated_data.get('metadata', instance.metadata)
         instance.updated_by = validated_data.get('updated_by')
