@@ -289,6 +289,8 @@ class Event(models.Model):
     sighting_has_been_confirmed = models.NullBooleanField(default=None)
     sighting_previous_event = models.ForeignKey('Event', null=True)
 
+    dormant_period_in_seconds = models.IntegerField(default=0)
+
     metadata = models.TextField(blank=True) # event actions: Notification, SMS, Email, REST call
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(editable=False)

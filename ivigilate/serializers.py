@@ -234,14 +234,27 @@ class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
         validated_data['confirmed_by'] = validated_data.get('user') if validated_data.get('confirmed') else None
         validated_data['commented_by'] = validated_data.get('user') if validated_data.get('comment') else None
 
-        if not validated_data.get('location') and validated_data.get('detector'):
-            validated_data['location'] = validated_data.get('detector').location
+        existing_sighting = Sighting.objects.filter(beacon=validated_data.get('beacon'),
+                                                    detector=validated_data.get('detector'),
+                                                    first_seen_at__lte=validated_data.get('first_seen_at'),
+                                                    last_seen_at__gt=validated_data.get('first_seen_at'),
+                                                    last_seen_at__lt=validated_data.get('last_seen_at')).order_by('-id')[:1]
 
-        if not validated_data.get('comment'):
-            raise serializers.ValidationError('Comment field cannot be empty.')
+        if (existing_sighting is not None and len(existing_sighting) > 0):
+            sighting = existing_sighting[0]
+            sighting.last_seen_at = validated_data.get('last_seen_at')
+            sighting.comment = validated_data.get('comment')
+            sighting.commented_by = validated_data.get('commented_by')
+            sighting.save()
+        else:
+            if not validated_data.get('location') and validated_data.get('detector'):
+                validated_data['location'] = validated_data.get('detector').location
 
-        del validated_data['user']
-        sighting = Sighting.objects.create(**validated_data)
+            if not validated_data.get('comment'):
+                raise serializers.ValidationError('Comment field cannot be empty.')
+
+            del validated_data['user']
+            sighting = Sighting.objects.create(**validated_data)
 
         # check for events associated with this sighting in a different thread
         t = threading.Thread(target=utils.check_for_events, args=(sighting,))
@@ -298,7 +311,7 @@ class EventReadSerializer(serializers.HyperlinkedModelSerializer):
                   'schedule_days_of_week', 'schedule_start_time', 'schedule_end_time', 'schedule_timezone_offset',
                   'sighting_is_current', 'sighting_duration_in_seconds', 'sighting_has_battery_below',
                   'sighting_has_comment', 'sighting_has_been_confirmed', 'sighting_previous_event',
-                  'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
+                  'dormant_period_in_seconds', 'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
 
 
 class EventWriteSerializer(serializers.ModelSerializer):
@@ -308,7 +321,7 @@ class EventWriteSerializer(serializers.ModelSerializer):
                   'schedule_days_of_week', 'schedule_start_time', 'schedule_end_time', 'schedule_timezone_offset',
                   'sighting_is_current', 'sighting_duration_in_seconds', 'sighting_has_battery_below',
                   'sighting_has_comment', 'sighting_has_been_confirmed', 'sighting_previous_event',
-                  'metadata', 'is_active')
+                  'dormant_period_in_seconds', 'metadata', 'is_active')
 
     def update(self, instance, validated_data):
         instance.reference_id = validated_data.get('reference_id', instance.reference_id)
@@ -324,6 +337,8 @@ class EventWriteSerializer(serializers.ModelSerializer):
         instance.sighting_has_comment = validated_data.get('sighting_has_comment')
         instance.sighting_has_been_confirmed = validated_data.get('sighting_has_been_confirmed')
         instance.sighting_previous_event = validated_data.get('sighting_previous_event')
+
+        instance.dormant_period_in_seconds = validated_data.get('dormant_period_in_seconds', instance.dormant_period_in_seconds)
 
         instance.metadata = validated_data.get('metadata', instance.metadata)
         instance.updated_by = validated_data.get('updated_by')

@@ -251,12 +251,15 @@ class SightingViewSet(viewsets.ModelViewSet):
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         if account:
+            filter_timezone_offset = 0
             filter_date = str(datetime.now(timezone.utc).date())
             filter_beacons = []
             filter_detectors = []
             filter_users = []
             filter_show_all = False
             if request.query_params is not None:
+                if request.query_params.get('filterTimezoneOffset') is not None:
+                    filter_timezone_offset = int(request.query_params.get('filterTimezoneOffset'))
                 if request.query_params.get('filterDate') is not None:
                     filter_date = request.query_params.get('filterDate')
                 if request.query_params.get('filterBeacons') is not None:
@@ -274,7 +277,9 @@ class SightingViewSet(viewsets.ModelViewSet):
                              'AND s.last_seen_at IN (' + \
                              ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY beacon_id' + \
                              ') ORDER BY s.last_seen_at DESC'
-            filteredQueryParams = [account.id, filter_date + ' 00:00:00', filter_date + ' 23:59:59',
+            filteredQueryParams = [account.id,
+                                   str(datetime.strptime(filter_date + ' 00:00:00', '%Y-%m-%d %H:%M:%S') + timedelta(minutes=filter_timezone_offset)),
+                                   str(datetime.strptime(filter_date + ' 23:59:59', '%Y-%m-%d %H:%M:%S') + timedelta(minutes=filter_timezone_offset)),
                                    len(filter_beacons) == 0, [int(x) for x in filter_beacons],
                                    len(filter_detectors) == 0, [int(x) for x in filter_detectors]]
 
@@ -293,10 +298,13 @@ class SightingViewSet(viewsets.ModelViewSet):
                             'AND s.last_seen_at IN (' + \
                             ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY beacon_id' + \
                             ') ORDER BY s.last_seen_at DESC)'
-            showAllQueryParams = [account.id, filter_date + ' 00:00:00', filter_date + ' 23:59:59',
+            showAllQueryParams = [account.id,
+                                  str(datetime.strptime(filter_date + ' 00:00:00', '%Y-%m-%d %H:%M:%S') + timedelta(minutes=filter_timezone_offset)),
+                                  str(datetime.strptime(filter_date + ' 23:59:59', '%Y-%m-%d %H:%M:%S') + timedelta(minutes=filter_timezone_offset)),
                                   len(filter_beacons) == 0, [int(x) for x in filter_beacons],
                                   len(filter_detectors) == 0, [int(x) for x in filter_detectors],
-                                  account.id, filter_date + ' 23:59:59']
+                                  account.id,
+                                  str(datetime.strptime(filter_date + ' 23:59:59', '%Y-%m-%d %H:%M:%S') + timedelta(minutes=filter_timezone_offset))]
 
             queryset = self.queryset.raw(showAllQuery if filter_show_all else filteredQuery,
                                          showAllQueryParams if filter_show_all else filteredQueryParams)

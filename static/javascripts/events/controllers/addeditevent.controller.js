@@ -97,7 +97,8 @@
                 } else {
                     vm.title = 'New Event';
                     vm.event = {'is_active': true, 'sighting_duration_in_seconds': 0, 'sighting_has_battery_below': 100,
-                                'schedule_timezone_offset': Math.abs(now.getTimezoneOffset())};
+                                'schedule_timezone_offset': Math.abs(now.getTimezoneOffset()),
+                                'dormant_period_in_seconds': 0 };
 
                     vm.schedule_start_time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0);
                     vm.schedule_end_time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59);

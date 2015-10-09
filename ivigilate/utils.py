@@ -88,21 +88,21 @@ def trigger_event_actions(event, sighting):
                 logger.info('Action for event \'%s\': Generating On-Screen Notification.', event)
                 action_metadata = {}
                 action_metadata['category'] = action['category']
-                action_metadata['timeout'] = action['timeout']
-                action_metadata['title'] = replace_event_message_tags(action['title'], event, sighting) if action.get('title') is not None else ''
-                action_metadata['message'] = replace_event_message_tags(action['message'], event, sighting) if action.get('message') is not None else ''
+                action_metadata['timeout'] = action.get('timeout', 0)
+                action_metadata['title'] = replace_event_message_tags(action.get('title', ''), event, sighting)
+                action_metadata['message'] = replace_event_message_tags(action.get('message', ''), event, sighting)
                 Notification.objects.create(account=event.account, metadata=json.dumps(action_metadata))
             elif action['type'] == 'SMS':
                 logger.info('Action for event \'%s\': Sending SMS to %s recipient(s).',
                              event, len(re.split(',|;', action['recipients'])))
-                message = replace_event_message_tags(action['message'], event, sighting) if action.get('message') is not None else ''
+                message = replace_event_message_tags(action.get('message', ''), event, sighting)
                 for to in re.split(',|;', action['recipients']):
                     send_twilio_message(to, message)
             elif action['type'] == 'EMAIL':
                 logger.info('Action for event \'%s\': Sending EMAIL to %s recipient(s).',
                              event, len(re.split(',|;', action['recipients'])))
-                body = replace_event_message_tags(action['body'], event, sighting) if action.get('body') is not None else ''
-                subject = replace_event_message_tags(action['subject'], event, sighting) if action.get('subject') is not None else ''
+                body = replace_event_message_tags(action.get('body', ''), event, sighting)
+                subject = replace_event_message_tags(action.get('subject', ''), event, sighting)
                 send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                           re.split(',|;', action['recipients']), fail_silently=False)
 
@@ -118,21 +118,21 @@ def trigger_limit_actions(limit, beacon):
                 logger.info('Action for limit \'%s\': Generating On-Screen Notification.', limit)
                 action_metadata = {}
                 action_metadata['category'] = action['category']
-                action_metadata['timeout'] = action['timeout']
-                action_metadata['title'] = replace_limit_message_tags(action['title'], limit, beacon) if action.get('title') is not None else ''
-                action_metadata['message'] = replace_limit_message_tags(action['message'], limit, beacon) if action.get('message') is not None else ''
+                action_metadata['timeout'] = action.get('timeout', 0)
+                action_metadata['title'] = replace_limit_message_tags(action.get('title', ''), limit, beacon)
+                action_metadata['message'] = replace_limit_message_tags(action.get('message', ''), limit, beacon)
                 Notification.objects.create(account=limit.event.account, metadata=json.dumps(action_metadata))
             elif action['type'] == 'SMS':
                 logger.info('Action for limit \'%s\': Sending SMS to %s recipient(s).',
                              limit, len(re.split(',|;', action['recipients'])))
-                message = replace_limit_message_tags(action['message'], limit, beacon) if action.get('message') is not None else ''
+                message = replace_limit_message_tags(action.get('message', ''), limit, beacon)
                 for to in re.split(',|;', action['recipients']):
                     send_twilio_message(to, message)
             elif action['type'] == 'EMAIL':
                 logger.info('Action for event \'%s\': Sending EMAIL to %s recipient(s).',
                              limit, len(re.split(',|;', action['recipients'])))
-                body = replace_limit_message_tags(action['body'], limit, beacon) if action.get('body') is not None else ''
-                subject = replace_limit_message_tags(action['subject'], limit, beacon) if action.get('subject') is not None else ''
+                body = replace_limit_message_tags(action.get('body', ''), limit, beacon)
+                subject = replace_limit_message_tags(action.get('subject', ''), limit, beacon)
                 send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                           re.split(',|;', action['recipients']), fail_silently=False)
 
@@ -184,9 +184,19 @@ def check_for_events(sighting, new_sighting_detector=None):
 
                 if (event.sighting_previous_event is None):
                     # Make sure we don't trigger the same actions over and over again (only once per sighting)
-                    previous_occurrences = EventOccurrence.objects.filter(event=event, sighting=sighting).order_by('-id')[:1]
-                    if (previous_occurrences is None or len(previous_occurrences) == 0):
-                        trigger_event_actions(event, sighting)
+                    same_occurrence_count = EventOccurrence.objects.filter(event=event, sighting=sighting).count()
+                    if (same_occurrence_count == 0):
+                        previous_occurrences = EventOccurrence.objects.filter(event=event,
+                                                                              sighting__beacon=sighting.beacon,
+                                                                              sighting__detector=sighting.detector
+                                                                            ).order_by('-id')[:1]
+                        if (event.dormant_period_in_seconds <= 0 or
+                            previous_occurrences is None or len(previous_occurrences) == 0 or
+                            now - timedelta(seconds=event.dormant_period_in_seconds) > previous_occurrences[0].occurred_at):
+                            trigger_event_actions(event, sighting)
+                        else:
+                            logger.debug('Conditions met for event \'%s\' but skipping it has ' + \
+                                         'the tuple event / beacon / detector is still in the dormant period.', event)
                     else:
                         logger.debug('Conditions met for event \'%s\' ' + \
                                      'but the required actions were already triggered once for this sighting.', event)

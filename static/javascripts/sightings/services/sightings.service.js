@@ -29,6 +29,7 @@
         }
 
         function list(filterDate, filterFixedBeaconsAndDetectors, filterShowAll) {
+            var filterTimezoneOffset = new Date().getTimezoneOffset();
             var filterBeaconsIds = [];
             var filterDetectorsIds = [];
             if (filterFixedBeaconsAndDetectors != null && filterFixedBeaconsAndDetectors.length > 0) {
@@ -40,6 +41,7 @@
             return $http.get('/api/v1/sightings/',
                 {
                     params: {
+                        filterTimezoneOffset: filterTimezoneOffset,
                         filterDate: filterDate,
                         filterBeacons: filterBeaconsIds.length > 0 ? filterBeaconsIds : undefined,
                         filterDetectors: filterDetectorsIds.length > 0 ? filterDetectorsIds : undefined,

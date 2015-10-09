@@ -79,7 +79,7 @@
             maxOpened: 0,
             newestOnTop: true,
             positionClass: 'toast-bottom-right',
-            preventDuplicates: true,
+            preventDuplicates: false,
             preventOpenDuplicates: true,
             target: 'body',
 
