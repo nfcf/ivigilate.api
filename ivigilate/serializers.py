@@ -285,6 +285,10 @@ class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
         instance.comment = validated_data.get('comment', instance.comment)
         instance.save()
 
+        # check for events associated with this sighting in a different thread
+        t = threading.Thread(target=utils.check_for_events, args=(instance,))
+        t.start()
+
         return instance
 
 
@@ -360,7 +364,7 @@ class EventLimitReadSerializer(serializers.ModelSerializer):
 
 
 class EventLimitWriteSerializer(serializers.ModelSerializer):
-    occurrence_count_limit = serializers.IntegerField(allow_null=True)
+    occurrence_count_limit = serializers.IntegerField(allow_null=True, required=False)
     class Meta:
         model = EventLimit
         fields = ('id', 'reference_id', 'event',

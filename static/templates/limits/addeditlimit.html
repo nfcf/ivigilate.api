@@ -87,13 +87,13 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="form-group" show-errors>
+                    <div class="input-group">
                         <label for="occurrence_count_limit">Max Occurrences</label><br/>
                         <input type="number" class="form-control" name="occurrence_count_limit"
                                ng-model="vm.limit.occurrence_count_limit"
                                placeholder="Leave empty to use 'End Date' only"/>
                         <small>&nbsp;Consider each beacon separately?&nbsp;
-                        <input type="checkbox" ng-model="vm.consider_each_beacon_separately"/></small>
+                            <input type="checkbox" ng-model="vm.limit.consider_each_beacon_separately"/></small>
                     </div>
                 </div>
             </div>
@@ -103,152 +103,154 @@
             <legend>Actions</legend>
             <div class="row">
                 <div class="col-md-offset-1 col-md-10">
-                    <div class="form-group">
-                        <ul rn-carousel rn-carousel-controls rn-carousel-index="vm.actions_index" class="custom-carousel">
-                            <li>
-                                <div class="col-md-12">
-                                    <div class="form-group text-center">
-                                        <label>On-Screen Notification</label>
-                                    </div>
+                    <ul rn-carousel rn-carousel-controls rn-carousel-index="vm.actions_index" class="custom-carousel">
+                        <li>
+                            <div class="col-md-12">
+                                <div class="form-group text-center">
+                                    <label>On-Screen Notification</label>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="action_notification_title">Title</label>
-                                        <input type="text" class="form-control" id="action_notification_title"
-                                               ng-model="vm.action_notification_title"/>
-                                    </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="action_notification_title">Title</label>
+                                    <input type="text" class="form-control" id="action_notification_title"
+                                           ng-model="vm.action_notification_title"/>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="action_notification_category">Category</label>
-                                        <ui-select ng-model="vm.action_notification_category" theme="bootstrap" ng-disabled="disabled">
-                                            <ui-select-match>
-                                                {{ $select.selected }}
-                                            </ui-select-match>
-                                            <ui-select-choices repeat="notification_category in vm.notification_categories">
-                                                <div ng-bind-html="notification_category  | highlight: $select.search"></div>
-                                            </ui-select-choices>
-                                        </ui-select>
-                                    </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="action_notification_category">Category</label>
+                                    <ui-select ng-model="vm.action_notification_category" theme="bootstrap" ng-disabled="disabled">
+                                        <ui-select-match>
+                                            {{ $select.selected }}
+                                        </ui-select-match>
+                                        <ui-select-choices repeat="notification_category in vm.notification_categories">
+                                            <div ng-bind-html="notification_category  | highlight: $select.search"></div>
+                                        </ui-select-choices>
+                                    </ui-select>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="action_notification_timeout">Timeout (in seconds)</label>
-                                        <input type="number" class="form-control" id="action_notification_timeout"
-                                               ng-model="vm.action_notification_timeout" placeholder="Or leave empty..."/>
-                                    </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="action_notification_timeout">Timeout (in seconds)</label>
+                                    <input type="number" class="form-control" id="action_notification_timeout"
+                                           ng-model="vm.action_notification_timeout" placeholder="Or leave empty..."/>
                                 </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label for="action_notification_message">Message</label>
-                                <textarea class="form-control" id="action_notification_message" ng-model="vm.action_notification_message">
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group" show-errors>
+                                    <label for="action_notification_message">Message</label>
+                                <textarea class="form-control" name="action_notification_message"
+                                          ng-model="vm.action_notification_message" ng-required="!!vm.action_notification_title">
                                 </textarea>
-                                        <small>Note: The following tags can be used: %limit_id%, %event_id%, %event_name%, %beacon_id%,
-                                            %beacon_name%.
-                                        </small>
-                                    </div>
+                                    <small>Note: The following tags can be used: %limit_id%, %event_id%, %event_name%, %beacon_id%,
+                                        %beacon_name%.
+                                    </small>
                                 </div>
-                            </li>
-                            <li>
-                                <div class="col-md-12">
-                                    <div class="form-group text-center">
-                                        <label>Send a SMS</label>
-                                    </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="col-md-12">
+                                <div class="form-group text-center">
+                                    <label>Send a SMS</label>
                                 </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label for="action_sms_recipients">Recipient(s)</label>
-                                        <input type="text" class="form-control" id="action_sms_recipients"
-                                               ng-model="vm.action_sms_recipients"
-                                               placeholder="Example: +351961230101;+353833210202"/>
-                                    </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group" show-errors>
+                                    <label for="action_sms_recipients">Recipient(s)</label>
+                                    <input type="text" class="form-control" name="action_sms_recipients"
+                                           ng-model="vm.action_sms_recipients"
+                                           ng-required="!!vm.action_sms_message"
+                                           placeholder="Example: +351961230101;+353833210202"/>
                                 </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label for="action_sms_message">Message</label>
-                                <textarea class="form-control" id="action_sms_message" ng-model="vm.action_sms_message">
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group" show-errors>
+                                    <label for="action_sms_message">Message</label>
+                                <textarea class="form-control" name="action_sms_message" ng-model="vm.action_sms_message"
+                                          ng-required="!!vm.action_sms_recipients">
                                 </textarea>
-                                        <small>Note: The following tags can be used: %limit_id%, %event_id%, %event_name%, %beacon_id%,
-                                            %beacon_name%.
-                                        </small>
-                                    </div>
+                                    <small>Note: The following tags can be used: %limit_id%, %event_id%, %event_name%, %beacon_id%,
+                                        %beacon_name%.
+                                    </small>
                                 </div>
-                            </li>
-                            <li>
-                                <div class="col-md-12">
-                                    <div class="form-group text-center">
-                                        <label>Send an Email</label>
-                                    </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="col-md-12">
+                                <div class="form-group text-center">
+                                    <label>Send an Email</label>
                                 </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label for="action_email_recipients">Recipient(s)</label>
-                                        <input type="text" class="form-control" id="action_email_recipients"
-                                               ng-model="vm.action_email_recipients"
-                                               placeholder="Example: abc@ivigilate.com;xyz@email.com"/>
-                                    </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group" show-errors>
+                                    <label for="action_email_recipients">Recipient(s)</label>
+                                    <input type="text" class="form-control" name="action_email_recipients"
+                                           ng-model="vm.action_email_recipients"
+                                           ng-required="!!vm.action_email_subject"
+                                           placeholder="Example: abc@ivigilate.com;xyz@email.com"/>
                                 </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label for="action_email_subject">Subject</label>
-                                        <input type="text" class="form-control" id="action_email_subject"
-                                               ng-model="vm.action_email_subject"/>
-                                    </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group" show-errors>
+                                    <label for="action_email_subject">Subject</label>
+                                    <input type="text" class="form-control" name="action_email_subject"
+                                           ng-model="vm.action_email_subject" ng-required="!!vm.action_email_recipients"/>
                                 </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label for="action_email_body">Body</label>
-                                <textarea class="form-control" id="action_email_body"
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="action_email_body">Body</label>
+                                <textarea class="form-control" name="action_email_body"
                                           ng-model="vm.action_email_body">
                                 </textarea>
-                                        <small>Note: The following tags can be used: %limit_id%, %event_id%, %event_name%, %beacon_id%,
-                                            %beacon_name%.
-                                        </small>
-                                    </div>
+                                    <small>Note: The following tags can be used: %limit_id%, %event_id%, %event_name%, %beacon_id%,
+                                        %beacon_name%.
+                                    </small>
                                 </div>
-                            </li>
-                            <li>
-                                <div class="col-md-12">
-                                    <div class="form-group text-center">
-                                        <label>Call a REST webservice</label>
-                                    </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="col-md-12">
+                                <div class="form-group text-center">
+                                    <label>Call a REST webservice</label>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="action_rest_uris">WebService URI</label>
-                                        <input type="text" class="form-control" id="action_rest_uris"
-                                               ng-model="vm.action_rest_uris"
-                                               placeholder="http://myservername.com/api/dosomething"/>
-                                    </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="action_rest_uris">WebService URI</label>
+                                    <input type="text" class="form-control" id="action_rest_uris"
+                                           ng-model="vm.action_rest_uris"
+                                           placeholder="http://myservername.com/api/dosomething"/>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="action_rest_method">HTTP Method</label>
-                                        <select class="form-control" id="action_rest_method"
-                                                ng-model="vm.action_rest_method">
-                                            <option value="GET" selected>GET</option>
-                                            <option value="POST">POST</option>
-                                            <option value="PUT">PUT</option>
-                                        </select>
-                                    </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="action_rest_method">HTTP Method</label>
+                                    <select class="form-control" id="action_rest_method"
+                                            ng-model="vm.action_rest_method">
+                                        <option value="GET" selected>GET</option>
+                                        <option value="POST">POST</option>
+                                        <option value="PUT">PUT</option>
+                                    </select>
                                 </div>
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label for="action_rest_body">Body</label>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="action_rest_body">Body</label>
                                 <textarea class="form-control" id="action_rest_body" ng-model="vm.action_rest_body">
                                 </textarea>
-                                        <small>Note: The following tags can be used: %limit_id%, %event_id%, %event_name%, %beacon_id%,
-                                            %beacon_name%.
-                                        </small>
-                                    </div>
+                                    <small>Note: The following tags can be used: %limit_id%, %event_id%, %event_name%, %beacon_id%,
+                                        %beacon_name%.
+                                    </small>
                                 </div>
-                            </li>
-                        </ul>
-                        <div class="custom-carousel-indicator" rn-carousel-indicators slides="[{},{},{},{}]"
-                             rn-carousel-index="vm.actions_index"></div>
-                        <div class="text-center">
-                            <small>(swipe left or right to configure available actions)</small>
-                        </div>
+                            </div>
+                        </li>
+                    </ul>
+                    <div class="custom-carousel-indicator" rn-carousel-indicators slides="[{},{},{},{}]"
+                         rn-carousel-index="vm.actions_index"></div>
+                    <div class="text-center">
+                        <small>(swipe left or right to configure available actions)</small>
                     </div>
                 </div>
             </div>

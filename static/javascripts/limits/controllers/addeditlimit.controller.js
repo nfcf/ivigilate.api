@@ -20,7 +20,6 @@
         vm.title = undefined;
 
         vm.limit = undefined;
-        vm.consider_each_beacon_separately = undefined;
 
         vm.notification_categories = ['Success', 'Info', 'Warning', 'Error'];
         vm.action_notification_title = undefined;
@@ -66,10 +65,11 @@
                     if (!!vm.limit.occurrence_date_end_limit) {
                         vm.limit.occurrence_date_end_limit = new Date(vm.limit.occurrence_date_end_limit);
                     }
+                    if (vm.limit.occurrence_count_limit < 0) vm.limit.occurrence_count_limit = undefined;
 
                     if (!!vm.limit.metadata) {
                         var metadata = JSON.parse(vm.limit.metadata);
-                        vm.consider_each_beacon_separately = !!metadata.consider_each_beacon_separately;
+                        vm.limit.consider_each_beacon_separately = !!metadata.consider_each_beacon_separately;
 
                         for (var i = 0; i < metadata.actions.length; i++) {  // Required for the REST serializer
                             if (metadata.actions[i].type == 'NOTIFICATION') {
@@ -124,7 +124,7 @@
 
             if (vm.form.$valid) {
                 var metadata = {};
-                metadata.consider_each_beacon_separately = vm.consider_each_beacon_separately;
+                metadata.consider_each_beacon_separately = vm.limit.consider_each_beacon_separately;
                 metadata.actions = [];
 
                 if (vm.action_notification_message) {
