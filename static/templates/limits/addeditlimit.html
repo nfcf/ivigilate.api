@@ -18,14 +18,17 @@
             <div class="col-md-4">
                 <div class="form-group">
                     <label>Event</label>
-                    <ui-select ng-model="vm.limit.event" theme="bootstrap" ng-disabled="disabled">
-                        <ui-select-match placeholder="Select or search for an event...">
-                            {{ $select.selected.name }}
+                    <ui-select multiple='true' ng-model="vm.events_selected"
+                               theme="select2" ng-disabled="disabled" style="width: 100%">
+                        <ui-select-match placeholder="Select event(s) or leave empty for all...">
+                            {{ $item.name }}
                         </ui-select-match>
                         <ui-select-choices
-                                repeat="event in vm.events | propsFilter: {name: $select.search, reference_id: $select.search}">
+                                repeat="event in vm.events | propsFilter: {name: $select.search, reference_id: $select.search} track by event.id">
                             <div ng-bind-html="event.name  | highlight: $select.search"></div>
-                            <small ng-bind-html="event.reference_id | highlight: $select.search"/>
+                            <small>
+                                ID: <span ng-bind-html="event.reference_id | highlight: $select.search"></span>
+                            </small>
                         </ui-select-choices>
                     </ui-select>
                 </div>

@@ -35,6 +35,7 @@
         vm.actions_index = 0;
 
         vm.events = [];
+        vm.events_selected = [];
         vm.beacons = [];
         vm.beacons_selected = [];
 
@@ -92,20 +93,21 @@
                     vm.limit = { 'is_active': true };
                 }
 
-                Beacons.list().then(beaconsSuccessFn, errorFn);
                 Events.list().then(eventsSuccessFn, errorFn);
+                Beacons.list().then(beaconsSuccessFn, errorFn);
             }
             else {
                 $location.url('/');
             }
 
+            function eventsSuccessFn(data, status, headers, config) {
+                vm.events = data.data;
+                if (vm.is_edit) vm.events_selected = vm.limit.events;
+            }
+
             function beaconsSuccessFn(data, status, headers, config) {
                 vm.beacons = data.data;
                 if (vm.is_edit) vm.beacons_selected = vm.limit.beacons;
-            }
-
-            function eventsSuccessFn(data, status, headers, config) {
-                vm.events = data.data;
             }
 
             function errorFn(data, status, headers, config) {
@@ -154,13 +156,13 @@
                 vm.limit.metadata = JSON.stringify(metadata);
 
                 var limitToSend = JSON.parse(JSON.stringify(vm.limit));
+                limitToSend.events = [];
+                for (var i = 0; i < vm.events_selected.length; i++) {  // Required for the REST serializer
+                    limitToSend.events.push(vm.events_selected[i].id);
+                }
                 limitToSend.beacons = [];
                 for (var i = 0; i < vm.beacons_selected.length; i++) {  // Required for the REST serializer
                     limitToSend.beacons.push(vm.beacons_selected[i].id);
-                }
-
-                if (!!vm.limit.event) {
-                    limitToSend.event = vm.limit.event.id;
                 }
 
                 if (vm.is_edit) {
@@ -173,6 +175,7 @@
             }
 
             function successFn(data, status, headers, config) {
+                vm.limit.events = vm.events_selected;
                 vm.limit.beacons = vm.beacons_selected;
 
                 vm.limit.occurrence_date_start_limit = vm.limit.occurrence_date_start_limit.toISOString();

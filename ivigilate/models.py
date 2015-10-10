@@ -327,8 +327,9 @@ class EventOccurrence(models.Model):
 
 
 class EventLimit(models.Model):
+    account = models.ForeignKey(Account)
     reference_id = models.CharField(max_length=64, blank=True)
-    event = models.ForeignKey(Event)
+    events = models.ManyToManyField(Event, blank=True, related_name='event_limits')
     beacons = models.ManyToManyField(Beacon, blank=True, related_name='event_limits')
 
     occurrence_date_start_limit = models.DateTimeField()

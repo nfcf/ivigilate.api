@@ -34,9 +34,18 @@
             function successFn(data, status, headers, config) {
                 vm.limits = data.data;
                 for (var i = 0; i < vm.limits.length; i++) {
-                    vm.limits[i].occurrence_date_start_limit = date2str(new Date(vm.limits[i].occurrence_date_start_limit), 'yyyy-MM-dd');
-                    if (!!vm.limits[i].occurrence_date_end_limit) {
-                        vm.limits[i].occurrence_date_end_limit = date2str(new Date(vm.limits[i].occurrence_date_end_limit), 'yyyy-MM-dd');
+                    var limit = vm.limits[i];
+                    limit.events_display_string = !!limit.events && limit.events.length == 1 ?
+                                                         limit.events[0].name :
+                                                         !!limit.events && limit.events.length > 1 ?
+                                                         limit.events.length + ' event(s)' : '(Any)';
+                    limit.beacons_display_string = !!limit.beacons && limit.beacons.length == 1 ?
+                                                         limit.beacons[0].name :
+                                                         !!limit.beacons && limit.beacons.length > 1 ?
+                                                         limit.beacons.length + ' beacon(s)' : '(Any)';
+                    limit.occurrence_date_start_limit = date2str(new Date(limit.occurrence_date_start_limit), 'yyyy-MM-dd');
+                    if (!!limit.occurrence_date_end_limit) {
+                        limit.occurrence_date_end_limit = date2str(new Date(limit.occurrence_date_end_limit), 'yyyy-MM-dd');
                     }
                 }
             }

@@ -221,7 +221,7 @@ def check_for_limits(event_occurrence):
     logger.debug('Checking for limits associated with event_occurrence \'%s\'...', event_occurrence)
 
     limits = EventLimit.objects.filter(Q(is_active=True),
-                                        Q(event=event_occurrence.event),
+                                        Q(events=None)|Q(events__id__exact=event_occurrence.event.id),
                                         Q(beacons=None)|Q(beacons__id__exact=event_occurrence.sighting.beacon.id),
                                         Q(occurrence_date_start_limit__lte=event_occurrence.occurred_at)
                                         ).order_by('-occurrence_date_start_limit')[:1]

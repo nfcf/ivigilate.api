@@ -471,13 +471,13 @@ class LimitViewSet(viewsets.ModelViewSet):
 
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
-        queryset = self.queryset.filter(event__account=account)
+        queryset = self.queryset.filter(account=account)
         return utils.view_list(request, account, queryset, self.get_serializer_class())
 
     def retrieve(self, request, pk=None):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         try:
-            queryset = self.queryset.get(id=pk, event__account=account)
+            queryset = self.queryset.get(id=pk, account=account)
         except EventLimit.DoesNotExist:
             return Response('EventLimit does not exist or is not associated with the current logged on account.',
                             status=status.HTTP_400_BAD_REQUEST)
@@ -491,16 +491,11 @@ class LimitViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer_class()(data=request.data)
 
         if serializer.is_valid():
-            limit = serializer.save(updated_by=user)
+            limit = serializer.save(updated_by=user, account=account)
             if limit:
+                events = self.request.DATA.get('events', None)
                 beacons = self.request.DATA.get('beacons', None)
-                self.update_m2m_fields(limit, beacons)
-
-                # remove fields from the response as they aren't serializable nor needed
-                if 'event' in serializer.validated_data:
-                    del serializer.validated_data['event']
-                if 'beacon' in serializer.validated_data:
-                    del serializer.validated_data['beacon']
+                self.update_m2m_fields(limit, events, beacons)
 
                 return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
@@ -520,21 +515,26 @@ class LimitViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             limit = serializer.save(updated_by=user)
             if limit:
+                events = self.request.DATA.get('events', None)
                 beacons = self.request.DATA.get('beacons', None)
-                self.update_m2m_fields(limit, beacons)
-
-                # remove fields from the response as they aren't serializable nor needed
-                if 'event' in serializer.validated_data:
-                    del serializer.validated_data['event']
-                if 'beacon' in serializer.validated_data:
-                    del serializer.validated_data['beacon']
+                self.update_m2m_fields(limit, events, beacons)
 
             return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def update_m2m_fields(self, limit, beacons):
+    def update_m2m_fields(self, limit, events, beacons):
         # work around to handle the M2M field as DRF doesn't handle them well...
+        if isinstance(events, list):
+            new_list = events
+            old_list = limit.events.all().values_list('id', flat=True)
+            to_add_list = list(set(new_list) - set(old_list))
+            to_remove_list = list(set(old_list) - set(new_list))
+            for id in to_add_list:
+                limit.events.add(id)
+            for id in to_remove_list:
+                limit.events.remove(id)
+
         if isinstance(beacons, list):
             new_list = beacons
             old_list = limit.beacons.all().values_list('id', flat=True)
