@@ -43,7 +43,9 @@
                                                          limit.beacons[0].name :
                                                          !!limit.beacons && limit.beacons.length > 1 ?
                                                          limit.beacons.length + ' beacon(s)' : '(Any)';
-                    limit.occurrence_date_start_limit = date2str(new Date(limit.occurrence_date_start_limit), 'yyyy-MM-dd');
+                    limit.start_date = date2str(new Date(limit.start_date), 'yyyy-MM-dd');
+
+                    // update this to use the metadata as well as the ocurrence_count_limit
                     if (!!limit.occurrence_date_end_limit) {
                         limit.occurrence_date_end_limit = date2str(new Date(limit.occurrence_date_end_limit), 'yyyy-MM-dd');
                     }
@@ -78,8 +80,8 @@
 
         function updateLimitState(limit) {
             var limitToSend = JSON.parse(JSON.stringify(limit));
-            limitToSend.event = limitToSend.event.id;
-            limitToSend.beacon = limitToSend.beacon.id;
+            limitToSend.events = null;
+            limitToSend.beacons = null;
             Limits.update(limitToSend).then(successFn, errorFn);
 
             function successFn(data, status, headers, config) {

@@ -326,15 +326,12 @@ class EventOccurrence(models.Model):
                (self.event.account.company_id, self.event.reference_id, self.occurred_at)
 
 
-class EventLimit(models.Model):
+class Limit(models.Model):
     account = models.ForeignKey(Account)
     reference_id = models.CharField(max_length=64, blank=True)
     events = models.ManyToManyField(Event, blank=True, related_name='event_limits')
     beacons = models.ManyToManyField(Beacon, blank=True, related_name='event_limits')
-
-    occurrence_date_start_limit = models.DateTimeField()
-    occurrence_date_end_limit = models.DateTimeField(blank=True, null=True)
-    occurrence_count_limit = models.IntegerField(default=-1)
+    start_date = models.DateTimeField()
 
     metadata = models.TextField(blank=True) # event limit actions and extra configs
     created_at = models.DateTimeField(editable=False)
@@ -349,10 +346,26 @@ class EventLimit(models.Model):
             self.updated_at = now
         else:
             self.updated_at = now
-        super(EventLimit, self).save(*args, **kwargs)
+        super(Limit, self).save(*args, **kwargs)
 
     def __str__(self):
         return "%s: reference_id=%s" % (self.event.account.company_id, self.reference_id)
+
+
+class LimitOccurrence(models.Model):
+    limit = models.ForeignKey(Limit)
+    beacon = models.ForeignKey(Beacon)
+    occurred_at = models.DateTimeField(editable=False)
+
+    def save(self, *args, **kwargs):
+        now = datetime.now(timezone.utc)
+        if not self.id:
+            self.occurred_at = now
+        super(LimitOccurrence, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return "%s: limit_reference_id=%s, occurred_at=%s" % \
+               (self.limit.account.company_id, self.limit.reference_id, self.occurred_at)
 
 
 class Notification(models.Model):

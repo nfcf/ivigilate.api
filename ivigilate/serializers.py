@@ -352,31 +352,24 @@ class EventWriteSerializer(serializers.ModelSerializer):
         return instance
 
 
-class EventLimitReadSerializer(serializers.ModelSerializer):
+class LimitReadSerializer(serializers.ModelSerializer):
     events = EventReadSerializer(many=True, read_only=True)
     beacons = EventBeaconSerializer(many=True, read_only=True)
 
     class Meta:
-        model = EventLimit
-        fields = ('id', 'account', 'reference_id', 'events', 'beacons',
-                  'occurrence_date_start_limit', 'occurrence_date_end_limit', 'occurrence_count_limit',
+        model = Limit
+        fields = ('id', 'account', 'reference_id', 'events', 'beacons', 'start_date',
                   'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
 
 
-class EventLimitWriteSerializer(serializers.ModelSerializer):
-    occurrence_count_limit = serializers.IntegerField(allow_null=True, required=False)
+class LimitWriteSerializer(serializers.ModelSerializer):
     class Meta:
-        model = EventLimit
-        fields = ('id', 'reference_id',
-                  'occurrence_date_start_limit', 'occurrence_date_end_limit', 'occurrence_count_limit',
-                  'metadata', 'is_active')
+        model = Limit
+        fields = ('id', 'reference_id', 'start_date', 'metadata', 'is_active')
 
     def update(self, instance, validated_data):
         instance.reference_id = validated_data.get('reference_id', instance.reference_id)
-
-        instance.occurrence_date_start_limit = validated_data.get('occurrence_date_start_limit', instance.occurrence_date_start_limit)
-        instance.occurrence_date_end_limit = validated_data.get('occurrence_date_end_limit', instance.occurrence_date_end_limit)
-        instance.occurrence_count_limit = validated_data.get('occurrence_count_limit') if validated_data.get('occurrence_count_limit') is not None else -1
+        instance.start_date = validated_data.get('start_date', instance.start_date)
 
         instance.metadata = validated_data.get('metadata', instance.metadata)
         instance.updated_by = validated_data.get('updated_by')

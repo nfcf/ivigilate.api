@@ -90,7 +90,7 @@
                     }
                 } else {
                     vm.title = 'New Limit';
-                    vm.limit = { 'is_active': true };
+                    vm.limit = { 'is_active': true, 'occurrence_date_start_limit': new Date() };
                 }
 
                 Events.list().then(eventsSuccessFn, errorFn);

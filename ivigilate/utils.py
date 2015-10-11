@@ -5,7 +5,7 @@ from rest_framework import status
 from twilio.rest import TwilioRestClient
 from django.core.mail import send_mail
 from ivigilate import settings
-from ivigilate.models import Sighting, Event, EventOccurrence, Notification, EventLimit
+from ivigilate.models import Sighting, Event, EventOccurrence, Notification, Limit, LimitOccurrence
 from django.db.models import Q
 import math, json, re, logging, os
 
@@ -109,6 +109,7 @@ def trigger_event_actions(event, sighting):
 
 def trigger_limit_actions(limit, beacon):
     logger.info('Conditions met for limit \'%s\'. Triggering corresponding actions...', limit)
+    limit_occurrence = LimitOccurrence.objects.create(limit=limit, beacon=beacon)
 
     metadata = json.loads(limit.metadata)
     actions = metadata['actions']
@@ -220,11 +221,11 @@ def check_for_events(sighting, new_sighting_detector=None):
 def check_for_limits(event_occurrence):
     logger.debug('Checking for limits associated with event_occurrence \'%s\'...', event_occurrence)
 
-    limits = EventLimit.objects.filter(Q(is_active=True),
+    limits = Limit.objects.filter(Q(is_active=True),
                                         Q(events=None)|Q(events__id__exact=event_occurrence.event.id),
                                         Q(beacons=None)|Q(beacons__id__exact=event_occurrence.sighting.beacon.id),
-                                        Q(occurrence_date_start_limit__lte=event_occurrence.occurred_at)
-                                        ).order_by('-occurrence_date_start_limit')[:1]
+                                        Q(start_date__lte=event_occurrence.occurred_at)
+                                        ).order_by('-start_date')[:1]
 
     if limits:
         logger.debug('Found %s limit(s) active for event_occurrence \'%s\'.', len(limits), event_occurrence)
@@ -237,11 +238,11 @@ def check_for_limits(event_occurrence):
             elif (limit.occurrence_count_limit >= 0):
                 eos = EventOccurrence.objects.all()
                 if (limit.occurrence_date_end_limit is not None):
-                    eos = eos.filter(event=limit.event,
+                    eos = eos.filter(event=event_occurrence.event,
                                      occurred_at__gte=limit.occurrence_date_start_limit,
                                      occurred_at__lt=filter_date_end_limit)
                 else:
-                    eos = eos.filter(event=limit.event,
+                    eos = eos.filter(event=event_occurrence.event,
                                      occurred_at__gte=limit.occurrence_date_start_limit)
 
                 metadata = json.loads(limit.metadata)

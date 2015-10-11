@@ -457,12 +457,12 @@ class EventViewSet(viewsets.ModelViewSet):
 
 
 class LimitViewSet(viewsets.ModelViewSet):
-    queryset = EventLimit.objects.all()
+    queryset = Limit.objects.all()
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
-            return EventLimitReadSerializer
-        return EventLimitWriteSerializer
+            return LimitReadSerializer
+        return LimitWriteSerializer
 
     def get_permissions(self):
         if self.request.method in ['HEAD', 'OPTIONS']:
@@ -478,8 +478,8 @@ class LimitViewSet(viewsets.ModelViewSet):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         try:
             queryset = self.queryset.get(id=pk, account=account)
-        except EventLimit.DoesNotExist:
-            return Response('EventLimit does not exist or is not associated with the current logged on account.',
+        except Limit.DoesNotExist:
+            return Response('Limit does not exist or is not associated with the current logged on account.',
                             status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.get_serializer_class()(queryset, many=False, context={'request': request})
@@ -506,8 +506,8 @@ class LimitViewSet(viewsets.ModelViewSet):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         try:
             instance = self.queryset.get(id=pk)
-        except EventLimit.DoesNotExist:
-            return Response('EventLimit does not exist or is not associated with the current logged on account.',
+        except Limit.DoesNotExist:
+            return Response('Limit does not exist or is not associated with the current logged on account.',
                             status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.get_serializer_class()(instance, data=request.data)

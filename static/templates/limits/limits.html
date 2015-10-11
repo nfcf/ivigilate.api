@@ -10,7 +10,7 @@
                     <thead>
                     <tr>
                         <th st-sort="reference_id">ID</th>
-                        <th class="text-center" st-sort="occurrence_date_start_limit" st-sort-default="reverse">Start Date</th>
+                        <th class="text-center" st-sort="start_date" st-sort-default="reverse">Start Date</th>
                         <th class="text-center" st-sort="events_display_string">Event(s)</th>
                         <th class="text-center" st-sort="beacons_display_string">Beacon(s)</th>
                         <th class="text-center" st-sort="occurrence_date_end_limit">End Date</th>
@@ -31,7 +31,7 @@
                     <tbody>
                     <tr ng-repeat="limit in vm.displayedLimits">
                         <td>{{ limit.reference_id || limit.id }}</td>
-                        <td class="text-center">{{ limit.occurrence_date_start_limit | limitTo:10 }}</td>
+                        <td class="text-center">{{ limit.start_date | limitTo:10 }}</td>
                         <td class="text-center">{{ limit.events_display_string }}</td>
                         <td class="text-center">{{ limit.beacons_display_string }}</td>
                         <td class="text-center">{{ (limit.occurrence_date_end_limit || 'N/A') | limitTo:10}}</td>
