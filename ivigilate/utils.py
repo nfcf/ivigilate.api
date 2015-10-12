@@ -1,5 +1,6 @@
 from datetime import datetime, timezone, timedelta
 import threading
+import pytz
 from rest_framework.response import Response
 from rest_framework import status
 from twilio.rest import TwilioRestClient
@@ -33,21 +34,16 @@ def get_file_extension(file_name, decoded_file):
     return extension
 
 
-def replace_event_message_tags(msg, event, sighting):
-    return msg.replace('%event_id%', event.reference_id). \
-        replace('%event_name%', event.name). \
-        replace('%beacon_id%', sighting.beacon.reference_id). \
-        replace('%beacon_name%', sighting.beacon.name). \
-        replace('%detector_id%', sighting.detector.reference_id). \
-        replace('%detector_name%', sighting.detector.name)
+def replace_message_tags(msg, event=None, beacon=None, detector=None, limit=None):
+    return msg.replace('%event_id%', event.reference_id if event is not None else ''). \
+        replace('%event_name%', event.name if event is not None else ''). \
+        replace('%beacon_id%', beacon.reference_id if beacon is not None else ''). \
+        replace('%beacon_name%', beacon.name if beacon is not None else ''). \
+        replace('%detector_id%', detector.reference_id if detector is not None else ''). \
+        replace('%detector_name%', detector.name if detector is not None else ''). \
+        replace('%limit_id%', limit.reference_id if limit is not None else ''). \
+        replace('%limit_name%', limit.name if limit is not None else '')
 
-
-def replace_limit_message_tags(msg, limit, beacon):
-    return msg.replace('%limit_id%', limit.reference_id). \
-        replace('%event_id%', limit.event.reference_id). \
-        replace('%event_name%', limit.event.name). \
-        replace('%beacon_id%', beacon.reference_id). \
-        replace('%beacon_name%', beacon.name)
 
 def send_twilio_message(to, msg):
     account_sid = os.environ.get('TWILIO_ACCOUNT_SID', 'AC1b8158faf55b96ed86dee884e1d94beb' if settings.DEBUG else None)
@@ -89,27 +85,27 @@ def trigger_event_actions(event, sighting):
                 action_metadata = {}
                 action_metadata['category'] = action['category']
                 action_metadata['timeout'] = action.get('timeout', 0)
-                action_metadata['title'] = replace_event_message_tags(action.get('title', ''), event, sighting)
-                action_metadata['message'] = replace_event_message_tags(action.get('message', ''), event, sighting)
+                action_metadata['title'] = replace_message_tags(action.get('title', ''), event, sighting.beacon, sighting.detector)
+                action_metadata['message'] = replace_message_tags(action.get('message', ''), event, sighting.beacon, sighting.detector)
                 Notification.objects.create(account=event.account, metadata=json.dumps(action_metadata))
             elif action['type'] == 'SMS':
                 logger.info('Action for event \'%s\': Sending SMS to %s recipient(s).',
                              event, len(re.split(',|;', action['recipients'])))
-                message = replace_event_message_tags(action.get('message', ''), event, sighting)
+                message = replace_message_tags(action.get('message', ''), event, sighting.beacon, sighting.detector)
                 for to in re.split(',|;', action['recipients']):
                     send_twilio_message(to, message)
             elif action['type'] == 'EMAIL':
                 logger.info('Action for event \'%s\': Sending EMAIL to %s recipient(s).',
                              event, len(re.split(',|;', action['recipients'])))
-                body = replace_event_message_tags(action.get('body', ''), event, sighting)
-                subject = replace_event_message_tags(action.get('subject', ''), event, sighting)
+                body = replace_message_tags(action.get('body', ''), event, sighting.beacon, sighting.detector)
+                subject = replace_message_tags(action.get('subject', ''), event, sighting.beacon, sighting.detector)
                 send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                           re.split(',|;', action['recipients']), fail_silently=False)
 
 
-def trigger_limit_actions(limit, beacon):
+def trigger_limit_actions(limit, event, beacon):
     logger.info('Conditions met for limit \'%s\'. Triggering corresponding actions...', limit)
-    limit_occurrence = LimitOccurrence.objects.create(limit=limit, beacon=beacon)
+    limit_occurrence = LimitOccurrence.objects.create(limit=limit, event=event, beacon=beacon)
 
     metadata = json.loads(limit.metadata)
     actions = metadata['actions']
@@ -120,20 +116,20 @@ def trigger_limit_actions(limit, beacon):
                 action_metadata = {}
                 action_metadata['category'] = action['category']
                 action_metadata['timeout'] = action.get('timeout', 0)
-                action_metadata['title'] = replace_limit_message_tags(action.get('title', ''), limit, beacon)
-                action_metadata['message'] = replace_limit_message_tags(action.get('message', ''), limit, beacon)
-                Notification.objects.create(account=limit.event.account, metadata=json.dumps(action_metadata))
+                action_metadata['title'] = replace_message_tags(action.get('title', ''), event, beacon, None, limit)
+                action_metadata['message'] = replace_message_tags(action.get('message', ''), event, beacon, None, limit)
+                Notification.objects.create(account=limit.account, metadata=json.dumps(action_metadata))
             elif action['type'] == 'SMS':
                 logger.info('Action for limit \'%s\': Sending SMS to %s recipient(s).',
                              limit, len(re.split(',|;', action['recipients'])))
-                message = replace_limit_message_tags(action.get('message', ''), limit, beacon)
+                message = replace_message_tags(action.get('message', ''), event, beacon, None, limit)
                 for to in re.split(',|;', action['recipients']):
                     send_twilio_message(to, message)
             elif action['type'] == 'EMAIL':
                 logger.info('Action for event \'%s\': Sending EMAIL to %s recipient(s).',
                              limit, len(re.split(',|;', action['recipients'])))
-                body = replace_limit_message_tags(action.get('body', ''), limit, beacon)
-                subject = replace_limit_message_tags(action.get('subject', ''), limit, beacon)
+                body = replace_message_tags(action.get('body', ''), event, beacon, None, limit)
+                subject = replace_message_tags(action.get('subject', ''), event, beacon, None, limit)
                 send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                           re.split(',|;', action['recipients']), fail_silently=False)
 
@@ -172,18 +168,20 @@ def check_for_events(sighting, new_sighting_detector=None):
         logger.debug('Found %s event(s) active for sighting \'%s\'.', len(events), sighting)
         for event in events:
             logger.debug('Checking if \'%s\' event conditions are met...', event)
-            if event.sighting_is_current == sighting.is_current and \
-                            event.sighting_has_battery_below >= (sighting.battery or 0) and \
-                            event.sighting_duration_in_seconds <= sighting.get_duration() and \
-                    ((event.sighting_has_comment is None) or
-                         (event.sighting_has_comment and sighting.comment) or
-                         (not event.sighting_has_comment and not sighting.comment)) and \
-                    ((event.sighting_has_been_confirmed is None) or
-                         (event.sighting_has_been_confirmed and sighting.confirmed) or
-                         (not event.sighting_has_been_confirmed and not sighting.confirmed)) and \
+            metadata = json.loads(event.metadata)
+            if (metadata.get('sighting_is_current', None) is None or
+                        metadata['sighting_is_current'] == sighting.is_current) and \
+                            metadata.get('sighting_has_battery_below', 0) >= sighting.battery and \
+                            metadata.get('sighting_duration_in_seconds', 0) <= sighting.get_duration() and \
+                    (metadata.get('sighting_has_comment', None) is None or
+                         (metadata['sighting_has_comment'] and sighting.comment) or
+                         (not metadata['sighting_has_comment'] and not sighting.comment)) and \
+                    (metadata.get('sighting_has_been_confirmed', None) is None or
+                         (metadata['sighting_has_been_confirmed'] and sighting.confirmed) or
+                         (not metadata['sighting_has_been_confirmed'] and not sighting.confirmed)) and \
                     (new_sighting_detector is None or len(event.detectors.all()) == 0 or new_sighting_detector in event.detectors.all()):
 
-                if (event.sighting_previous_event is None):
+                if (metadata.get('sighting_previous_event', None) is None):
                     # Make sure we don't trigger the same actions over and over again (only once per sighting)
                     same_occurrence_count = EventOccurrence.objects.filter(event=event, sighting=sighting).count()
                     if (same_occurrence_count == 0):
@@ -191,9 +189,10 @@ def check_for_events(sighting, new_sighting_detector=None):
                                                                               sighting__beacon=sighting.beacon,
                                                                               sighting__detector=sighting.detector
                                                                             ).order_by('-id')[:1]
-                        if (event.dormant_period_in_seconds <= 0 or
-                            previous_occurrences is None or len(previous_occurrences) == 0 or
-                            now - timedelta(seconds=event.dormant_period_in_seconds) > previous_occurrences[0].occurred_at):
+                        if (metadata.get('sighting_dormant_period_in_seconds', None) is None or
+                                metadata['sighting_dormant_period_in_seconds'] <= 0 or
+                                previous_occurrences is None or len(previous_occurrences) == 0 or
+                                now - timedelta(seconds=metadata['sighting_dormant_period_in_seconds']) > previous_occurrences[0].occurred_at):
                             trigger_event_actions(event, sighting)
                         else:
                             logger.debug('Conditions met for event \'%s\' but skipping it has ' + \
@@ -202,9 +201,9 @@ def check_for_events(sighting, new_sighting_detector=None):
                         logger.debug('Conditions met for event \'%s\' ' + \
                                      'but the required actions were already triggered once for this sighting.', event)
                 else:  # event conditions require that a specific previous event had occurred
-                    previous_occurrences = EventOccurrence.objects.filter(beacon=sighting.beacon).order_by('-id')[:2]
+                    previous_occurrences = EventOccurrence.objects.filter(sighting__beacon=sighting.beacon).order_by('-id')[:2]
                     if (previous_occurrences is not None and len(previous_occurrences) > 0 and
-                                previous_occurrences[0].event_id == event.sighting_previous_event.id):
+                                previous_occurrences[0].event_id == metadata['sighting_previous_event']['id']):
                         if (len(previous_occurrences) > 1 and (previous_occurrences[0].sighting_id != sighting.id or
                                     previous_occurrences[1].event_id != event.id)):
                             trigger_event_actions(event, sighting)
@@ -230,27 +229,30 @@ def check_for_limits(event_occurrence):
     if limits:
         logger.debug('Found %s limit(s) active for event_occurrence \'%s\'.', len(limits), event_occurrence)
         for limit in limits:
-            filter_date_end_limit = limit.occurrence_date_end_limit + timedelta(days=1) if limit.occurrence_date_end_limit is not None else None
-            if (limit.occurrence_date_end_limit is not None and
-                        event_occurrence.occurred_at >= filter_date_end_limit):
-                logger.debug('Found %s limit(s) active for event_occurrence \'%s\'.', len(limits), event_occurrence)
-                trigger_limit_actions(limit, event_occurrence.sighting.beacon)
-            elif (limit.occurrence_count_limit >= 0):
+            logger.debug('Checking if \'%s\' limit conditions are met...', limit)
+            metadata = json.loads(limit.metadata)
+            filter_date_limit = datetime.strptime(metadata['occurrence_date_limit'], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=pytz.UTC) + timedelta(days=1) if metadata.get('occurrence_date_limit', None) is not None else None
+            if (metadata.get('occurrence_date_limit', None) is not None and
+                        event_occurrence.occurred_at >= filter_date_limit):
+                logger.info('Found %s limit(s) active for event_occurrence \'%s\' due to going over the date limit.', len(limits), event_occurrence)
+                trigger_limit_actions(limit, event_occurrence.event, event_occurrence.sighting.beacon)
+            elif (metadata['occurrence_count_limit'] >= 0):
                 eos = EventOccurrence.objects.all()
-                if (limit.occurrence_date_end_limit is not None):
+                if (metadata.get('occurrence_date_limit', None) is not None):
                     eos = eos.filter(event=event_occurrence.event,
-                                     occurred_at__gte=limit.occurrence_date_start_limit,
-                                     occurred_at__lt=filter_date_end_limit)
+                                     occurred_at__gte=limit.start_date,
+                                     occurred_at__lt=filter_date_limit)
                 else:
                     eos = eos.filter(event=event_occurrence.event,
-                                     occurred_at__gte=limit.occurrence_date_start_limit)
+                                     occurred_at__gte=limit.start_date)
 
-                metadata = json.loads(limit.metadata)
                 if (metadata['consider_each_beacon_separately']):
                     eos = eos.filter(sighting__beacon=event_occurrence.sighting.beacon)
                 elif (limit.beacons and limit.beacons.count() > 0):
                     eos = eos.filter(sighting__beacon__in=limit.beacons.all())
 
-                if (eos.count() > limit.occurrence_count_limit):
-                    trigger_limit_actions(limit, event_occurrence.sighting.beacon)
-
+                if (eos.count() > metadata['occurrence_count_limit']):
+                    logger.debug('Found %s limit(s) active for event_occurrence \'%s\' due to going over the count limit.', len(limits), event_occurrence)
+                    trigger_limit_actions(limit, event_occurrence.event, event_occurrence.sighting.beacon)
+            else:
+                logger.info('Conditions not met for limit \'%s\'. ', limit)

@@ -10,10 +10,11 @@
                     <thead>
                     <tr>
                         <th st-sort="reference_id">ID</th>
+                        <th st-sort="name">Name</th>
                         <th class="text-center" st-sort="start_date" st-sort-default="reverse">Start Date</th>
                         <th class="text-center" st-sort="events_display_string">Event(s)</th>
                         <th class="text-center" st-sort="beacons_display_string">Beacon(s)</th>
-                        <th class="text-center" st-sort="occurrence_date_end_limit">End Date</th>
+                        <th class="text-center" st-sort="occurrence_date_limit">End Date</th>
                         <th class="text-center" st-sort="occurrence_count_limit">Max Occurrences</th>
                         <th class="text-center" st-sort="is_active">Active?</th>
                         <th class="text-right">
@@ -23,7 +24,7 @@
                         </th>
                     </tr>
                     <tr>
-                        <th colspan="8">
+                        <th colspan="9">
                             <input st-search placeholder="Global Search" class="input-sm form-control" type="search"/>
                         </th>
                     </tr>
@@ -31,12 +32,12 @@
                     <tbody>
                     <tr ng-repeat="limit in vm.displayedLimits">
                         <td>{{ limit.reference_id || limit.id }}</td>
+                        <td>{{ limit.name }}</td>
                         <td class="text-center">{{ limit.start_date | limitTo:10 }}</td>
                         <td class="text-center">{{ limit.events_display_string }}</td>
                         <td class="text-center">{{ limit.beacons_display_string }}</td>
-                        <td class="text-center">{{ (limit.occurrence_date_end_limit || 'N/A') | limitTo:10}}</td>
-                        <td class="text-center">{{ limit.occurrence_count_limit >= 0 ?
-                                                    limit.occurrence_count_limit : 'N/A' }}</td>
+                        <td class="text-center">{{ limit.metadata_object.occurrence_date_limit | limitTo:10}}</td>
+                        <td class="text-center">{{ limit.metadata_object.occurrence_count_limit }}</td>
                         <td class="text-center">
                             <input type="checkbox" ng-model="limit.is_active" ng-click="vm.updateLimitState(limit)">
                         </td>
@@ -47,7 +48,7 @@
                     </tbody>
                     <tfoot>
                     <tr>
-                        <td colspan="8" class="text-center">
+                        <td colspan="9" class="text-center">
                             <div st-pagination="" st-items-by-page="10" st-displayed-pages="5"></div>
                         </td>
                     </tr>

@@ -22,16 +22,6 @@
         vm.limit = undefined;
 
         vm.notification_categories = ['Success', 'Info', 'Warning', 'Error'];
-        vm.action_notification_title = undefined;
-        vm.action_notification_category = 'Info';
-        vm.action_notification_timeout = undefined;
-        vm.action_notification_message = undefined;
-        vm.action_sms_recipients = undefined;
-        vm.action_sms_message = undefined;
-        vm.action_email_recipients = undefined;
-        vm.action_email_subject = undefined;
-        vm.action_email_body = undefined;
-
         vm.actions_index = 0;
 
         vm.events = [];
@@ -41,8 +31,8 @@
 
         vm.is_edit = data !== null;
 
-        vm.occurrence_date_start_limit_is_open = false;
-        vm.occurrence_date_end_limit_is_open = false;
+        vm.start_date_is_open = false;
+        vm.occurrence_date_limit_is_open = false;
         vm.date_options = {
             showWeeks: false,
             startingDay: 1
@@ -61,36 +51,38 @@
                 if (vm.is_edit) {
                     vm.title = 'Limit';
                     vm.limit = data;
-
-                    vm.limit.occurrence_date_start_limit = new Date(vm.limit.occurrence_date_start_limit);
-                    if (!!vm.limit.occurrence_date_end_limit) {
-                        vm.limit.occurrence_date_end_limit = new Date(vm.limit.occurrence_date_end_limit);
-                    }
-                    if (vm.limit.occurrence_count_limit < 0) vm.limit.occurrence_count_limit = undefined;
+                    vm.limit.start_date = new Date(vm.limit.start_date);
 
                     if (!!vm.limit.metadata) {
                         var metadata = JSON.parse(vm.limit.metadata);
-                        vm.limit.consider_each_beacon_separately = !!metadata.consider_each_beacon_separately;
 
+                        vm.limit.metadata_object = {};
+                        vm.limit.metadata_object.occurrence_date_limit = !!metadata.occurrence_date_limit ?
+                                                                        new Date(metadata.occurrence_date_limit) : undefined;
+                        vm.limit.metadata_object.occurrence_count_limit = !!metadata.occurrence_count_limit && metadata.occurrence_count_limit >= 0 ?
+                                                                        metadata.occurrence_count_limit : undefined;
+                        vm.limit.metadata_object.consider_each_beacon_separately = !!metadata.consider_each_beacon_separately;
+
+                        vm.limit.metadata_object.action_notification_category = 'Info'; // Default value
                         for (var i = 0; i < metadata.actions.length; i++) {  // Required for the REST serializer
                             if (metadata.actions[i].type == 'NOTIFICATION') {
-                                vm.action_notification_title = metadata.actions[i].title;
-                                vm.action_notification_category = metadata.actions[i].category;
-                                vm.action_notification_timeout = metadata.actions[i].timeout;
-                                vm.action_notification_message = metadata.actions[i].message;
+                                vm.limit.metadata_object.action_notification_title = metadata.actions[i].title;
+                                vm.limit.metadata_object.action_notification_category = metadata.actions[i].category;
+                                vm.limit.metadata_object.action_notification_timeout = metadata.actions[i].timeout;
+                                vm.limit.metadata_object.action_notification_message = metadata.actions[i].message;
                             } else if (metadata.actions[i].type == 'SMS') {
-                                vm.action_sms_recipients = metadata.actions[i].recipients;
-                                vm.action_sms_message = metadata.actions[i].message;
+                                vm.limit.metadata_object.action_sms_recipients = metadata.actions[i].recipients;
+                                vm.limit.metadata_object.action_sms_message = metadata.actions[i].message;
                             } else if (metadata.actions[i].type == 'EMAIL') {
-                                vm.action_email_recipients = metadata.actions[i].recipients;
-                                vm.action_email_subject = metadata.actions[i].subject;
-                                vm.action_email_body = metadata.actions[i].body;
+                                vm.limit.metadata_object.action_email_recipients = metadata.actions[i].recipients;
+                                vm.limit.metadata_object.action_email_subject = metadata.actions[i].subject;
+                                vm.limit.metadata_object.action_email_body = metadata.actions[i].body;
                             }
                         }
                     }
                 } else {
                     vm.title = 'New Limit';
-                    vm.limit = { 'is_active': true, 'occurrence_date_start_limit': new Date() };
+                    vm.limit = { 'is_active': true, 'start_date': new Date(), 'metadata_object': { 'action_notification_category': 'Info' } };
                 }
 
                 Events.list().then(eventsSuccessFn, errorFn);
@@ -125,37 +117,36 @@
             $scope.$broadcast('show-errors-check-validity');
 
             if (vm.form.$valid) {
-                var metadata = {};
-                metadata.consider_each_beacon_separately = vm.limit.consider_each_beacon_separately;
-                metadata.actions = [];
+                vm.limit.metadata_object.actions = [];
 
-                if (vm.action_notification_message) {
-                    metadata.actions.push({
+                if (vm.limit.metadata_object.action_notification_message) {
+                    vm.limit.metadata_object.actions.push({
                         'type': 'NOTIFICATION',
-                        'title': vm.action_notification_title,
-                        'category': vm.action_notification_category,
-                        'timeout': vm.action_notification_timeout,
-                        'message': vm.action_notification_message
+                        'title': vm.limit.metadata_object.action_notification_title,
+                        'category': vm.limit.metadata_object.action_notification_category,
+                        'timeout': vm.limit.metadata_object.action_notification_timeout,
+                        'message': vm.limit.metadata_object.action_notification_message
                     });
                 }
-                if (vm.action_sms_recipients && vm.action_sms_message) {
-                    metadata.actions.push({
+                if (vm.limit.metadata_object.action_sms_recipients && vm.limit.metadata_object.action_sms_message) {
+                    vm.limit.metadata_object.actions.push({
                         'type': 'SMS',
-                        'recipients': vm.action_sms_recipients,
-                        'message': vm.action_sms_message
+                        'recipients': vm.limit.metadata_object.action_sms_recipients,
+                        'message': vm.limit.metadata_object.action_sms_message
                     });
                 }
-                if (vm.action_email_recipients && vm.action_email_subject) {
-                    metadata.actions.push({
+                if (vm.limit.metadata_object.action_email_recipients && vm.limit.metadata_object.action_email_subject) {
+                    vm.limit.metadata_object.actions.push({
                         'type': 'EMAIL',
-                        'recipients': vm.action_email_recipients,
-                        'subject': vm.action_email_subject,
-                        'body': vm.action_email_body
+                        'recipients': vm.limit.metadata_object.action_email_recipients,
+                        'subject': vm.limit.metadata_object.action_email_subject,
+                        'body': vm.limit.metadata_object.action_email_body
                     });
                 }
-                vm.limit.metadata = JSON.stringify(metadata);
+                vm.limit.metadata = JSON.stringify(vm.limit.metadata_object);
 
                 var limitToSend = JSON.parse(JSON.stringify(vm.limit));
+                limitToSend.metadata_object = undefined;
                 limitToSend.events = [];
                 for (var i = 0; i < vm.events_selected.length; i++) {  // Required for the REST serializer
                     limitToSend.events.push(vm.events_selected[i].id);
@@ -175,13 +166,6 @@
             }
 
             function successFn(data, status, headers, config) {
-                vm.limit.events = vm.events_selected;
-                vm.limit.beacons = vm.beacons_selected;
-
-                vm.limit.occurrence_date_start_limit = vm.limit.occurrence_date_start_limit.toISOString();
-                if (!!vm.limit.occurrence_date_end_limit) {
-                    vm.limit.occurrence_date_end_limit = vm.limit.occurrence_date_end_limit.toISOString();
-                }
                 $modalInstance.close(vm.limit);
             }
 

@@ -307,15 +307,12 @@ class EventDetectorSerializer(serializers.HyperlinkedModelSerializer):
 class EventReadSerializer(serializers.HyperlinkedModelSerializer):
     beacons = EventBeaconSerializer(many=True, read_only=True)
     detectors = EventDetectorSerializer(many=True, read_only=True)
-    sighting_previous_event = SimpleEventSerializer()
 
     class Meta:
         model = Event
         fields = ('id', 'account', 'reference_id', 'name', 'beacons', 'detectors',
                   'schedule_days_of_week', 'schedule_start_time', 'schedule_end_time', 'schedule_timezone_offset',
-                  'sighting_is_current', 'sighting_duration_in_seconds', 'sighting_has_battery_below',
-                  'sighting_has_comment', 'sighting_has_been_confirmed', 'sighting_previous_event',
-                  'dormant_period_in_seconds', 'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
+                  'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
 
 
 class EventWriteSerializer(serializers.ModelSerializer):
@@ -323,9 +320,7 @@ class EventWriteSerializer(serializers.ModelSerializer):
         model = Event
         fields = ('id', 'reference_id', 'name',
                   'schedule_days_of_week', 'schedule_start_time', 'schedule_end_time', 'schedule_timezone_offset',
-                  'sighting_is_current', 'sighting_duration_in_seconds', 'sighting_has_battery_below',
-                  'sighting_has_comment', 'sighting_has_been_confirmed', 'sighting_previous_event',
-                  'dormant_period_in_seconds', 'metadata', 'is_active')
+                  'metadata', 'is_active')
 
     def update(self, instance, validated_data):
         instance.reference_id = validated_data.get('reference_id', instance.reference_id)
@@ -334,15 +329,6 @@ class EventWriteSerializer(serializers.ModelSerializer):
         instance.schedule_start_time = validated_data.get('schedule_start_time', instance.schedule_start_time)
         instance.schedule_end_time = validated_data.get('schedule_end_time', instance.schedule_end_time)
         instance.schedule_timezone_offset = validated_data.get('schedule_timezone_offset', instance.schedule_timezone_offset)
-
-        instance.sighting_is_current = validated_data.get('sighting_is_current', instance.sighting_is_current)
-        instance.sighting_duration_in_seconds = validated_data.get('sighting_duration_in_seconds', instance.sighting_duration_in_seconds)
-        instance.sighting_has_battery_below = validated_data.get('sighting_has_battery_below', instance.sighting_has_battery_below)
-        instance.sighting_has_comment = validated_data.get('sighting_has_comment')
-        instance.sighting_has_been_confirmed = validated_data.get('sighting_has_been_confirmed')
-        instance.sighting_previous_event = validated_data.get('sighting_previous_event')
-
-        instance.dormant_period_in_seconds = validated_data.get('dormant_period_in_seconds', instance.dormant_period_in_seconds)
 
         instance.metadata = validated_data.get('metadata', instance.metadata)
         instance.updated_by = validated_data.get('updated_by')
@@ -358,17 +344,18 @@ class LimitReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Limit
-        fields = ('id', 'account', 'reference_id', 'events', 'beacons', 'start_date',
+        fields = ('id', 'account', 'reference_id', 'name', 'events', 'beacons', 'start_date',
                   'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
 
 
 class LimitWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Limit
-        fields = ('id', 'reference_id', 'start_date', 'metadata', 'is_active')
+        fields = ('id', 'reference_id', 'name', 'start_date', 'metadata', 'is_active')
 
     def update(self, instance, validated_data):
         instance.reference_id = validated_data.get('reference_id', instance.reference_id)
+        instance.name = validated_data.get('name', instance.name)
         instance.start_date = validated_data.get('start_date', instance.start_date)
 
         instance.metadata = validated_data.get('metadata', instance.metadata)

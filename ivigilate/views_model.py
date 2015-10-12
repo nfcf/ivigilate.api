@@ -398,10 +398,6 @@ class EventViewSet(viewsets.ModelViewSet):
                 detectors = self.request.DATA.get('detectors', None)
                 self.update_m2m_fields(event, beacons, detectors)
 
-                # remove fields from the response as they aren't serializable nor needed
-                if 'sighting_previous_event' in serializer.validated_data:
-                    del serializer.validated_data['sighting_previous_event']
-
                 return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -423,10 +419,6 @@ class EventViewSet(viewsets.ModelViewSet):
                 beacons = self.request.DATA.get('beacons', None)
                 detectors = self.request.DATA.get('detectors', None)
                 self.update_m2m_fields(event, beacons, detectors)
-
-                # remove fields from the response as they aren't serializable nor needed
-                if 'sighting_previous_event' in serializer.validated_data:
-                    del serializer.validated_data['sighting_previous_event']
 
                 return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
 
@@ -505,7 +497,7 @@ class LimitViewSet(viewsets.ModelViewSet):
         user = request.user if not isinstance(request.user, AnonymousUser) else None
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         try:
-            instance = self.queryset.get(id=pk)
+            instance = self.queryset.get(id=pk, account=account)
         except Limit.DoesNotExist:
             return Response('Limit does not exist or is not associated with the current logged on account.',
                             status=status.HTTP_400_BAD_REQUEST)
@@ -519,7 +511,7 @@ class LimitViewSet(viewsets.ModelViewSet):
                 beacons = self.request.DATA.get('beacons', None)
                 self.update_m2m_fields(limit, events, beacons)
 
-            return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
+                return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -544,6 +536,7 @@ class LimitViewSet(viewsets.ModelViewSet):
                 limit.beacons.add(id)
             for id in to_remove_list:
                 limit.beacons.remove(id)
+
 
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()

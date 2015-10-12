@@ -275,21 +275,11 @@ class Event(models.Model):
     name = models.CharField(max_length=64)
     beacons = models.ManyToManyField(Beacon, blank=True, related_name='events')
     detectors = models.ManyToManyField(Detector, blank=True)
-
     schedule_days_of_week = models.PositiveSmallIntegerField(default=0)  # used as an 8bit field for easy logical ops
     # schedule_specific_date = models.DateTimeField()
     schedule_start_time = models.TimeField()
     schedule_end_time = models.TimeField()
     schedule_timezone_offset = models.SmallIntegerField(default=0)
-
-    sighting_is_current = models.BooleanField(default=False)
-    sighting_duration_in_seconds = models.IntegerField(default=0)
-    sighting_has_battery_below = models.IntegerField(default=100)
-    sighting_has_comment = models.NullBooleanField(default=None)
-    sighting_has_been_confirmed = models.NullBooleanField(default=None)
-    sighting_previous_event = models.ForeignKey('Event', null=True)
-
-    dormant_period_in_seconds = models.IntegerField(default=0)
 
     metadata = models.TextField(blank=True) # event actions: Notification, SMS, Email, REST call
     created_at = models.DateTimeField(editable=False)
@@ -307,7 +297,7 @@ class Event(models.Model):
         super(Event, self).save(*args, **kwargs)
 
     def __str__(self):
-        return "%s: reference_id=%s, name=%s)" % (self.account.company_id, self.reference_id, self.name)
+        return "%s: reference_id=%s, name=%s" % (self.account.company_id, self.reference_id, self.name)
 
 
 class EventOccurrence(models.Model):
@@ -329,8 +319,9 @@ class EventOccurrence(models.Model):
 class Limit(models.Model):
     account = models.ForeignKey(Account)
     reference_id = models.CharField(max_length=64, blank=True)
-    events = models.ManyToManyField(Event, blank=True, related_name='event_limits')
-    beacons = models.ManyToManyField(Beacon, blank=True, related_name='event_limits')
+    name = models.CharField(max_length=64)
+    events = models.ManyToManyField(Event, blank=True, related_name='limits')
+    beacons = models.ManyToManyField(Beacon, blank=True, related_name='limits')
     start_date = models.DateTimeField()
 
     metadata = models.TextField(blank=True) # event limit actions and extra configs
@@ -349,12 +340,13 @@ class Limit(models.Model):
         super(Limit, self).save(*args, **kwargs)
 
     def __str__(self):
-        return "%s: reference_id=%s" % (self.event.account.company_id, self.reference_id)
+        return "%s: reference_id=%s, name=%s" % (self.account.company_id, self.reference_id, self.name)
 
 
 class LimitOccurrence(models.Model):
     limit = models.ForeignKey(Limit)
     beacon = models.ForeignKey(Beacon)
+    event = models.ForeignKey(Event)
     occurred_at = models.DateTimeField(editable=False)
 
     def save(self, *args, **kwargs):

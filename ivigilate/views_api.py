@@ -187,7 +187,7 @@ class AddSightingsView(views.APIView):
                         logger.debug('Created new sighting \'%s\'.', new_sighting)
 
                 # check for events associated with this sighting in a different  thread
-                t = threading.Thread(target=utils.check_for_events, args=(sighting,))
+                t = threading.Thread(target=utils.check_for_events, args=(new_sighting,))
                 t.start()
 
         # serialized = SightingReadSerializer(new_sighting, context={'request': request})

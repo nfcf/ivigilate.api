@@ -121,20 +121,20 @@
                 <div class="col-xs-4 col-md-4">
                     <div class="form-group">
                         <label for="sighting_is_current">Is Sighting Current?</label><br/>
-                        <input type="checkbox" id="sighting_is_current" ng-model="vm.event.sighting_is_current"/>
+                        <input type="checkbox" id="sighting_is_current" ng-model="vm.event.metadata_object.sighting_is_current"/>
                     </div>
                 </div>
                 <div class="col-xs-4 col-md-4">
                     <div class="form-group">
                         <label for="sighting_has_comment">Has comment?</label><br/>
-                        <input type="checkbox" id="sighting_has_comment" ng-model="vm.event.sighting_has_comment"/>
+                        <input type="checkbox" id="sighting_has_comment" ng-model="vm.event.metadata_object.sighting_has_comment"/>
                     </div>
                 </div>
                 <div class="col-xs-4 col-md-4">
                     <div class="form-group">
                         <label for="sighting_has_been_confirmed">Was confirmed?</label><br/>
                         <input type="checkbox" id="sighting_has_been_confirmed"
-                               ng-model="vm.event.sighting_has_been_confirmed"/>
+                               ng-model="vm.event.metadata_object.sighting_has_been_confirmed"/>
                     </div>
                 </div>
             </div>
@@ -144,21 +144,21 @@
                     <div class="form-group" show-errors>
                         <label for="sighting_duration_in_seconds">Duration (in seconds)</label><br/>
                         <input type="number" class="form-control" name="sighting_duration_in_seconds"
-                               ng-model="vm.event.sighting_duration_in_seconds" required/>
+                               ng-model="vm.event.metadata_object.sighting_duration_in_seconds" required/>
                     </div>
                 </div>
                 <div class="col-xs-4 col-md-4">
                     <div class="form-group" show-errors>
                         <label for="sighting_has_battery_below">Battery below (%)</label><br/>
                         <input type="number" class="form-control" name="sighting_has_battery_below"
-                               ng-model="vm.event.sighting_has_battery_below" required/>
+                               ng-model="vm.event.metadata_object.sighting_has_battery_below" required/>
                     </div>
                 </div>
                 <div class="col-xs-4 col-md-4">
                     <div class="form-group" show-errors>
                         <label for="dormant_period_in_seconds">Dormant Period (in seconds)</label><br/>
-                        <input type="number" class="form-control" name="dormant_period_in_seconds"
-                               ng-model="vm.event.dormant_period_in_seconds" required/>
+                        <input type="number" class="form-control" name="sighting_dormant_period_in_seconds"
+                               ng-model="vm.event.metadata_object.sighting_dormant_period_in_seconds" required/>
                     </div>
                 </div>
             </div>
@@ -167,7 +167,7 @@
                 <div class="col-xs-6 col-md-6">
                     <div class="form-group">
                         <label>Previous Event Ocurrence</label>
-                        <ui-select ng-model="vm.event.sighting_previous_event" theme="bootstrap" ng-disabled="disabled">
+                        <ui-select ng-model="vm.event.metadata_object.sighting_previous_event" theme="bootstrap" ng-disabled="disabled">
                             <ui-select-match placeholder="Select or search for an event...">
                                 {{ $select.selected.name }}
                             </ui-select-match>
@@ -198,13 +198,13 @@
                                     <div class="form-group">
                                         <label for="action_notification_title">Title</label>
                                         <input type="text" class="form-control" id="action_notification_title"
-                                               ng-model="vm.action_notification_title"/>
+                                               ng-model="vm.event.metadata_object.action_notification_title"/>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="action_notification_category">Category</label>
-                                        <ui-select ng-model="vm.action_notification_category" theme="bootstrap" ng-disabled="disabled">
+                                        <ui-select ng-model="vm.event.metadata_object.action_notification_category" theme="bootstrap" ng-disabled="disabled">
                                             <ui-select-match>
                                                 {{ $select.selected }}
                                             </ui-select-match>
@@ -218,14 +218,16 @@
                                     <div class="form-group">
                                         <label for="action_notification_timeout">Timeout (in seconds)</label>
                                         <input type="number" class="form-control" id="action_notification_timeout"
-                                               ng-model="vm.action_notification_timeout" placeholder="Or leave empty..."/>
+                                               ng-model="vm.event.metadata_object.action_notification_timeout"
+                                               placeholder="Or leave empty..."/>
                                     </div>
                                 </div>
                                 <div class="col-md-12">
                                     <div class="form-group" show-errors>
                                         <label for="action_notification_message">Message</label>
                                 <textarea class="form-control" name="action_notification_message"
-                                          ng-model="vm.action_notification_message" ng-required="!!vm.action_notification_title">
+                                          ng-model="vm.event.metadata_object.action_notification_message"
+                                          ng-required="!!vm.event.metadata_object.action_notification_title">
                                 </textarea>
                                         <small>Note: The following tags can be used: %event_id%, %event_name%, %beacon_id%,
                                             %beacon_name%, %detector_id%, %detector_name%.
@@ -243,8 +245,8 @@
                                     <div class="form-group" show-errors>
                                         <label for="action_sms_recipients">Recipient(s)</label>
                                         <input type="text" class="form-control" name="action_sms_recipients"
-                                               ng-model="vm.action_sms_recipients"
-                                               ng-required="!!vm.action_sms_message"
+                                               ng-model="vm.event.metadata_object.action_sms_recipients"
+                                               ng-required="!!vm.event.metadata_object.action_sms_message"
                                                placeholder="Example: +351961230101;+353833210202"/>
                                     </div>
                                 </div>
@@ -252,7 +254,8 @@
                                     <div class="form-group" show-errors>
                                         <label for="action_sms_message">Message</label>
                                 <textarea class="form-control" name="action_sms_message"
-                                          ng-model="vm.action_sms_message" ng-required="!!vm.action_sms_recipients">
+                                          ng-model="vm.event.metadata_object.action_sms_message"
+                                          ng-required="!!vm.event.metadata_object.action_sms_recipients">
                                 </textarea>
                                         <small>Note: The following tags can be used: %event_id%, %event_name%, %beacon_id%,
                                             %beacon_name%, %detector_id%, %detector_name%.
@@ -270,8 +273,8 @@
                                     <div class="form-group" show-errors>
                                         <label for="action_email_recipients">Recipient(s)</label>
                                         <input type="text" class="form-control" name="action_email_recipients"
-                                               ng-model="vm.action_email_recipients"
-                                               ng-required="!!vm.action_email_subject"
+                                               ng-model="vm.event.metadata_object.action_email_recipients"
+                                               ng-required="!!vm.event.metadata_object.action_email_subject"
                                                placeholder="Example: abc@ivigilate.com;xyz@email.com"/>
                                     </div>
                                 </div>
@@ -279,15 +282,15 @@
                                     <div class="form-group" show-errors>
                                         <label for="action_email_subject">Subject</label>
                                         <input type="text" class="form-control" name="action_email_subject"
-                                               ng-model="vm.action_email_subject"
-                                                ng-required="!!vm.action_email_recipient"/>
+                                               ng-model="vm.event.metadata_object.action_email_subject"
+                                               ng-required="!!vm.event.metadata_object.action_email_recipient"/>
                                     </div>
                                 </div>
                                 <div class="col-md-12">
                                     <div class="form-group" show-errors>
                                         <label for="action_email_body">Body</label>
                                 <textarea class="form-control" name="action_email_body"
-                                          ng-model="vm.action_email_body">
+                                          ng-model="vm.event.metadata_object.action_email_body">
                                 </textarea>
                                         <small>Note: The following tags can be used: %event_id%, %event_name%, %beacon_id%,
                                             %beacon_name%, %detector_id%, %detector_name%.
@@ -304,8 +307,8 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="action_rest_uris">WebService URI</label>
-                                        <input type="text" class="form-control" id="action_rest_uris"
-                                               ng-model="vm.action_rest_uris"
+                                        <input type="text" class="form-control" id="action_rest_uri"
+                                               ng-model="vm.event.metadata_object.action_rest_uri"
                                                placeholder="http://myservername.com/api/dosomething"/>
                                     </div>
                                 </div>
@@ -313,7 +316,7 @@
                                     <div class="form-group">
                                         <label for="action_rest_method">HTTP Method</label>
                                         <select class="form-control" id="action_rest_method"
-                                                ng-model="vm.action_rest_method">
+                                                ng-model="vm.event.metadata_object.action_rest_method">
                                             <option value="GET" selected>GET</option>
                                             <option value="POST">POST</option>
                                             <option value="PUT">PUT</option>
@@ -323,7 +326,8 @@
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label for="action_rest_body">Body</label>
-                                <textarea class="form-control" id="action_rest_body" ng-model="vm.action_rest_body">
+                                <textarea class="form-control" id="action_rest_body"
+                                          ng-model="vm.event.metadata_object.action_rest_body">
                                 </textarea>
                                         <small>Note: The following tags can be used: %event_id%, %event_name%, %beacon_id%,
                                             %beacon_name%, %detector_id%, %detector_name%.

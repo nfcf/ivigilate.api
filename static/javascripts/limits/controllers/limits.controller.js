@@ -45,9 +45,15 @@
                                                          limit.beacons.length + ' beacon(s)' : '(Any)';
                     limit.start_date = date2str(new Date(limit.start_date), 'yyyy-MM-dd');
 
-                    // update this to use the metadata as well as the ocurrence_count_limit
-                    if (!!limit.occurrence_date_end_limit) {
-                        limit.occurrence_date_end_limit = date2str(new Date(limit.occurrence_date_end_limit), 'yyyy-MM-dd');
+                    if (!!limit.metadata) {
+                        var metadata = JSON.parse(limit.metadata);
+
+                        limit.metadata_object = {};
+                        limit.metadata_object.occurrence_date_limit = !!metadata.occurrence_date_limit ?
+                                                                    date2str(new Date(metadata.occurrence_date_limit), 'yyyy-MM-dd') : 'N/A';
+                        limit.metadata_object.occurrence_count_limit =  !!metadata.occurrence_count_limit && metadata.occurrence_count_limit >= 0 ?
+                                                                    metadata.occurrence_count_limit : 'N/A';
+                        limit.metadata_object.consider_each_beacon_separately = !!metadata.consider_each_beacon_separately;
                     }
                 }
             }
@@ -68,9 +74,10 @@
             var dlg = dialogs.create('static/templates/limits/addeditlimit.html', 'AddEditLimitController as vm', limit, {'size': 'lg'});
             dlg.result.then(function (editedLimit) {
                 if (editedLimit) {
-                    for (var k in editedLimit) { //Copy the object attributes to the currently displayed on the table
-                        limit[k] = editedLimit[k];
-                    }
+                    refresh();
+                    //for (var k in editedLimit) { //Copy the object attributes to the currently displayed on the table
+                    //    limit[k] = editedLimit[k];
+                    //}
                 } else {
                     var index = vm.limits.indexOf(limit);
                     if (index >= 0) vm.limits.splice(index, 1);

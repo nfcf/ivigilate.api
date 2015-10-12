@@ -31,15 +31,7 @@
         vm.schedule_timezone_offset = undefined;
 
         vm.notification_categories = ['Success', 'Info', 'Warning', 'Error'];
-        vm.action_notification_title = undefined;
-        vm.action_notification_category = 'Info';
-        vm.action_notification_timeout = undefined;
-        vm.action_notification_message = undefined;
-        vm.action_sms_recipients = undefined;
-        vm.action_sms_message = undefined;
-        vm.action_email_recipients = undefined;
-        vm.action_email_subject = undefined;
-        vm.action_email_body = undefined;
+        vm.actions_index = 0;
 
         vm.events = [];
         vm.nullEventOption = {"name": "-- Don't care --"};
@@ -47,8 +39,6 @@
         vm.beacons_selected = [];
         vm.detectors = [];
         vm.detectors_selected = [];
-
-        vm.actions_index = 0;
 
         vm.is_edit = data !== null;
 
@@ -78,27 +68,34 @@
 
                     if (!!vm.event.metadata) {
                         var metadata = JSON.parse(vm.event.metadata);
+
+                        vm.event.metadata_object = metadata;
+                        vm.event.metadata_object.action_notification_category = 'Info'; // Default value
                         for (var i = 0; i < metadata.actions.length; i++) {  // Required for the REST serializer
                             if (metadata.actions[i].type == 'NOTIFICATION') {
-                                vm.action_notification_title = metadata.actions[i].title;
-                                vm.action_notification_category = metadata.actions[i].category;
-                                vm.action_notification_timeout = metadata.actions[i].timeout;
-                                vm.action_notification_message = metadata.actions[i].message;
+                                vm.event.metadata_object.action_notification_title = metadata.actions[i].title;
+                                vm.event.metadata_object.action_notification_category = metadata.actions[i].category;
+                                vm.event.metadata_object.action_notification_timeout = metadata.actions[i].timeout;
+                                vm.event.metadata_object.action_notification_message = metadata.actions[i].message;
                             } else if (metadata.actions[i].type == 'SMS') {
-                                vm.action_sms_recipients = metadata.actions[i].recipients;
-                                vm.action_sms_message = metadata.actions[i].message;
+                                vm.event.metadata_object.action_sms_recipients = metadata.actions[i].recipients;
+                                vm.event.metadata_object.action_sms_message = metadata.actions[i].message;
                             } else if (metadata.actions[i].type == 'EMAIL') {
-                                vm.action_email_recipients = metadata.actions[i].recipients;
-                                vm.action_email_subject = metadata.actions[i].subject;
-                                vm.action_email_body = metadata.actions[i].body;
+                                vm.event.metadata_object.action_email_recipients = metadata.actions[i].recipients;
+                                vm.event.metadata_object.action_email_subject = metadata.actions[i].subject;
+                                vm.event.metadata_object.action_email_body = metadata.actions[i].body;
                             }
                         }
                     }
                 } else {
                     vm.title = 'New Event';
-                    vm.event = {'is_active': true, 'sighting_duration_in_seconds': 0, 'sighting_has_battery_below': 100,
-                                'schedule_timezone_offset': Math.abs(now.getTimezoneOffset()),
-                                'dormant_period_in_seconds': 0 };
+                    vm.event = {'is_active': true, 'schedule_timezone_offset': Math.abs(now.getTimezoneOffset()),
+                                'metadata_object': {
+                                    'action_notification_category': 'Info',
+                                    'sighting_duration_in_seconds': 0,
+                                    'sighting_has_battery_below': 100,
+                                    'sighting_dormant_period_in_seconds': 0
+                                }};
 
                     vm.schedule_start_time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0);
                     vm.schedule_end_time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59);
@@ -145,34 +142,38 @@
                 vm.event.schedule_end_time = pad('00', vm.schedule_end_time.getHours(), true) + ':' +
                 pad('00', vm.schedule_end_time.getMinutes(), true) + ':59';
 
-                var metadata = {'actions': []};
-                if (vm.action_notification_message) {
-                    metadata.actions.push({
+                if (vm.event.metadata_object.sighting_previous_event) {
+                    vm.event.metadata_object.sighting_previous_event = vm.event.metadata_object.sighting_previous_event.id;
+                }
+                vm.event.metadata_object.actions = [];
+                if (vm.event.metadata_object.action_notification_message) {
+                    vm.event.metadata_object.actions.push({
                         'type': 'NOTIFICATION',
-                        'title': vm.action_notification_title,
-                        'category': vm.action_notification_category,
-                        'timeout': vm.action_notification_timeout,
-                        'message': vm.action_notification_message
+                        'title': vm.event.metadata_object.action_notification_title,
+                        'category': vm.event.metadata_object.action_notification_category,
+                        'timeout': vm.event.metadata_object.action_notification_timeout,
+                        'message': vm.event.metadata_object.action_notification_message
                     });
                 }
-                if (vm.action_sms_recipients && vm.action_sms_message) {
-                    metadata.actions.push({
+                if (vm.event.metadata_object.action_sms_recipients && vm.event.metadata_object.action_sms_message) {
+                    vm.event.metadata_object.actions.push({
                         'type': 'SMS',
-                        'recipients': vm.action_sms_recipients,
-                        'message': vm.action_sms_message
+                        'recipients': vm.event.metadata_object.action_sms_recipients,
+                        'message': vm.event.metadata_object.action_sms_message
                     });
                 }
-                if (vm.action_email_recipients && vm.action_email_subject) {
-                    metadata.actions.push({
+                if (vm.event.metadata_object.action_email_recipients && vm.event.metadata_object.action_email_subject) {
+                    vm.event.metadata_object.actions.push({
                         'type': 'EMAIL',
-                        'recipients': vm.action_email_recipients,
-                        'subject': vm.action_email_subject,
-                        'body': vm.action_email_body
+                        'recipients': vm.event.metadata_object.action_email_recipients,
+                        'subject': vm.event.metadata_object.action_email_subject,
+                        'body': vm.event.metadata_object.action_email_body
                     });
                 }
-                vm.event.metadata = JSON.stringify(metadata);
+                vm.event.metadata = JSON.stringify(vm.event.metadata_object);
 
                 var eventToSend = JSON.parse(JSON.stringify(vm.event));
+                eventToSend.metadata_object = undefined;
                 eventToSend.beacons = [];
                 for (var i = 0; i < vm.beacons_selected.length; i++) {  // Required for the REST serializer
                     eventToSend.beacons.push(vm.beacons_selected[i].id);
@@ -180,9 +181,6 @@
                 eventToSend.detectors = [];
                 for (var i = 0; i < vm.detectors_selected.length; i++) {  // Required for the REST serializer
                     eventToSend.detectors.push(vm.detectors_selected[i].id);
-                }
-                if (vm.event.sighting_previous_event) {
-                    eventToSend.sighting_previous_event = vm.event.sighting_previous_event.id;
                 }
 
                 if (vm.is_edit) {
