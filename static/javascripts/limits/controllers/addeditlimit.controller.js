@@ -51,14 +51,14 @@
                 if (vm.is_edit) {
                     vm.title = 'Limit';
                     vm.limit = data;
-                    vm.limit.start_date = new Date(vm.limit.start_date);
+                    vm.limit.start_date = new Date(vm.limit.start_date + ' 00:00:00');
 
                     if (!!vm.limit.metadata) {
                         var metadata = JSON.parse(vm.limit.metadata);
 
                         vm.limit.metadata_object = {};
                         vm.limit.metadata_object.occurrence_date_limit = !!metadata.occurrence_date_limit ?
-                                                                        new Date(metadata.occurrence_date_limit) : undefined;
+                                                                        new Date(metadata.occurrence_date_limit + ' 00:00:00') : undefined;
                         vm.limit.metadata_object.occurrence_count_limit = !!metadata.occurrence_count_limit && metadata.occurrence_count_limit >= 0 ?
                                                                         metadata.occurrence_count_limit : undefined;
                         vm.limit.metadata_object.consider_each_beacon_separately = !!metadata.consider_each_beacon_separately;
@@ -82,7 +82,8 @@
                     }
                 } else {
                     vm.title = 'New Limit';
-                    vm.limit = { 'is_active': true, 'start_date': new Date(), 'metadata_object': { 'action_notification_category': 'Info' } };
+                    vm.limit = { 'is_active': true, 'start_date': new Date(now.getFullYear(), now.getMonth(), now.getDate()),
+                                'metadata_object': { 'action_notification_category': 'Info' } };
                 }
 
                 Events.list().then(eventsSuccessFn, errorFn);
@@ -117,6 +118,12 @@
             $scope.$broadcast('show-errors-check-validity');
 
             if (vm.form.$valid) {
+                vm.limit.start_date = new Date(vm.limit.start_date.getFullYear(),
+                                               vm.limit.start_date.getMonth(),
+                                               vm.limit.start_date.getDate());
+                vm.limit.metadata_object.occurrence_date_limit = new Date(vm.limit.metadata_object.occurrence_date_limit.getFullYear(),
+                                                                            vm.limit.metadata_object.occurrence_date_limit.getMonth(),
+                                                                            vm.limit.metadata_object.occurrence_date_limit.getDate());
                 vm.limit.metadata_object.actions = [];
 
                 if (vm.limit.metadata_object.action_notification_message) {

@@ -150,6 +150,7 @@
                     if (new Date(vm.sightings[i].last_seen_at) > now) {
                         vm.sightings[i].last_seen_at = now;
                     }
+
                     vm.sightings[i].satisfyFilter = new Date(vm.sightings[i].last_seen_at) >= new Date(vm.filterDate + ' 00:00:00') &&
                     (filterFixedBeaconsAndDetectorsIds === undefined ||
                     (!!vm.sightings[i].beacon && filterFixedBeaconsAndDetectorsIds.indexOf('FixedBeacon' + vm.sightings[i].beacon.id) >= 0) ||
