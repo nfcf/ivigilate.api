@@ -234,7 +234,7 @@ def check_for_limits(event_occurrence):
             filter_date_limit = datetime.strptime(metadata['occurrence_date_limit'], '%Y-%m-%dT%H:%M:%S.%fZ').replace(tzinfo=pytz.UTC) + timedelta(days=1) if metadata.get('occurrence_date_limit', None) is not None else None
             if (metadata.get('occurrence_date_limit', None) is not None and
                         event_occurrence.occurred_at >= filter_date_limit):
-                logger.info('Found %s limit(s) active for event_occurrence \'%s\' due to going over the date limit.', len(limits), event_occurrence)
+                logger.info('Conditions met for limit \'%s\' with event occurrence \'%s\' due to going over the date limit.', limit, event_occurrence)
                 trigger_limit_actions(limit, event_occurrence.event, event_occurrence.sighting.beacon)
             elif (metadata['occurrence_count_limit'] >= 0):
                 eos = EventOccurrence.objects.all()
@@ -252,7 +252,9 @@ def check_for_limits(event_occurrence):
                     eos = eos.filter(sighting__beacon__in=limit.beacons.all())
 
                 if (eos.count() > metadata['occurrence_count_limit']):
-                    logger.debug('Found %s limit(s) active for event_occurrence \'%s\' due to going over the count limit.', len(limits), event_occurrence)
+                    logger.debug('Conditions met for limit \'%s\' with event occurrence \'%s\' due to going over the count limit.', len(limits), event_occurrence)
                     trigger_limit_actions(limit, event_occurrence.event, event_occurrence.sighting.beacon)
+                else:
+                    logger.info('Conditions not met for limit \'%s\'. ', limit)
             else:
                 logger.info('Conditions not met for limit \'%s\'. ', limit)

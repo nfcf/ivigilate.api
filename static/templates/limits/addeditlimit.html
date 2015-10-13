@@ -36,7 +36,7 @@
                                 repeat="event in vm.events | propsFilter: {name: $select.search, reference_id: $select.search} track by event.id">
                             <div ng-bind-html="event.name  | highlight: $select.search"></div>
                             <small>
-                                ID: <span ng-bind-html="event.reference_id | highlight: $select.search"></span>
+                                ID: <span ng-bind-html="(event.reference_id || event.id) | highlight: $select.search"></span>
                             </small>
                         </ui-select-choices>
                     </ui-select>
@@ -44,10 +44,10 @@
             </div>
             <div class="col-md-6">
                 <div class="form-group">
-                    <label>Beacon(s)</label>
-                    <ui-select multiple='true' ng-model="vm.beacons_selected"
-                               theme="select2" ng-disabled="disabled" style="width: 100%">
-                        <ui-select-match placeholder="Select beacon(s) or leave empty for all...">
+                    <label for="beacons">Beacon(s)</label>
+                    <ui-select name="beacons" multiple='true' ng-model="vm.beacons_selected"
+                               theme="select2" ng-disabled="disabled" required style="width: 100%">
+                        <ui-select-match placeholder="Select one or more beacons...">
                             {{ $item.name }}
                         </ui-select-match>
                         <ui-select-choices
@@ -55,7 +55,7 @@
                             <div ng-bind-html="beacon.name | highlight: $select.search"></div>
                             <small>
                                 {{ beacon.type_display }} with ID: <span
-                                    ng-bind-html="beacon.reference_id | highlight: $select.search"></span>
+                                    ng-bind-html="(beacon.reference_id || beacon.id) | highlight: $select.search"></span>
                             </small>
                         </ui-select-choices>
                     </ui-select>
@@ -83,13 +83,13 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <label for="seen_at">End Date</label>
+                    <label for="occurrence_date_limit">End Date</label>
 
                     <div class="input-group" show-errors>
                         <input type="text" name="occurrence_date_limit" class="form-control" datetime-picker="yyyy-MM-dd"
                                show-button-bar="false" min-date="vm.limit.start_date" datepicker-options="vm.date_options"
                                ng-model="vm.limit.metadata_object.occurrence_date_limit" is-open="vm.occurrence_date_limit_is_open"
-                               ng-required="!(!!vm.limit.metadata_object.occurrence_count_limit)"
+                               ng-required="!!!vm.limit.metadata_object.occurrence_count_limit && vm.limit.metadata_object.occurrence_count_limit != 0"
                                enable-time="false" placeholder="YYYY-MM-DD"/>
                         <span class="input-group-btn">
                             <button type="button" class="btn btn-default"
@@ -100,11 +100,11 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="input-group">
+                    <div class="input-group" show-errors>
                         <label for="occurrence_count_limit">Max Occurrences</label><br/>
                         <input type="number" class="form-control" name="occurrence_count_limit"
                                ng-model="vm.limit.metadata_object.occurrence_count_limit"
-                               ng-required="!(!!vm.limit.metadata_object.occurrence_date_limit)"
+                               ng-required="!!!vm.limit.metadata_object.occurrence_date_limit"
                                placeholder="Leave empty to use 'End Date' only"/>
                         <small>&nbsp;Consider each beacon separately?&nbsp;
                             <input type="checkbox" ng-model="vm.limit.metadata_object.consider_each_beacon_separately"/></small>

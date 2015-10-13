@@ -271,7 +271,7 @@ class SightingViewSet(viewsets.ModelViewSet):
 
             filteredQuery = 'SELECT s.* ' + \
                              'FROM ivigilate_sighting s JOIN ivigilate_beacon b ON s.beacon_id = b.id ' + \
-                             'WHERE b.account_id = %s AND s.last_seen_at BETWEEN %s AND %s ' + \
+                             'WHERE b.account_id = %s AND b.is_active = True AND s.last_seen_at BETWEEN %s AND %s ' + \
                              'AND (%s OR s.beacon_id = ANY(%s::integer[])) ' + \
                              'AND (%s OR s.detector_id = ANY(%s::integer[])) ' + \
                              'AND s.last_seen_at IN (' + \
@@ -285,7 +285,7 @@ class SightingViewSet(viewsets.ModelViewSet):
 
             showAllQuery = '(SELECT s.* ' + \
                             'FROM ivigilate_sighting s JOIN ivigilate_beacon b ON s.beacon_id = b.id ' + \
-                            'WHERE b.account_id = %s AND s.first_seen_at >= %s AND s.last_seen_at <= %s ' + \
+                            'WHERE b.account_id = %s AND b.is_active = True AND s.first_seen_at >= %s AND s.last_seen_at <= %s ' + \
                             'AND (%s OR s.beacon_id = ANY(%s::integer[])) ' + \
                             'AND (%s OR s.detector_id = ANY(%s::integer[])) ' + \
                             'AND s.last_seen_at IN (' + \
@@ -294,7 +294,7 @@ class SightingViewSet(viewsets.ModelViewSet):
                             ' UNION ' + \
                             '(SELECT s.* ' + \
                             'FROM ivigilate_sighting s JOIN ivigilate_beacon b ON s.beacon_id = b.id ' + \
-                            'WHERE b.account_id = %s AND s.last_seen_at <= %s ' + \
+                            'WHERE b.account_id = %s AND b.is_active = True AND s.last_seen_at <= %s ' + \
                             'AND s.last_seen_at IN (' + \
                             ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY beacon_id' + \
                             ') ORDER BY s.last_seen_at DESC)'

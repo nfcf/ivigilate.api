@@ -51,7 +51,7 @@
                         limit.metadata_object = {};
                         limit.metadata_object.occurrence_date_limit = !!metadata.occurrence_date_limit ?
                                                                     date2str(new Date(metadata.occurrence_date_limit), 'yyyy-MM-dd') : 'N/A';
-                        limit.metadata_object.occurrence_count_limit =  !!metadata.occurrence_count_limit && metadata.occurrence_count_limit >= 0 ?
+                        limit.metadata_object.occurrence_count_limit =  !!metadata.occurrence_count_limit || metadata.occurrence_count_limit == 0 ?
                                                                     metadata.occurrence_count_limit : 'N/A';
                         limit.metadata_object.consider_each_beacon_separately = !!metadata.consider_each_beacon_separately;
                     }

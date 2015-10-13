@@ -58,8 +58,8 @@
 
                         vm.limit.metadata_object = {};
                         vm.limit.metadata_object.occurrence_date_limit = !!metadata.occurrence_date_limit ?
-                                                                        new Date(metadata.occurrence_date_limit + ' 00:00:00') : undefined;
-                        vm.limit.metadata_object.occurrence_count_limit = !!metadata.occurrence_count_limit && metadata.occurrence_count_limit >= 0 ?
+                                                                        new Date(metadata.occurrence_date_limit) : undefined;
+                        vm.limit.metadata_object.occurrence_count_limit = metadata.occurrence_count_limit >= 0 ?
                                                                         metadata.occurrence_count_limit : undefined;
                         vm.limit.metadata_object.consider_each_beacon_separately = !!metadata.consider_each_beacon_separately;
 
@@ -82,7 +82,8 @@
                     }
                 } else {
                     vm.title = 'New Limit';
-                    vm.limit = { 'is_active': true, 'start_date': new Date(now.getFullYear(), now.getMonth(), now.getDate()),
+                    vm.limit = { 'is_active': true,
+                                'start_date': new Date(now.getFullYear(), now.getMonth(), now.getDate()),
                                 'metadata_object': { 'action_notification_category': 'Info' } };
                 }
 
@@ -118,12 +119,6 @@
             $scope.$broadcast('show-errors-check-validity');
 
             if (vm.form.$valid) {
-                vm.limit.start_date = new Date(vm.limit.start_date.getFullYear(),
-                                               vm.limit.start_date.getMonth(),
-                                               vm.limit.start_date.getDate());
-                vm.limit.metadata_object.occurrence_date_limit = new Date(vm.limit.metadata_object.occurrence_date_limit.getFullYear(),
-                                                                            vm.limit.metadata_object.occurrence_date_limit.getMonth(),
-                                                                            vm.limit.metadata_object.occurrence_date_limit.getDate());
                 vm.limit.metadata_object.actions = [];
 
                 if (vm.limit.metadata_object.action_notification_message) {
@@ -135,6 +130,11 @@
                         'message': vm.limit.metadata_object.action_notification_message
                     });
                 }
+                vm.limit.metadata_object.action_notification_title = undefined;
+                vm.limit.metadata_object.action_notification_category = undefined;
+                vm.limit.metadata_object.action_notification_timeout = undefined;
+                vm.limit.metadata_object.action_notification_message = undefined;
+
                 if (vm.limit.metadata_object.action_sms_recipients && vm.limit.metadata_object.action_sms_message) {
                     vm.limit.metadata_object.actions.push({
                         'type': 'SMS',
@@ -142,6 +142,9 @@
                         'message': vm.limit.metadata_object.action_sms_message
                     });
                 }
+                vm.limit.metadata_object.action_sms_recipients = undefined;
+                vm.limit.metadata_object.action_sms_message = undefined;
+
                 if (vm.limit.metadata_object.action_email_recipients && vm.limit.metadata_object.action_email_subject) {
                     vm.limit.metadata_object.actions.push({
                         'type': 'EMAIL',
@@ -150,6 +153,10 @@
                         'body': vm.limit.metadata_object.action_email_body
                     });
                 }
+                vm.limit.metadata_object.action_email_recipients = undefined;
+                vm.limit.metadata_object.action_email_subject = undefined;
+                vm.limit.metadata_object.action_email_body = undefined;
+
                 vm.limit.metadata = JSON.stringify(vm.limit.metadata_object);
 
                 var limitToSend = JSON.parse(JSON.stringify(vm.limit));
