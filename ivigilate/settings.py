@@ -77,7 +77,7 @@ DATABASES = {
     }
 }
 
-GEOS_LIBRARY_PATH = r'C:\OSGeo4W\bin\geos_c.dll'
+#GEOS_LIBRARY_PATH = r'C:\OSGeo4W\bin\geos_c.dll'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/

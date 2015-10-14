@@ -10,8 +10,9 @@ import stripe
 from ivigilate.serializers import *
 from rest_framework import permissions, viewsets, status, views, mixins
 from ivigilate import utils
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
-import datetime, pytz, json, logging
+import pytz, json, logging
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
@@ -243,21 +244,17 @@ class MakePaymentView(views.APIView):
     def post(self, request, format=None):
         data = json.loads(request.body.decode('utf-8'))
 
+        now = datetime.now(timezone.utc)
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         license_about_to_expire = account.get_license_about_to_expire()
         license_due_for_payment = account.get_license_due_for_payment()
         if license_due_for_payment:
             license_metadata = json.loads(license_due_for_payment.metadata)
 
+            license_due_for_payment.updated_by = request.user
             license_due_for_payment.reference_id = data.get('token_id', None)
-            license_due_for_payment.valid_from = datetime.datetime.combine(
-                                                    license_about_to_expire.valid_until.date() + relativedelta(days=1) \
-                                                    if license_about_to_expire else datetime.datetime.now(timezone.utc).date(),
-                                                    datetime.time(0, 0, 0, tzinfo=pytz.UTC))
-            license_due_for_payment.valid_until = datetime.datetime.combine(
-                                                    license_due_for_payment.valid_from +
-                                                    relativedelta(months=license_metadata['duration_in_months']),
-                                                    datetime.time(23, 59, 59, tzinfo=pytz.UTC))
+            license_due_for_payment.valid_from = license_about_to_expire.valid_until if license_about_to_expire else now
+            license_due_for_payment.valid_until = license_due_for_payment.valid_from + relativedelta(months=license_metadata['duration_in_months'])
 
             try:
                 logger.debug('Charging %s%s on the card with token %s', license_due_for_payment.currency,

@@ -40,8 +40,8 @@ class Account(models.Model):
     def get_license_about_to_expire(self):
         now = datetime.now(timezone.utc)
         filter_datetime = now + timedelta(weeks=2)
-        licenses_about_to_expire = self.licenses.filter(valid_until__gt=now, valid_until__lt=filter_datetime)
-        return licenses_about_to_expire[0] if len(licenses_about_to_expire) > 0 else None
+        licenses_about_to_expire = self.licenses.filter(valid_until__gt=now).order_by('-valid_until')[:1]
+        return licenses_about_to_expire[0] if len(licenses_about_to_expire) > 0 and licenses_about_to_expire[0].valid_until < filter_datetime else None
 
     def get_license_due_for_payment(self):
         licenses_due_for_payment = self.licenses.filter(valid_until=None)
@@ -64,6 +64,18 @@ class License(models.Model):
     metadata = models.TextField(blank=True)
     valid_from = models.DateTimeField(null=True, blank=True)
     valid_until = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(editable=False)
+    updated_at = models.DateTimeField(editable=False)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
+
+    def save(self, *args, **kwargs):
+        now = datetime.now(timezone.utc)
+        if not self.id:
+            self.created_at = now
+            self.updated_at = now
+        else:
+            self.updated_at = now
+        super(License, self).save(*args, **kwargs)
 
     def __str__(self):
         return "%s: %s, from=%s, until=%s" % \

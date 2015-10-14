@@ -1,8 +1,11 @@
+from dateutil.relativedelta import relativedelta
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.contrib import admin
+from datetime import datetime
+import pytz
 from ivigilate.models import *
 import json, logging
 
@@ -19,11 +22,20 @@ class AccountAdmin(admin.ModelAdmin):
             try:
                 account_metadata = json.loads(obj.metadata)
                 if 'setup' in account_metadata:
-                    description = 'Hardware and Setup Costs + {0} Month(s) Subscription'.format(account_metadata['setup']['duration_in_months'])
+                    now = datetime.now(timezone.utc)
+                    description = '{0} Month(s) Trial'.format(account_metadata['setup']['duration_in_months']) \
+                                    if account_metadata['setup']['amount'] == 0 \
+                                    else 'Hardware and Setup Costs + {0} Month(s) Subscription'.format(account_metadata['setup']['duration_in_months'])
+                    valid_from = now if account_metadata['setup']['amount'] == 0 else None
+                    valid_until = now + relativedelta(months=account_metadata['setup']['duration_in_months']) \
+                                    if account_metadata['setup']['amount'] == 0 else None
+
                     license = License.objects.create(account=obj,
                                                      amount=account_metadata['setup']['amount'],
                                                      currency=account_metadata['setup']['currency'],
                                                      description=description,
+                                                     valid_from=valid_from,
+                                                     valid_until=valid_until,
                                                      metadata=json.dumps(account_metadata['setup']))
             except Exception as ex:
                 logger.exception('Failed to create initial license for account with exception:')
