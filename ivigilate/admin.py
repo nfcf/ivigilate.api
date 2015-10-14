@@ -123,3 +123,8 @@ class BeaconAdmin(admin.ModelAdmin):
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(Limit)
+class LimitAdmin(admin.ModelAdmin):
+    pass
