@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from datetime import datetime
+from datetime import datetime, timedelta
 import os, sys, subprocess, ConfigParser, logging
 import time, requests, json, Queue, threading, urllib
 import config, autoupdate, blescan
@@ -57,6 +57,7 @@ def main():
     logger.info('Started with log level: ' + logging.getLevelName(log_level))
 
     autoupdate.check()
+    last_update_check = datetime.now()
 
     # need to try catch and retry this as it some times fails...
     subprocess.call([config.HCICONFIG_FILE_PATH, 'hci0', 'up'])
@@ -69,26 +70,30 @@ def main():
     logger.info('BLE scanner thread started')
 
     last_respawn_date = datetime.strptime(config.get('DEVICE', 'last_respawn_date'), '%Y-%m-%d').date()
-    while True:
-        now = datetime.now()
-        # if configured daily_respawn_hour, stop the ble_thread and respawn the process
-        if now.date() > last_respawn_date and now.hour == config.getint('BASE', 'daily_respawn_hour'):
-            # update configuration with current date
-            config.set('DEVICE', 'last_respawn_date', now.strftime('%Y-%m-%d'))
-            config.save()
-            autoupdate.respawn_script(ble_thread)
 
-        # if new sightings, send them to the server
-        sightings = []
-        for i in range(100):
-            if ble_queue.empty(): break
-            else: sightings.append(ble_queue.get())
+    try:
+        while True:
+            now = datetime.now()
+            # if configured daily_respawn_hour, stop the ble_thread and respawn the process
+            if now.date() > last_respawn_date and now.hour == config.getint('BASE', 'daily_respawn_hour'):
+                autoupdate.respawn_script(ble_thread)
+            elif now > last_update_check + timedelta(hours=1):
+                autoupdate.check()
+                last_update_check = datetime.now()
 
-        if len(sightings) > 0:
-            send_sightings(sightings)
+            # if new sightings, send them to the server
+            sightings = []
+            for i in range(100):
+                if ble_queue.empty(): break
+                else: sightings.append(ble_queue.get())
 
-        time.sleep(1)
+            if len(sightings) > 0:
+                send_sightings(sightings)
 
+            time.sleep(1)
+    except Exception:
+        logger.exception('main() loop failed with error:')
+        autoupdate.respawn_script(ble_thread)
 
 if __name__ == '__main__':
     main()

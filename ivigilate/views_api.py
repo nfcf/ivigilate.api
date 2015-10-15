@@ -41,7 +41,7 @@ class LoginView(views.APIView):
             if user.is_active:
                 login(request, user)
                 if metadata is not None and len(metadata.strip()) > 0:
-                    now = datetime.datetime.now(timezone.utc)
+                    now = datetime.now(timezone.utc)
                     metadata = json.loads(metadata)
                     metadata['device']['last_login_date'] = now.strftime('%Y-%m-%d %H:%M')
                     if user.metadata is not None and len(user.metadata.strip()) > 0:
@@ -127,7 +127,7 @@ class AddSightingsView(views.APIView):
                     return Response('Invalid Detector UID (couldn\'t find corresponding detector).',
                                     status=status.HTTP_400_BAD_REQUEST)
 
-                now = datetime.datetime.now(timezone.utc)
+                now = datetime.now(timezone.utc)
                 previous_sightings = Sighting.objects.filter(is_current=True, beacon=beacon).order_by('-last_seen_at')[:1]
                 previous_sighting_occurred_at = None
                 new_sighting = None

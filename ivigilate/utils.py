@@ -46,9 +46,9 @@ def replace_message_tags(msg, event=None, beacon=None, detector=None, limit=None
 
 
 def send_twilio_message(to, msg):
-    account_sid = os.environ.get('TWILIO_ACCOUNT_SID', 'AC1b8158faf55b96ed86dee884e1d94beb' if settings.DEBUG else None)
-    auth_token = os.environ.get('TWILIO_AUTH_TOKEN', '3941cff26f237a3540627a5f52ca6e85' if settings.DEBUG else None)
-    caller_id = os.environ.get('TWILIO_DEFAULT_CALLERID', '14158438604' if settings.DEBUG else None)
+    account_sid = os.environ['TWILIO_ACCOUNT_SID']
+    auth_token = os.environ['TWILIO_AUTH_TOKEN']
+    caller_id = os.environ['TWILIO_DEFAULT_CALLERID']
 
     client = TwilioRestClient(account_sid, auth_token)
     message = client.messages.create(
