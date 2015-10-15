@@ -6,6 +6,7 @@ LOG_FILE_PATH = '/var/log/ivigilate.log'
 HCICONFIG_FILE_PATH = '/usr/sbin/hciconfig'
 
 __cfg = None
+__cpuinfo = None
 logger = logging.getLogger(__name__)
 
 
@@ -34,11 +35,8 @@ def init():
     __cfg = ConfigParser.SafeConfigParser()
     __cfg.read(BASE_APP_PATH + 'ivigilate.conf')
 
-    cpuinfo = get_cpuinfo()
-    __cfg.set('DEVICE', 'hardware', cpuinfo[0])
-    __cfg.set('DEVICE', 'revision', cpuinfo[1])
-    __cfg.set('DEVICE', 'serial', cpuinfo[2])
-    __cfg.set('DEVICE', 'uname', str(os.uname()))
+    global __cpuinfo
+    __cpuinfo = get_cpuinfo()
 
     if not __cfg.has_option('DEVICE', 'last_respawn_date'):
         __cfg.set('DEVICE', 'last_respawn_date', '2000-01-01')
@@ -51,6 +49,16 @@ def set(section, var, value):
 
 
 def get(section, var):
+    if (section == 'DEVICE'):
+        if (var == 'hardware'):
+            return __cpuinfo[0]
+        elif (var == 'revision'):
+            return __cpuinfo[1]
+        elif (var == 'serial'):
+            return __cpuinfo[2]
+        elif (var == 'uname'):
+            return str(os.uname())
+
     return __cfg.get(section, var)
 
 
