@@ -77,6 +77,10 @@
                                 vm.limit.metadata_object.action_email_recipients = metadata.actions[i].recipients;
                                 vm.limit.metadata_object.action_email_subject = metadata.actions[i].subject;
                                 vm.limit.metadata_object.action_email_body = metadata.actions[i].body;
+                            } else if (metadata.actions[i].type == 'REST') {
+                                vm.limit.metadata_object.action_rest_uri = metadata.actions[i].uri;
+                                vm.limit.metadata_object.action_rest_method = metadata.actions[i].method;
+                                vm.limit.metadata_object.action_rest_body = metadata.actions[i].body;
                             }
                         }
                     }
@@ -156,6 +160,18 @@
                 vm.limit.metadata_object.action_email_recipients = undefined;
                 vm.limit.metadata_object.action_email_subject = undefined;
                 vm.limit.metadata_object.action_email_body = undefined;
+
+                if (vm.limit.metadata_object.action_rest_uri && vm.limit.metadata_object.action_rest_method) {
+                    vm.limit.metadata_object.actions.push({
+                        'type': 'REST',
+                        'uri': vm.limit.metadata_object.action_rest_uri,
+                        'method': vm.limit.metadata_object.action_rest_method,
+                        'body': vm.limit.metadata_object.action_rest_body
+                    });
+                }
+                vm.limit.metadata_object.action_rest_uri = undefined;
+                vm.limit.metadata_object.action_rest_method = undefined;
+                vm.limit.metadata_object.action_rest_body = undefined;
 
                 vm.limit.metadata = JSON.stringify(vm.limit.metadata_object);
 

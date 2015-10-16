@@ -84,6 +84,10 @@
                                 vm.event.metadata_object.action_email_recipients = metadata.actions[i].recipients;
                                 vm.event.metadata_object.action_email_subject = metadata.actions[i].subject;
                                 vm.event.metadata_object.action_email_body = metadata.actions[i].body;
+                            } else if (metadata.actions[i].type == 'REST') {
+                                vm.event.metadata_object.action_rest_uri = metadata.actions[i].uri;
+                                vm.event.metadata_object.action_rest_method = metadata.actions[i].method;
+                                vm.event.metadata_object.action_rest_body = metadata.actions[i].body;
                             }
                         }
                     }
@@ -155,6 +159,11 @@
                         'message': vm.event.metadata_object.action_notification_message
                     });
                 }
+                vm.event.metadata_object.action_notification_title = undefined;
+                vm.event.metadata_object.action_notification_category = undefined;
+                vm.event.metadata_object.action_notification_timeout = undefined;
+                vm.event.metadata_object.action_notification_message = undefined;
+
                 if (vm.event.metadata_object.action_sms_recipients && vm.event.metadata_object.action_sms_message) {
                     vm.event.metadata_object.actions.push({
                         'type': 'SMS',
@@ -162,6 +171,9 @@
                         'message': vm.event.metadata_object.action_sms_message
                     });
                 }
+                vm.event.metadata_object.action_sms_recipients = undefined;
+                vm.event.metadata_object.action_sms_message = undefined;
+
                 if (vm.event.metadata_object.action_email_recipients && vm.event.metadata_object.action_email_subject) {
                     vm.event.metadata_object.actions.push({
                         'type': 'EMAIL',
@@ -170,6 +182,22 @@
                         'body': vm.event.metadata_object.action_email_body
                     });
                 }
+                vm.event.metadata_object.action_email_recipients = undefined;
+                vm.event.metadata_object.action_email_subject = undefined;
+                vm.event.metadata_object.action_email_body = undefined;
+
+                if (vm.event.metadata_object.action_rest_uri && vm.event.metadata_object.action_rest_method) {
+                    vm.event.metadata_object.actions.push({
+                        'type': 'REST',
+                        'uri': vm.event.metadata_object.action_rest_uri,
+                        'method': vm.event.metadata_object.action_rest_method,
+                        'body': vm.event.metadata_object.action_rest_body
+                    });
+                }
+                vm.event.metadata_object.action_rest_uri = undefined;
+                vm.event.metadata_object.action_rest_method = undefined;
+                vm.event.metadata_object.action_rest_body = undefined;
+
                 vm.event.metadata = JSON.stringify(vm.event.metadata_object);
 
                 var eventToSend = JSON.parse(JSON.stringify(vm.event));

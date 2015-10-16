@@ -1,6 +1,7 @@
 from datetime import datetime, timezone, timedelta
 import threading
 import pytz
+import requests
 from rest_framework.response import Response
 from rest_framework import status
 from twilio.rest import TwilioRestClient
@@ -34,7 +35,7 @@ def get_file_extension(file_name, decoded_file):
     return extension
 
 
-def replace_message_tags(msg, event=None, beacon=None, detector=None, limit=None):
+def replace_tags(msg, event=None, beacon=None, detector=None, limit=None):
     return msg.replace('%event_id%', event.reference_id if event is not None else ''). \
         replace('%event_name%', event.name if event is not None else ''). \
         replace('%beacon_id%', beacon.reference_id if beacon is not None else ''). \
@@ -56,6 +57,15 @@ def send_twilio_message(to, msg):
         to=to,
         from_=caller_id,
     )
+
+
+def make_rest_call(method, uri, body):
+    if method == 'GET':
+        requests.get(uri, body)
+    elif method == 'POST':
+        requests.post(uri, body)
+    elif method == 'PUT':
+        requests.put(uri, body)
 
 
 def close_sighting(sighting, new_sighting_detector=None):
@@ -85,22 +95,28 @@ def trigger_event_actions(event, sighting):
                 action_metadata = {}
                 action_metadata['category'] = action['category']
                 action_metadata['timeout'] = action.get('timeout', 0)
-                action_metadata['title'] = replace_message_tags(action.get('title', ''), event, sighting.beacon, sighting.detector)
-                action_metadata['message'] = replace_message_tags(action.get('message', ''), event, sighting.beacon, sighting.detector)
+                action_metadata['title'] = replace_tags(action.get('title', ''), event, sighting.beacon, sighting.detector)
+                action_metadata['message'] = replace_tags(action.get('message', ''), event, sighting.beacon, sighting.detector)
                 Notification.objects.create(account=event.account, metadata=json.dumps(action_metadata))
             elif action['type'] == 'SMS':
                 logger.info('Action for event \'%s\': Sending SMS to %s recipient(s).',
                              event, len(re.split(',|;', action['recipients'])))
-                message = replace_message_tags(action.get('message', ''), event, sighting.beacon, sighting.detector)
+                message = replace_tags(action.get('message', ''), event, sighting.beacon, sighting.detector)
                 for to in re.split(',|;', action['recipients']):
                     send_twilio_message(to, message)
             elif action['type'] == 'EMAIL':
                 logger.info('Action for event \'%s\': Sending EMAIL to %s recipient(s).',
                              event, len(re.split(',|;', action['recipients'])))
-                body = replace_message_tags(action.get('body', ''), event, sighting.beacon, sighting.detector)
-                subject = replace_message_tags(action.get('subject', ''), event, sighting.beacon, sighting.detector)
+                body = replace_tags(action.get('body', ''), event, sighting.beacon, sighting.detector)
+                subject = replace_tags(action.get('subject', ''), event, sighting.beacon, sighting.detector)
                 send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                           re.split(',|;', action['recipients']), fail_silently=False)
+            elif action['type'] == 'REST':
+                uri = replace_tags(action['uri'], event, sighting.beacon, sighting.detector)
+                logger.info('Action for event \'%s\': Making a \'%s\' call to \'%s\'.',
+                             event, action['method'], uri)
+                body = replace_tags(action.get('body', ''), event, sighting.beacon, sighting.detector)
+                make_rest_call(action['method'], uri, body)
 
 
 def trigger_limit_actions(limit, event, beacon):
@@ -116,22 +132,28 @@ def trigger_limit_actions(limit, event, beacon):
                 action_metadata = {}
                 action_metadata['category'] = action['category']
                 action_metadata['timeout'] = action.get('timeout', 0)
-                action_metadata['title'] = replace_message_tags(action.get('title', ''), event, beacon, None, limit)
-                action_metadata['message'] = replace_message_tags(action.get('message', ''), event, beacon, None, limit)
+                action_metadata['title'] = replace_tags(action.get('title', ''), event, beacon, None, limit)
+                action_metadata['message'] = replace_tags(action.get('message', ''), event, beacon, None, limit)
                 Notification.objects.create(account=limit.account, metadata=json.dumps(action_metadata))
             elif action['type'] == 'SMS':
                 logger.info('Action for limit \'%s\': Sending SMS to %s recipient(s).',
                              limit, len(re.split(',|;', action['recipients'])))
-                message = replace_message_tags(action.get('message', ''), event, beacon, None, limit)
+                message = replace_tags(action.get('message', ''), event, beacon, None, limit)
                 for to in re.split(',|;', action['recipients']):
                     send_twilio_message(to, message)
             elif action['type'] == 'EMAIL':
                 logger.info('Action for event \'%s\': Sending EMAIL to %s recipient(s).',
                              limit, len(re.split(',|;', action['recipients'])))
-                body = replace_message_tags(action.get('body', ''), event, beacon, None, limit)
-                subject = replace_message_tags(action.get('subject', ''), event, beacon, None, limit)
+                body = replace_tags(action.get('body', ''), event, beacon, None, limit)
+                subject = replace_tags(action.get('subject', ''), event, beacon, None, limit)
                 send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                           re.split(',|;', action['recipients']), fail_silently=False)
+            elif action['type'] == 'REST':
+                uri = replace_tags(action['uri'], event, beacon, None, limit)
+                logger.info('Action for event \'%s\': Making a \'%s\' call to \'%s\'.',
+                             event, action['method'], uri)
+                body = replace_tags(action.get('body', ''), event, beacon, None, limit)
+                make_rest_call(action['method'], uri, body)
 
 
 def check_for_events(sighting, new_sighting_detector=None):
