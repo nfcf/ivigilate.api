@@ -90,33 +90,7 @@ def trigger_event_actions(event, sighting):
     actions = metadata['actions']
     if actions:
         for action in actions:
-            if action['type'] == 'NOTIFICATION':
-                logger.info('Action for event \'%s\': Generating On-Screen Notification.', event)
-                action_metadata = {}
-                action_metadata['category'] = action['category']
-                action_metadata['timeout'] = action.get('timeout', 0)
-                action_metadata['title'] = replace_tags(action.get('title', ''), event, sighting.beacon, sighting.detector)
-                action_metadata['message'] = replace_tags(action.get('message', ''), event, sighting.beacon, sighting.detector)
-                Notification.objects.create(account=event.account, metadata=json.dumps(action_metadata))
-            elif action['type'] == 'SMS':
-                logger.info('Action for event \'%s\': Sending SMS to %s recipient(s).',
-                             event, len(re.split(',|;', action['recipients'])))
-                message = replace_tags(action.get('message', ''), event, sighting.beacon, sighting.detector)
-                for to in re.split(',|;', action['recipients']):
-                    send_twilio_message(to, message)
-            elif action['type'] == 'EMAIL':
-                logger.info('Action for event \'%s\': Sending EMAIL to %s recipient(s).',
-                             event, len(re.split(',|;', action['recipients'])))
-                body = replace_tags(action.get('body', ''), event, sighting.beacon, sighting.detector)
-                subject = replace_tags(action.get('subject', ''), event, sighting.beacon, sighting.detector)
-                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                          re.split(',|;', action['recipients']), fail_silently=False)
-            elif action['type'] == 'REST':
-                uri = replace_tags(action['uri'], event, sighting.beacon, sighting.detector)
-                logger.info('Action for event \'%s\': Making a \'%s\' call to \'%s\'.',
-                             event, action['method'], uri)
-                body = replace_tags(action.get('body', ''), event, sighting.beacon, sighting.detector)
-                make_rest_call(action['method'], uri, body)
+            perform_action(action, event, sighting.beacon, sighting.detector, None)
 
 
 def trigger_limit_actions(limit, event, beacon):
@@ -127,33 +101,40 @@ def trigger_limit_actions(limit, event, beacon):
     actions = metadata['actions']
     if actions:
         for action in actions:
-            if action['type'] == 'NOTIFICATION':
-                logger.info('Action for limit \'%s\': Generating On-Screen Notification.', limit)
-                action_metadata = {}
-                action_metadata['category'] = action['category']
-                action_metadata['timeout'] = action.get('timeout', 0)
-                action_metadata['title'] = replace_tags(action.get('title', ''), event, beacon, None, limit)
-                action_metadata['message'] = replace_tags(action.get('message', ''), event, beacon, None, limit)
-                Notification.objects.create(account=limit.account, metadata=json.dumps(action_metadata))
-            elif action['type'] == 'SMS':
-                logger.info('Action for limit \'%s\': Sending SMS to %s recipient(s).',
-                             limit, len(re.split(',|;', action['recipients'])))
-                message = replace_tags(action.get('message', ''), event, beacon, None, limit)
-                for to in re.split(',|;', action['recipients']):
-                    send_twilio_message(to, message)
-            elif action['type'] == 'EMAIL':
-                logger.info('Action for event \'%s\': Sending EMAIL to %s recipient(s).',
-                             limit, len(re.split(',|;', action['recipients'])))
-                body = replace_tags(action.get('body', ''), event, beacon, None, limit)
-                subject = replace_tags(action.get('subject', ''), event, beacon, None, limit)
-                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                          re.split(',|;', action['recipients']), fail_silently=False)
-            elif action['type'] == 'REST':
-                uri = replace_tags(action['uri'], event, beacon, None, limit)
-                logger.info('Action for event \'%s\': Making a \'%s\' call to \'%s\'.',
-                             event, action['method'], uri)
-                body = replace_tags(action.get('body', ''), event, beacon, None, limit)
-                make_rest_call(action['method'], uri, body)
+            perform_action(action, event, beacon, None, limit)
+
+
+def perform_action(action, event, beacon, detector, limit):
+    try:
+        if action['type'] == 'NOTIFICATION':
+            logger.info('Action for limit \'%s\': Generating On-Screen Notification.', limit)
+            action_metadata = {}
+            action_metadata['category'] = action['category']
+            action_metadata['timeout'] = action.get('timeout', 0)
+            action_metadata['title'] = replace_tags(action.get('title', ''), event, beacon, detector, limit)
+            action_metadata['message'] = replace_tags(action.get('message', ''), event, beacon, detector, limit)
+            Notification.objects.create(account=event.account, metadata=json.dumps(action_metadata))
+        elif action['type'] == 'SMS':
+            logger.info('Action for limit \'%s\': Sending SMS to %s recipient(s).',
+                    limit, len(re.split(',|;', action['recipients'])))
+            message = replace_tags(action.get('message', ''), event, beacon, detector, limit)
+            for to in re.split(',|;', action['recipients']):
+                send_twilio_message(to, message)
+        elif action['type'] == 'EMAIL':
+            logger.info('Action for event \'%s\': Sending EMAIL to %s recipient(s).',
+                    limit, len(re.split(',|;', action['recipients'])))
+            body = replace_tags(action.get('body', ''), event, beacon, detector, limit)
+            subject = replace_tags(action.get('subject', ''), event, beacon, detector, limit)
+            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                    re.split(',|;', action['recipients']), fail_silently=False)
+        elif action['type'] == 'REST':
+            uri = replace_tags(action['uri'], event, beacon, detector, limit)
+            logger.info('Action for event \'%s\': Making a \'%s\' call to \'%s\'.',
+                    event, action['method'], uri)
+            body = replace_tags(action.get('body', ''), event, beacon, detector, limit)
+            make_rest_call(action['method'], uri, body)
+    except Exception as ex:
+        logger.exception('Failed to perform action of type \'%s\':', action['type'])
 
 
 def check_for_events(sighting, new_sighting_detector=None):

@@ -206,6 +206,8 @@ class AutoUpdateView(views.APIView):
         detector_uid = data.get('detector_uid').lower()
         metadata = data.get('metadata', None)
 
+        logger.info('Auto update check from detector \'%s: %s\'', company_id, detector_uid)
+
         try:
             account = Account.objects.get(company_id=company_id)
         except Account.DoesNotExist:
