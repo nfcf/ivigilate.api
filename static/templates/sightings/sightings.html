@@ -85,9 +85,10 @@
                                     sighting.beacon.photo"/>
                         </td>
                         <td class="valign-middle">
-                            {{ sighting.beacon.type == 'F' ?
-                                    sighting.detector.reference_id || sighting.detector.uid :
-                                    sighting.beacon.reference_id || sighting.beacon.uid }}
+                            <a ng-if="sighting.beacon.type == 'F' && !sighting.detector.reference_id" ng-click="vm.editDetector(sighting.detector)">{{ sighting.detector.uid }}</a>
+                            <span ng-if="sighting.beacon.type == 'F' && !!sighting.detector.reference_id">{{ sighting.detector.reference_id }}</span>
+                            <a ng-if="sighting.beacon.type != 'F' && !sighting.beacon.reference_id" ng-click="vm.editBeacon(sighting.beacon)">{{ sighting.beacon.uid }}</a>
+                            <span ng-if="sighting.beacon.type != 'F' && !!sighting.beacon.reference_id">{{ sighting.beacon.reference_id }}</span>
                         </td>
                         <td class="valign-middle">
                             {{ sighting.beacon.type == 'F' ?

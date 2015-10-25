@@ -14,6 +14,8 @@
         vm.refresh = refresh;
         vm.addSighting = addSighting;
         vm.editSighting = editSighting;
+        vm.editBeacon = editBeacon;
+        vm.editDetector= editDetector;
         vm.confirmSighting = confirmSighting;
         vm.openDatePicker = openDatePicker;
 
@@ -118,6 +120,20 @@
         function editSighting(sighting) {
             var dlg = dialogs.create('static/templates/sightings/editsighting.html', 'EditSightingController as vm', sighting, {'size': 'md'});
             dlg.result.then(function (editedSighting) {
+                refresh();
+            });
+        }
+
+        function editBeacon(beacon) {
+            var dlg = dialogs.create('static/templates/beacons/editbeacon.html', 'EditBeaconController as vm', beacon, {'size': 'lg'});
+            dlg.result.then(function (editedBeacon) {
+                refresh();
+            });
+        }
+
+        function editDetector(detector) {
+            var dlg = dialogs.create('static/templates/sightings/editdetector.html', 'EditDetectorController as vm', detector, {'size': 'lg'});
+            dlg.result.then(function (editedDetector) {
                 refresh();
             });
         }
