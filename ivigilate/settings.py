@@ -150,7 +150,7 @@ LOGGING = {
         'log_file':{
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'logs/ivigilate.log'),
+            'filename': os.path.join(BASE_DIR, 'log/ivigilate.log'),
             'maxBytes': LOG_SIZE,
             'backupCount': 10,
             'formatter': 'verbose'
