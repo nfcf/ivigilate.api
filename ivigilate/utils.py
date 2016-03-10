@@ -7,6 +7,7 @@ from rest_framework import status
 from twilio.rest import TwilioRestClient
 from django.core.mail import send_mail
 from ivigilate import settings
+from ivigilate import serializers
 from ivigilate.models import Sighting, Event, EventOccurrence, Notification, Limit, LimitOccurrence
 from django.db.models import Q
 import math, json, re, logging, os
@@ -20,7 +21,12 @@ def view_list(request, account, queryset, serializer):
         serializer_response = serializer(queryset, many=True, context={'request': request})
         # page = self.paginate_queryset(queryset)
         # serializer = self.get_pagination_serializer(page)
-        return Response(serializer_response.data)
+
+        responseObject = {'timestamp': datetime.now(timezone.utc),
+                         'list': serializer_response.data} \
+            if issubclass(serializer, serializers.SightingReadSerializer) else \
+            serializer_response.data
+        return Response(responseObject)
     else:
         return Response('Your license has expired. Please ask the account administrator to renew the subscription.',
                         status=status.HTTP_401_UNAUTHORIZED)
@@ -47,15 +53,11 @@ def replace_tags(msg, event=None, beacon=None, detector=None, limit=None):
 
 
 def send_twilio_message(to, msg):
-    account_sid = os.environ['TWILIO_ACCOUNT_SID']
-    auth_token = os.environ['TWILIO_AUTH_TOKEN']
-    caller_id = os.environ['TWILIO_DEFAULT_CALLERID']
-
-    client = TwilioRestClient(account_sid, auth_token)
+    client = TwilioRestClient(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
     message = client.messages.create(
         body=msg,
         to=to,
-        from_=caller_id,
+        from_=settings.TWILIO_DEFAULT_CALLERID,
     )
 
 
@@ -107,7 +109,8 @@ def trigger_limit_actions(limit, event, beacon):
 def perform_action(action, event, beacon, detector, limit):
     try:
         if action['type'] == 'NOTIFICATION':
-            logger.info('Action for limit \'%s\': Generating On-Screen Notification.', limit)
+            logger.info('Action for ' + ('event' if event is not None else 'limit') + ' \'%s\': Generating On-Screen Notification.',
+                        event if event is not None else limit)
             action_metadata = {}
             action_metadata['category'] = action['category']
             action_metadata['timeout'] = action.get('timeout', 0)
@@ -115,22 +118,22 @@ def perform_action(action, event, beacon, detector, limit):
             action_metadata['message'] = replace_tags(action.get('message', ''), event, beacon, detector, limit)
             Notification.objects.create(account=event.account, metadata=json.dumps(action_metadata))
         elif action['type'] == 'SMS':
-            logger.info('Action for limit \'%s\': Sending SMS to %s recipient(s).',
-                    limit, len(re.split(',|;', action['recipients'])))
+            logger.info('Action for ' + ('event' if event is not None else 'limit') + ' \'%s\': Sending SMS to %s recipient(s).',
+                    event if event is not None else limit, len(re.split(',|;', action['recipients'])))
             message = replace_tags(action.get('message', ''), event, beacon, detector, limit)
             for to in re.split(',|;', action['recipients']):
                 send_twilio_message(to, message)
         elif action['type'] == 'EMAIL':
-            logger.info('Action for event \'%s\': Sending EMAIL to %s recipient(s).',
-                    limit, len(re.split(',|;', action['recipients'])))
+            logger.info('Action for ' + ('event' if event is not None else 'limit') + ' \'%s\': Sending EMAIL to %s recipient(s).',
+                    event if event is not None else limit, len(re.split(',|;', action['recipients'])))
             body = replace_tags(action.get('body', ''), event, beacon, detector, limit)
             subject = replace_tags(action.get('subject', ''), event, beacon, detector, limit)
             send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                     re.split(',|;', action['recipients']), fail_silently=False)
         elif action['type'] == 'REST':
             uri = replace_tags(action['uri'], event, beacon, detector, limit)
-            logger.info('Action for event \'%s\': Making a \'%s\' call to \'%s\'.',
-                    event, action['method'], uri)
+            logger.info('Action for ' + ('event' if event is not None else 'limit') + ' \'%s\': Making a \'%s\' call to \'%s\'.',
+                    event if event is not None else limit, action['method'], uri)
             body = replace_tags(action.get('body', ''), event, beacon, detector, limit)
             make_rest_call(action['method'], uri, body)
     except Exception as ex:
@@ -182,6 +185,8 @@ def check_for_events(sighting, new_sighting_detector=None):
                     (metadata.get('sighting_has_been_confirmed', None) is None or
                          (metadata['sighting_has_been_confirmed'] and sighting.confirmed) or
                          (not metadata['sighting_has_been_confirmed'] and not sighting.confirmed)) and \
+                    (metadata.get('sighting_arrival_rssi', 0) >= sighting.rssi and
+                         (metadata.get('sighting_departure_rssi', -99) < sighting.rssi)) and \
                     (new_sighting_detector is None or len(event.detectors.all()) == 0 or new_sighting_detector in event.detectors.all()):
 
                 if (metadata.get('sighting_previous_event', None) is None):

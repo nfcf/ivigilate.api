@@ -19,6 +19,7 @@
             'ngSanitize',
             'ui.select',
             'ngTouch',
+            'ngAudio',
             'toastr',
             'angular-carousel',
             'angular-stripe',

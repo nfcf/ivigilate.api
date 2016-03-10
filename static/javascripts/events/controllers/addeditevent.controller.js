@@ -98,7 +98,9 @@
                                     'action_notification_category': 'Info',
                                     'sighting_duration_in_seconds': 0,
                                     'sighting_has_battery_below': 100,
-                                    'sighting_dormant_period_in_seconds': 0
+                                    'sighting_dormant_period_in_seconds': 0,
+                                    'sighting_arrival_rssi': 0,
+                                    'sighting_departure_rssi': -99
                                 }};
 
                     vm.schedule_start_time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0);

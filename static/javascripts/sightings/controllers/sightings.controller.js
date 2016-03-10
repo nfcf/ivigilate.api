@@ -99,14 +99,17 @@
                 Notifications.checkForNotifications();
             }
 
-            function successFn(data, status, headers, config) {
+            function successFn(response, status, headers, config) {
                 vm.error = null;
-                vm.sightings = data.data;
+                vm.sightings = response.data.list;
+
+                applyClientServerTimeOffset(response.data.timestamp);
+
                 applyFilterAndPreventTimesInTheFutureToSightings();
             }
 
-            function errorFn(data, status, headers, config) {
-                vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
+            function errorFn(response, status, headers, config) {
+                vm.error = response.status != 500 ? JSON.stringify(data.data) : data.statusText;
             }
         }
 
@@ -148,6 +151,14 @@
             function errorFn(data, status, headers, config) {
                 vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
                 sighting.confirmed = !sighting.confirmed;
+            }
+        }
+
+        function applyClientServerTimeOffset(serverTimestamp) {
+            var offset = new Date(serverTimestamp).getTime() - (new Date()).getTime();
+            for (var i = 0; i < vm.sightings.length; i++) {
+                vm.sightings[i].last_seen_at = new Date(vm.sightings[i].last_seen_at).getTime() + offset;
+                vm.sightings[i].last_seen_at = new Date(vm.sightings[i].last_seen_at).toISOString();
             }
         }
 

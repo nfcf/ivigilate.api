@@ -1,15 +1,12 @@
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'twfw@itai1qz^3+$21=8&pd8w=zf6hfa_$&gg$)=a8$wd2^+_t'
 
-SITE_ID = 1
+SITE_ID = 2
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -31,6 +28,7 @@ INSTALLED_APPS = (
     'rest_framework_gis',
     'django_cron',
     'compressor',
+    'sslserver',
     'ivigilate',
 )
 
@@ -69,9 +67,9 @@ CRON_CLASSES = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        # 'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        #'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'ivigilate',
-        'USER': 'postgres',
+        'USER': 'nunofcf',
         'PASSWORD': '123',
         'HOST': ''
     }
@@ -118,6 +116,10 @@ EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'support@ivigilate.com'
 
+TWILIO_ACCOUNT_SID = os.environ['TWILIO_ACCOUNT_SID']
+TWILIO_AUTH_TOKEN = os.environ['TWILIO_AUTH_TOKEN']
+TWILIO_DEFAULT_CALLERID = os.environ['TWILIO_DEFAULT_CALLERID']
+
 LOG_LEVEL = 'DEBUG' if DEBUG else 'INFO'
 LOG_SIZE = 2 * 1024 * 1024
 LOGGING = {
@@ -139,7 +141,7 @@ LOGGING = {
     'handlers': {
         'null': {
             'level': 'DEBUG',
-            'class': 'django.utils.log.NullHandler',
+            'class': 'logging.NullHandler',
         },
         'console':{
             'level': 'DEBUG',

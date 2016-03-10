@@ -5,9 +5,12 @@
         .module('ivigilate.notifications.services')
         .factory('Notifications', Notifications);
 
-    Notifications.$inject = ['$http', 'toastr'];
+    Notifications.$inject = ['$http', 'toastr', 'ngAudio'];
 
-    function Notifications($http, toastr) {
+    function Notifications($http, toastr, ngAudio) {
+
+        var sound = ngAudio.load("static/sounds/alarm.mp3"); // returns NgAudioObject
+        sound.loop = true;
 
         var Notifications = {
             checkForNotifications: checkForNotifications,
@@ -22,6 +25,7 @@
 
             function successFn(data, status, headers, config) {
                 var notifications = data.data;
+                var isPlaying = false;
                 if (!!notifications) {
                     for (var i = 0; i < notifications.length; i++) {
                         try {
@@ -36,6 +40,11 @@
                                 timeOut: !!metadata.timeout ? metadata.timeout * 1000 : 0,
                                 extendedTimeOut: !!metadata.timeout ? metadata.timeout * 1000 : 0
                             });
+                            if (!isPlaying && sound.paused) {
+                                isPlaying = true;
+                                sound.play();
+                                setTimeout(function () { sound.pause(); }, !!metadata.timeout ? metadata.timeout * 1000 : 0);
+                            }
                         } catch (ex) {
                             console.log('Failed to parse notification data with error: ' + ex.message);
                         }

@@ -33,6 +33,7 @@
         dialogsProvider.useCopy(true);
         //dialogsProvider.setSize('lg');
 
+        $translateProvider.useSanitizeValueStrategy('escape'); //'sanitize'
         $translateProvider.translations('en', {
             just_now: 'just now',
             seconds_ago: '{{time}} seconds ago',

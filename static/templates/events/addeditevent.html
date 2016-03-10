@@ -164,7 +164,21 @@
             </div>
 
             <div class="row">
-                <div class="col-xs-6 col-md-6">
+                <div class="col-xs-4 col-md-4">
+                    <div class="form-group" show-errors>
+                        <label for="arrival_rssi">Arrival Proximity</label>
+                        <input type="number" class="form-control" name="arrival_rssi" ng-model="vm.event.metadata_object.sighting_arrival_rssi"
+                               placeholder="Default is 0" required/>
+                    </div>
+                </div>
+                <div class="col-xs-4 col-md-4">
+                    <div class="form-group" show-errors>
+                        <label for="departure_rssi">Departure Proximity</label>
+                        <input type="number" class="form-control" name="departure_rssi" ng-model="vm.event.metadata_object.sighting_departure_rssi"
+                               placeholder="Default is -99" required/>
+                    </div>
+                </div>
+                <div class="col-xs-4 col-md-4">
                     <div class="form-group">
                         <label>Previous Event Ocurrence</label>
                         <ui-select ng-model="vm.event.metadata_object.sighting_previous_event" theme="bootstrap" ng-disabled="disabled">

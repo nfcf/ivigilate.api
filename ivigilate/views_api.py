@@ -193,7 +193,7 @@ class AddSightingsView(views.APIView):
 
         # serialized = SightingReadSerializer(new_sighting, context={'request': request})
         # return Response(serialized.data)
-        return Response(status=status.HTTP_200_OK)
+        return Response('', status=status.HTTP_200_OK)
 
 
 class AutoUpdateView(views.APIView):
@@ -237,7 +237,7 @@ class AutoUpdateView(views.APIView):
                         full_metadata['device']['last_update_date'] < full_metadata['auto_update']['date']:
             return Response(full_metadata['auto_update'], status=status.HTTP_412_PRECONDITION_FAILED)
 
-        return Response(status=status.HTTP_200_OK)
+        return Response('', status=status.HTTP_200_OK)
 
 
 class MakePaymentView(views.APIView):
