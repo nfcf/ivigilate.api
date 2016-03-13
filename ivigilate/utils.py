@@ -7,7 +7,7 @@ from rest_framework import status
 from twilio.rest import TwilioRestClient
 from django.core.mail import send_mail
 from ivigilate import settings
-from ivigilate import serializers
+from ivigilate.serializers import SightingReadSerializer
 from ivigilate.models import Sighting, Event, EventOccurrence, Notification, Limit, LimitOccurrence
 from django.db.models import Q
 import math, json, re, logging, os
@@ -24,7 +24,7 @@ def view_list(request, account, queryset, serializer):
 
         responseObject = {'timestamp': datetime.now(timezone.utc),
                          'list': serializer_response.data} \
-            if issubclass(serializer, serializers.SightingReadSerializer) else \
+            if issubclass(serializer, SightingReadSerializer) else \
             serializer_response.data
         return Response(responseObject)
     else:
