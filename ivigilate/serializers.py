@@ -3,7 +3,6 @@ from django.contrib.auth import update_session_auth_hash, login
 from multiprocessing import Process
 from rest_framework import serializers
 from rest_framework_gis import serializers as gis_serializers
-from ivigilate import utils
 from ivigilate.models import *
 import logging
 
@@ -11,36 +10,36 @@ logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
 
-class Base64ImageField(serializers.ImageField):
-    def to_internal_value(self, data):
-        from django.core.files.base import ContentFile
-        import base64
-        import six
-        import uuid
-
-        # Check if this is a base64 string
-        if isinstance(data, six.string_types):
-            # Check if the base64 string is in the "data:" format
-            if 'data:' in data and ';base64,' in data:
-                # Break out the header from the base64 content
-                header, data = data.split(';base64,')
-
-            # Try to decode the file. Return validation error if it fails.
-            try:
-                decoded_file = base64.b64decode(data)
-            except TypeError:
-                self.fail('invalid_image')
-
-            # Generate file name:
-            file_name = str(uuid.uuid4())[:12]  # 12 characters are more than enough.
-            # Get the file name extension:
-            file_extension = utils.get_file_extension(file_name, decoded_file)
-
-            complete_file_name = "%s.%s" % (file_name, file_extension, )
-
-            data = ContentFile(decoded_file, name=complete_file_name)
-
-        return super(Base64ImageField, self).to_internal_value(data)
+# class Base64ImageField(serializers.ImageField):
+#     def to_internal_value(self, data):
+#         from django.core.files.base import ContentFile
+#         import base64
+#         import six
+#         import uuid
+#
+#         # Check if this is a base64 string
+#         if isinstance(data, six.string_types):
+#             # Check if the base64 string is in the "data:" format
+#             if 'data:' in data and ';base64,' in data:
+#                 # Break out the header from the base64 content
+#                 header, data = data.split(';base64,')
+#
+#             # Try to decode the file. Return validation error if it fails.
+#             try:
+#                 decoded_file = base64.b64decode(data)
+#             except TypeError:
+#                 self.fail('invalid_image')
+#
+#             # Generate file name:
+#             file_name = str(uuid.uuid4())[:12]  # 12 characters are more than enough.
+#             # Get the file name extension:
+#             file_extension = utils.get_file_extension(file_name, decoded_file)
+#
+#             complete_file_name = "%s.%s" % (file_name, file_extension, )
+#
+#             data = ContentFile(decoded_file, name=complete_file_name)
+#
+#         return super(Base64ImageField, self).to_internal_value(data)
 
 
 class LicenseSerializer(serializers.HyperlinkedModelSerializer):
@@ -256,10 +255,6 @@ class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
             del validated_data['user']
             sighting = Sighting.objects.create(**validated_data)
 
-        # check for events associated with this sighting in a different thread
-        t = threading.Thread(target=utils.check_for_events, args=(sighting,))
-        t.start()
-
         return sighting
 
     def update(self, instance, validated_data):
@@ -284,10 +279,6 @@ class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
 
         instance.comment = validated_data.get('comment', instance.comment)
         instance.save()
-
-        # check for events associated with this sighting in a different thread
-        t = threading.Thread(target=utils.check_for_events, args=(instance,))
-        t.start()
 
         return instance
 
