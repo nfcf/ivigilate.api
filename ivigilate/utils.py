@@ -140,6 +140,12 @@ def perform_action(action, event, beacon, detector, limit):
         logger.exception('Failed to perform action of type \'%s\':', action['type'])
 
 
+def check_for_events_async(sighting, new_sighting_detector=None):
+    # check for events associated with this sighting in a different  thread
+    t = threading.Thread(target=check_for_events, args=(sighting, new_sighting_detector))
+    t.start()
+
+
 def check_for_events(sighting, new_sighting_detector=None):
     logger.debug('Checking for events associated with sighting \'%s\'...', sighting)
     now = datetime.now(timezone.utc)
@@ -174,22 +180,45 @@ def check_for_events(sighting, new_sighting_detector=None):
         logger.debug('Found %s event(s) active for sighting \'%s\'.', len(events), sighting)
         for event in events:
             logger.debug('Checking if \'%s\' event conditions are met...', event)
-            metadata = json.loads(event.metadata)
-            if (metadata.get('sighting_is_current', None) is None or
-                        metadata['sighting_is_current'] == sighting.is_current) and \
-                            metadata.get('sighting_has_battery_below', 0) >= sighting.battery and \
-                            metadata.get('sighting_duration_in_seconds', 0) <= sighting.get_duration() and \
-                    (metadata.get('sighting_has_comment', None) is None or
-                         (metadata['sighting_has_comment'] and sighting.comment) or
-                         (not metadata['sighting_has_comment'] and not sighting.comment)) and \
-                    (metadata.get('sighting_has_been_confirmed', None) is None or
-                         (metadata['sighting_has_been_confirmed'] and sighting.confirmed) or
-                         (not metadata['sighting_has_been_confirmed'] and not sighting.confirmed)) and \
-                    (metadata.get('sighting_arrival_rssi', 0) >= sighting.rssi and
-                         (metadata.get('sighting_departure_rssi', -99) < sighting.rssi)) and \
+            conditions_met = False
+            event_metadata = json.loads(event.metadata)
+            sighting_metadata = json.loads(sighting.metadata or '{}')
+            initial_timestamp = sighting_metadata.get('timestamp_event_id_' + str(event.id), None)
+            # Check if the bulk of the conditions are met...
+            if (event_metadata.get('sighting_is_current', None) is None or
+                        event_metadata['sighting_is_current'] == sighting.is_current) and \
+                            event_metadata.get('sighting_has_battery_below', 0) >= sighting.battery and \
+                    (event_metadata.get('sighting_has_comment', None) is None or
+                         (event_metadata['sighting_has_comment'] and sighting.comment) or
+                         (not event_metadata['sighting_has_comment'] and not sighting.comment)) and \
+                    (event_metadata.get('sighting_has_been_confirmed', None) is None or
+                         (event_metadata['sighting_has_been_confirmed'] and sighting.confirmed) or
+                         (not event_metadata['sighting_has_been_confirmed'] and not sighting.confirmed)) and \
+                    (event_metadata.get('sighting_arrival_rssi', 0) >= sighting.rssi and
+                         (event_metadata.get('sighting_departure_rssi', -99) < sighting.rssi)) and \
                     (new_sighting_detector is None or len(event.detectors.all()) == 0 or new_sighting_detector in event.detectors.all()):
 
-                if (metadata.get('sighting_previous_event', None) is None):
+                # Check the sighting duration within the proximity range specified in the event
+                event_sighting_duration_in_seconds = event_metadata.get('sighting_duration_in_seconds', 0)
+                if event_sighting_duration_in_seconds > 0:
+                    if initial_timestamp is not None:
+                        if (sighting.last_seen_at - datetime.fromtimestamp(initial_timestamp).replace(tzinfo=timezone.utc)).total_seconds() >= event_sighting_duration_in_seconds:
+                            conditions_met = True
+                    else:
+                        sighting_metadata['timestamp_event_id_' + str(event.id)] = sighting.last_seen_at.replace(tzinfo=timezone.utc).timestamp()
+                        sighting.metadata = json.dumps(sighting_metadata)
+                        sighting.save()
+                else:
+                    conditions_met = True
+
+            elif initial_timestamp is not None:
+                sighting_metadata['timestamp_event_id_' + str(event.id)] = None
+                sighting.metadata = json.dumps(sighting_metadata)
+                sighting.save()
+
+
+            if conditions_met:
+                if (event_metadata.get('sighting_previous_event', None) is None):
                     # Make sure we don't trigger the same actions over and over again (only once per sighting)
                     same_occurrence_count = EventOccurrence.objects.filter(event=event, sighting=sighting).count()
                     if (same_occurrence_count == 0):
@@ -197,10 +226,10 @@ def check_for_events(sighting, new_sighting_detector=None):
                                                                               sighting__beacon=sighting.beacon,
                                                                               sighting__detector=sighting.detector
                                                                             ).order_by('-id')[:1]
-                        if (metadata.get('sighting_dormant_period_in_seconds', None) is None or
-                                metadata['sighting_dormant_period_in_seconds'] <= 0 or
+                        if (event_metadata.get('sighting_dormant_period_in_seconds', None) is None or
+                                event_metadata['sighting_dormant_period_in_seconds'] <= 0 or
                                 previous_occurrences is None or len(previous_occurrences) == 0 or
-                                now - timedelta(seconds=metadata['sighting_dormant_period_in_seconds']) > previous_occurrences[0].occurred_at):
+                                now - timedelta(seconds=event_metadata['sighting_dormant_period_in_seconds']) > previous_occurrences[0].occurred_at):
                             trigger_event_actions(event, sighting)
                         else:
                             logger.debug('Conditions met for event \'%s\' but skipping it has ' + \
@@ -211,7 +240,7 @@ def check_for_events(sighting, new_sighting_detector=None):
                 else:  # event conditions require that a specific previous event had occurred
                     previous_occurrences = EventOccurrence.objects.filter(sighting__beacon=sighting.beacon).order_by('-id')[:2]
                     if (previous_occurrences is not None and len(previous_occurrences) > 0 and
-                                previous_occurrences[0].event_id == metadata['sighting_previous_event']['id']):
+                                previous_occurrences[0].event_id == event_metadata['sighting_previous_event']['id']):
                         if (len(previous_occurrences) > 1 and (previous_occurrences[0].sighting_id != sighting.id or
                                     previous_occurrences[1].event_id != event.id)):
                             trigger_event_actions(event, sighting)

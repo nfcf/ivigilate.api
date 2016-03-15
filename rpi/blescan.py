@@ -152,8 +152,8 @@ def parse_events(sock, queue, loop_count=100):
                             if uuid != previous_item.get('beacon_uid', None) or \
                                     (uuid == previous_item.get('beacon_uid', None) and
                                              (now-previous_item.get('timestamp')) >= 1000):
-                                logger.info('Raw: %s', return_string_from_packet(pkt))
-                                logger.debug('Parsed: %s,%s,%i,%i,%i,%i,%i' % (mac, uuid, major, minor, power, battery, rssi))
+                                logger.debug('Raw: %s', return_string_from_packet(pkt))
+                                logger.info('Parsed: %s,%s,%i,%i,%i,%i,%i' % (mac, uuid, major, minor, power, battery, rssi))
                                 sighting = {}  # dict()
                                 sighting['timestamp'] = now
                                 sighting['beacon_uid'] = uuid

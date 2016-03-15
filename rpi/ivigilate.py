@@ -14,6 +14,11 @@ def init_logger(log_level):
                         format='%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s')
 
 
+def send_sightings_async(sightings):
+    t = threading.Thread(target=send_sightings, args=(sightings,))
+    t.start()
+
+
 def send_sightings(sightings):
     for sighting in sightings:
         sighting['company_id'] = config.get('BASE', 'company_id')
@@ -23,7 +28,7 @@ def send_sightings(sightings):
         logger.info('Sending %s sightings to the server...', len(sightings))
         response = requests.post(config.get('SERVER', 'address') + config.get('SERVER', 'addsightings_uri'),
                                  json.dumps(sightings))
-        logger.debug('Received from addsightings: %s', response.status_code)
+        logger.info('Received from addsightings: %s', response.status_code)
     except Exception:
         logger.exception('Failed to contact the server with error:')
 
@@ -77,7 +82,7 @@ def main():
             # if configured daily_respawn_hour, stop the ble_thread and respawn the process
             if now.date() > last_respawn_date and now.hour == config.getint('BASE', 'daily_respawn_hour'):
                 autoupdate.respawn_script(ble_thread)
-            elif now > last_update_check + timedelta(hours=1):
+            elif now > last_update_check + timedelta(minutes=5):
                 autoupdate.check()
                 last_update_check = datetime.now()
 
