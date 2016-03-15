@@ -28,7 +28,7 @@ def send_sightings(sightings):
         logger.info('Sending %s sightings to the server...', len(sightings))
         response = requests.post(config.get('SERVER', 'address') + config.get('SERVER', 'addsightings_uri'),
                                  json.dumps(sightings))
-        logger.info('Received from addsightings: %s', response.status_code)
+        logger.info('Received from addsightings: %s - %s', response.status_code, response.text)
     except Exception:
         logger.exception('Failed to contact the server with error:')
 

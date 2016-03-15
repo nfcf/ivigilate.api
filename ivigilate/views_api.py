@@ -101,7 +101,7 @@ class AddSightingsView(views.APIView):
                     account = Account.objects.get(company_id=company_id)
                     if account.get_license_in_force() is None:
                         return Response('Ignoring sighting as the Account doesn\'t have a valid subscription.',
-                                        status=status.HTTP_412_PRECONDITION_FAILED)
+                                        status=status.HTTP_400_BAD_REQUEST)
                 except Account.DoesNotExist:
                     logger.warning('Attempt to add a sighting for an invalid Company ID.')
                     return Response('Invalid Company ID.', status=status.HTTP_400_BAD_REQUEST)
@@ -110,7 +110,7 @@ class AddSightingsView(views.APIView):
                     beacon = Beacon.objects.get(uid=beacon_uid)
                     if not beacon.is_active:
                         return Response('Ignoring sighting as the Beacon is not active on the system.',
-                                        status=status.HTTP_412_PRECONDITION_FAILED)
+                                        status=status.HTTP_400_BAD_REQUEST)
                 except Beacon.DoesNotExist:
                     beacon = Beacon.objects.create(account=account, uid=beacon_uid)
 
@@ -118,7 +118,7 @@ class AddSightingsView(views.APIView):
                     detector = Detector.objects.get(uid=detector_uid)
                     if not detector.is_active:
                         return Response('Ignoring sighting as the Detector is not active on the system.',
-                                        status=status.HTTP_412_PRECONDITION_FAILED)
+                                        status=status.HTTP_400_BAD_REQUEST)
                     elif location is not None:
                         location = json.dumps(location)
                     else:
