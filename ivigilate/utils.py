@@ -185,8 +185,6 @@ def check_for_events(sighting, new_sighting_detector=None):
             sighting_metadata = json.loads(sighting.metadata or '{}')
             initial_timestamp = sighting_metadata.get('timestamp_event_id_' + str(event.id), None)
 
-            #TODO: Somewhere around here, average the current rssi with the previous one...
-
             # Check if the bulk of the conditions are met...
             if (event_metadata.get('sighting_is_current', None) is None or
                         event_metadata['sighting_is_current'] == sighting.is_current) and \

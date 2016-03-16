@@ -133,10 +133,11 @@ class AddSightingsView(views.APIView):
                 new_sighting = None
                 if previous_sightings:
                     previous_sighting = previous_sightings[0]
-                    if detector is not None and rssi < detector.departure_rssi:
+                    avg_rssi = (previous_sighting.rssi + rssi) / 2
+                    if previous_sighting.detector == detector and avg_rssi < detector.departure_rssi:
                         logger.info('Closing previous related sighting \'%s\' as the rssi dropped below the ' + \
                                     'departure_rssi configured for this detector (%s < %s).',
-                                    previous_sighting, rssi, detector.departure_rssi)
+                                    previous_sighting, avg_rssi, detector.departure_rssi)
                         utils.close_sighting(previous_sighting, detector)
                     elif previous_sighting.detector != detector and rssi > (previous_sighting.rssi if previous_sighting.rssi is not None else 0):
                         logger.info('Closing previous related sighting \'%s\' as the beacon moved to another location.',
@@ -149,7 +150,7 @@ class AddSightingsView(views.APIView):
                         if not beacon.reported_missing or \
                             (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60:
                             new_sighting.last_seen_at = None  # this forces the datetime update on the model save()
-                        new_sighting.rssi = rssi
+                        new_sighting.rssi = avg_rssi
                         new_sighting.battery = battery
                         new_sighting.location = location
                         new_sighting.save()
