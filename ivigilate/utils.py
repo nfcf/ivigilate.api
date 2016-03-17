@@ -57,7 +57,7 @@ def send_twilio_message(to, msg):
     message = client.messages.create(
         body=msg,
         to=to,
-        from_=settings.TWILIO_DEFAULT_CALLERID,
+        from_=settings.TWILIO_DEFAULT_CALLERID
     )
 
 
@@ -156,12 +156,13 @@ def check_for_events(sighting, new_sighting_detector=None):
                                   'LEFT OUTER JOIN ivigilate_event_beacons eb ON e.id = eb.event_id ' \
                                   'LEFT OUTER JOIN ivigilate_event_detectors ed ON e.id = ed.event_id ' \
                                   'WHERE (e.is_active = True ' \
+                                  'AND e.account_id = %s) ' \
                                   'AND (eb.beacon_id IS NULL OR eb.beacon_id = %s) ' \
                                   'AND (ed.detector_id IS NULL OR ed.detector_id = %s) ' \
                                   'AND e.schedule_days_of_week & %s > 0 ' \
                                   'AND e.schedule_start_time <= (%s + interval \'1m\' * e.schedule_timezone_offset) :: time ' \
                                   'AND e.schedule_end_time >= (%s + interval \'1m\' * e.schedule_timezone_offset) :: time)',
-                                  [sighting.beacon.id, sighting.detector.id if sighting.detector is not None else 0,
+                                  [sighting.detector.account_id, sighting.beacon.id, sighting.detector.id if sighting.detector is not None else 0,
                                    int(current_week_day_representation),
                                    now.strftime('%H:%M:%S'), now.strftime('%H:%M:%S')])
 
