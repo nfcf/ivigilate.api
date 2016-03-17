@@ -96,6 +96,7 @@ class AddSightingsView(views.APIView):
                 rssi = sighting.get('rssi', None)
                 battery = sighting.get('battery', None)
                 location = sighting.get('location', None)
+                logger.debug('Sighting: %s %s %s %s %s', company_id, beacon_uid, detector_uid, rssi, battery)
 
                 try:
                     account = Account.objects.get(company_id=company_id)
