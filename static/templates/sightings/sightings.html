@@ -56,6 +56,7 @@
                         <th st-sort="beacon.reference_id">ID</th>
                         <th st-sort="beacon.name">Name</th>
                         <th st-sort="last_seen_at">Last Seen</th>
+                        <th class="text-center" st-sort="rssi">RSSI</th>
                         <th class="text-center" st-sort="battery">Battery</th>
                         <th st-sort="comment">Comment</th>
                         <th class="text-center" st-sort="confirmed">Confirmed</th>
@@ -106,6 +107,9 @@
                                     sighting.detector.name }}
                         </td>
                         <td class="valign-middle text-center">
+                            {{ sighting.rssi || 'N/A' }}
+                        </td>
+                        <td class="valign-middle text-center">
                             {{ sighting.battery || 'N/A' }}
                         </td>
                         <td class="valign-middle">
@@ -121,7 +125,7 @@
                     </tbody>
                     <tfoot>
                     <tr>
-                        <td colspan="9" class="text-center">
+                        <td colspan="10" class="text-center">
                             <div st-pagination="" st-items-by-page="10" st-displayed-pages="5"></div>
                         </td>
                     </tr>
