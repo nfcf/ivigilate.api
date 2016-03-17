@@ -220,9 +220,10 @@ def check_for_events(sighting, new_sighting_detector=None):
 
             if conditions_met:
                 if (event_metadata.get('sighting_previous_event', None) is None):
-                    # Make sure we don't trigger the same actions over and over again (only once per sighting)
+                    # Check if we should trigger the same actions over and over again (or only once per sighting)
+                    once_per_sighting = False # TODO: new event parameter
                     same_occurrence_count = EventOccurrence.objects.filter(event=event, sighting=sighting).count()
-                    if (same_occurrence_count == 0):
+                    if (not once_per_sighting or same_occurrence_count == 0):
                         previous_occurrences = EventOccurrence.objects.filter(event=event,
                                                                               sighting__beacon=sighting.beacon,
                                                                               sighting__detector=sighting.detector
@@ -232,6 +233,10 @@ def check_for_events(sighting, new_sighting_detector=None):
                                 previous_occurrences is None or len(previous_occurrences) == 0 or
                                 now - timedelta(seconds=event_metadata['sighting_dormant_period_in_seconds']) > previous_occurrences[0].occurred_at):
                             trigger_event_actions(event, sighting)
+
+                            sighting_metadata['timestamp_event_id_' + str(event.id)] = None
+                            sighting.metadata = json.dumps(sighting_metadata)
+                            sighting.save()
                         else:
                             logger.debug('Conditions met for event \'%s\' but skipping it has ' + \
                                          'the tuple event / beacon / detector is still in the dormant period.', event)
