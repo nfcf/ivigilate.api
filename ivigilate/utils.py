@@ -2,6 +2,7 @@ from datetime import datetime, timezone, timedelta
 import threading
 import pytz
 import requests
+import twilio
 from rest_framework.response import Response
 from rest_framework import status
 from twilio.rest import TwilioRestClient
@@ -53,13 +54,16 @@ def replace_tags(msg, event=None, beacon=None, detector=None, limit=None):
 
 
 def send_twilio_message(to, msg):
-    client = TwilioRestClient(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-    logger.debug('!!!!! %s', settings.TWILIO_DEFAULT_CALLERID)
-    message = client.messages.create(
-        body=msg,
-        to=to,
-        from_='+' + settings.TWILIO_DEFAULT_CALLERID
-    )
+    try:
+        client = TwilioRestClient(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+        message = client.messages.create(
+            body=msg,
+            to=to,
+            from_=settings.TWILIO_DEFAULT_CALLERID
+        )
+    except twilio.TwilioRestException as e:
+        logger.exception('Twilio exception:')
+        raise
 
 
 def make_rest_call(method, uri, body):
