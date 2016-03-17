@@ -156,7 +156,7 @@ def check_for_events(sighting, new_sighting_detector=None):
                                   'LEFT OUTER JOIN ivigilate_event_beacons eb ON e.id = eb.event_id ' \
                                   'LEFT OUTER JOIN ivigilate_event_detectors ed ON e.id = ed.event_id ' \
                                   'WHERE (e.is_active = True ' \
-                                  'AND e.account_id = %s) ' \
+                                  'AND e.account_id = %s ' \
                                   'AND (eb.beacon_id IS NULL OR eb.beacon_id = %s) ' \
                                   'AND (ed.detector_id IS NULL OR ed.detector_id = %s) ' \
                                   'AND e.schedule_days_of_week & %s > 0 ' \
