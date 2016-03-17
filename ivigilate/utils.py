@@ -54,6 +54,7 @@ def replace_tags(msg, event=None, beacon=None, detector=None, limit=None):
 
 def send_twilio_message(to, msg):
     client = TwilioRestClient(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+    logger.debug('!!!!! %s', settings.TWILIO_DEFAULT_CALLERID)
     message = client.messages.create(
         body=msg,
         to=to,
