@@ -62,7 +62,7 @@ def send_twilio_message(to, msg):
             from_=settings.TWILIO_DEFAULT_CALLERID
         )
     except twilio.TwilioRestException as e:
-        logger.exception('Twilio exception:')
+        logger.exception('Twilio exception: %s', e)
         raise
 
 
