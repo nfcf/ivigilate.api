@@ -101,7 +101,7 @@
 
             function successFn(response, status, headers, config) {
                 vm.error = null;
-                vm.sightings = sortByKey(response.data.list, 'reference_id');
+                vm.sightings = sortByKey(response.data.list, 'id');
 
                 applyClientServerTimeOffset(response.data.timestamp);
 
