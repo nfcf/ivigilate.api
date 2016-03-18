@@ -53,7 +53,7 @@ def check():
     if response.status_code == 200:  # Everything is up-to-date
         logger.info('check() returned 200 OK (Everything is up-to-date).')
         return
-    else:
+    elif response.status_code == 412:
         now = datetime.now()
         update = json.loads(response.text)
 
@@ -85,3 +85,6 @@ def check():
         else:
             respawn_script()
         sys.exit()
+    else:
+        logger.warn('check() returned %s. Ignoring and continuing work...', response.status_code)
+        return
