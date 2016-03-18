@@ -101,8 +101,7 @@
 
             function successFn(response, status, headers, config) {
                 vm.error = null;
-                vm.sightings = response.data.list;
-                vm.sightings = sorted(response.data.list, key=lambda k: k['reference_id'])
+                vm.sightings = sortByKey(response.data.list, 'reference_id');
 
                 applyClientServerTimeOffset(response.data.timestamp);
 
@@ -193,6 +192,21 @@
             $event.preventDefault();
             $event.stopPropagation();
             vm[isOpen] = !vm[isOpen];
+        }
+
+        function sortByKey(array, key) {
+            return array.sort(function(a, b) {
+                var x = a[key];
+                var y = b[key];
+
+                if (typeof x == "string")
+                {
+                    x = x.toLowerCase();
+                    y = y.toLowerCase();
+                }
+
+                return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+            });
         }
 
         Array.prototype.extend = function (other_array) {
