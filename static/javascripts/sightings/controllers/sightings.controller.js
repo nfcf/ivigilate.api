@@ -102,6 +102,7 @@
             function successFn(response, status, headers, config) {
                 vm.error = null;
                 vm.sightings = response.data.list;
+                vm.sightings = sorted(response.data.list, key=lambda k: k['reference_id'])
 
                 applyClientServerTimeOffset(response.data.timestamp);
 
