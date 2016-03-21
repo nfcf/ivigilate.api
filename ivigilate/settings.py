@@ -173,7 +173,7 @@ LOGGING = {
         'ivigilate': {
             'handlers': ['log_file'],
             'level': LOG_LEVEL,
-            'propagate': True,
+            'propagate': False,
         },
     },
     # you can also shortcut 'loggers' and just configure logging for EVERYTHING at once
