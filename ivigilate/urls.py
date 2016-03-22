@@ -32,6 +32,9 @@ urlpatterns = patterns('',
     url(r'^api/v1/autoupdate/$', views_api.AutoUpdateView.as_view(), name='autoupdate'),
     url(r'^api/v1/makepayment/$', views_api.MakePaymentView.as_view(), name='makepayment'),
 
+    url(r'^api/v1/beaconhistory/$', views_api.BeaconHistoryView.as_view(), name='beaconhistory'),
+    url(r'^api/v1/detectorhistory/$', views_api.DetectorHistoryView.as_view(), name='detectorhistory'),
+
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 

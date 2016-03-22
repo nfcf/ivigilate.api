@@ -7,38 +7,6 @@ logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
 
-# class Base64ImageField(serializers.ImageField):
-#     def to_internal_value(self, data):
-#         from django.core.files.base import ContentFile
-#         import base64
-#         import six
-#         import uuid
-#
-#         # Check if this is a base64 string
-#         if isinstance(data, six.string_types):
-#             # Check if the base64 string is in the "data:" format
-#             if 'data:' in data and ';base64,' in data:
-#                 # Break out the header from the base64 content
-#                 header, data = data.split(';base64,')
-#
-#             # Try to decode the file. Return validation error if it fails.
-#             try:
-#                 decoded_file = base64.b64decode(data)
-#             except TypeError:
-#                 self.fail('invalid_image')
-#
-#             # Generate file name:
-#             file_name = str(uuid.uuid4())[:12]  # 12 characters are more than enough.
-#             # Get the file name extension:
-#             file_extension = utils.get_file_extension(file_name, decoded_file)
-#
-#             complete_file_name = "%s.%s" % (file_name, file_extension, )
-#
-#             data = ContentFile(decoded_file, name=complete_file_name)
-#
-#         return super(Base64ImageField, self).to_internal_value(data)
-
-
 class LicenseSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = License
@@ -118,6 +86,15 @@ class AuthUserWriteSerializer(serializers.ModelSerializer):
         return instance
 
 
+class DetectorBeaconHistorySerializer(gis_serializers.GeoModelSerializer):
+    type_display = serializers.CharField(source='get_type_display', read_only=True)
+
+    class Meta:
+        model = Detector
+        geo_field = 'location'
+        fields = ('id', 'uid', 'reference_id', 'type', 'type_display', 'is_active')
+
+
 class DetectorReadSerializer(gis_serializers.GeoModelSerializer):
     account = serializers.HyperlinkedIdentityField(view_name='account-detail')
     type_display = serializers.CharField(source='get_type_display', read_only=True)
@@ -159,6 +136,15 @@ class SimpleEventSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id', 'reference_id', 'name')
 
 
+class BeaconDetectorHistorySerializer(gis_serializers.GeoModelSerializer):
+    type_display = serializers.CharField(source='get_type_display', read_only=True)
+
+    class Meta:
+        model = Beacon
+        geo_field = 'location'
+        fields = ('id', 'uid', 'reference_id', 'type', 'type_display', 'is_active')
+
+
 class BeaconReadSerializer(serializers.HyperlinkedModelSerializer):
     events = SimpleEventSerializer(many=True, read_only=True)
     type_display = serializers.CharField(source='get_type_display', read_only=True)
@@ -198,6 +184,30 @@ class BeaconWriteSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+
+class SightingBeaconHistorySerializer(gis_serializers.GeoModelSerializer):
+    beacon = serializers.CharField(source='beacon__uid', read_only=True)
+    detector = DetectorBeaconHistorySerializer()
+    duration_in_seconds = serializers.IntegerField(source='get_duration', read_only=True)
+
+    class Meta:
+        model = Sighting
+        geo_field = 'location'
+        fields = ('id', 'beacon', 'detector', 'first_seen_at', 'last_seen_at', 'duration_in_seconds',
+                  'location', 'battery', 'is_current')
+
+
+class SightingDetectorHistorySerializer(gis_serializers.GeoModelSerializer):
+    detector = serializers.CharField(source='detector__uid', read_only=True)
+    beacon = BeaconDetectorHistorySerializer()
+    duration_in_seconds = serializers.IntegerField(source='get_duration', read_only=True)
+
+    class Meta:
+        model = Sighting
+        geo_field = 'location'
+        fields = ('id', 'beacon', 'detector', 'first_seen_at', 'last_seen_at', 'duration_in_seconds',
+                  'location', 'battery', 'is_current')
 
 
 class SightingReadSerializer(gis_serializers.GeoModelSerializer):
