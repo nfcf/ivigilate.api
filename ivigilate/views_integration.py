@@ -25,12 +25,9 @@ class BcloseSightingView(views.APIView):
         beacon_uid = data.get('beacon_uid', None)
         occur_date = data.get('occur_date', None)
 
-        cache.FileCache(location='suds/')
-        cache.DocumentCache(location='suds/')
-        cache.ObjectCache(location='suds/')
-
         try:
             cli = client.Client('http://ssn.sysvalue.com/ws/ws_ivigilate/wsdl')
+            cli.set_options(cache=None)
             response = cli.service.WsNewSighting(partner_token=self.PARTNER_TOKEN,
                                                     sighting_code=int(event_id),
                                                     customer_id=company_id,
