@@ -45,3 +45,4 @@ class BcloseSightingView(views.APIView):
             return Response(str(ex), status=status.HTTP_400_BAD_REQUEST)
 
         return Response('', status=status.HTTP_200_OK)
+
