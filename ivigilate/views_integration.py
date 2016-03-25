@@ -26,8 +26,8 @@ class BcloseSightingView(views.APIView):
         occur_date = data.get('occur_date', None)
 
         try:
+            # TODO: have a cache, just change its location as /tmp/suds/ is not allowed in shared envs...
             cli = client.Client('http://ssn.sysvalue.com/ws/ws_ivigilate/wsdl', cache=None)
-            cli.set_options(cache=None)
             response = cli.service.WsNewSighting(partner_token=self.PARTNER_TOKEN,
                                                     sighting_code=int(event_id),
                                                     customer_id=company_id,
