@@ -1,7 +1,7 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from rest_framework import routers
-from ivigilate import views_model, views_api, views_report
+from ivigilate import views_model, views_api, views_integration, views_report
 
 router = routers.DefaultRouter()
 router.register(r'accounts', views_model.AccountViewSet)
@@ -34,6 +34,8 @@ urlpatterns = patterns('',
 
     url(r'^api/v1/beaconhistory/$', views_api.BeaconHistoryView.as_view(), name='beaconhistory'),
     url(r'^api/v1/detectorhistory/$', views_api.DetectorHistoryView.as_view(), name='detectorhistory'),
+
+    url(r'^api/v1/bclosesighting/$', views_integration.BcloseSightingView.as_view(), name='bclosesighting'),
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
