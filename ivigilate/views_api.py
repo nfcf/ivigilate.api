@@ -330,3 +330,4 @@ class DetectorHistoryView(views.APIView):
             return Response('The current logged on user is not associated with any account.',
                             status=status.HTTP_400_BAD_REQUEST)
 
+

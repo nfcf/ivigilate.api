@@ -24,4 +24,3 @@ six==1.9.0
 stripe==1.22.2
 twilio==5.4.0
 suds-jurko==0.6.0
-

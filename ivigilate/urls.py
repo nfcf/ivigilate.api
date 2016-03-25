@@ -44,4 +44,3 @@ urlpatterns = patterns('',
 
     url(r'^.*$', views_api.IndexView.as_view(), name='index'),
 )
-

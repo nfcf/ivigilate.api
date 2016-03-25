@@ -252,7 +252,6 @@
             }
         }
 
-
         /*function populateEventTypes() {
          event_types.push({
          name: 'Gone out of sight',

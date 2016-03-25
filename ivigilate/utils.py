@@ -315,4 +315,3 @@ def check_for_limits(event_occurrence):
                     logger.info('Conditions not met for limit \'%s\'. ', limit)
             else:
                 logger.info('Conditions not met for limit \'%s\'. ', limit)
-                
