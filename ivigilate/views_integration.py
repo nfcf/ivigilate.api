@@ -26,6 +26,8 @@ class BcloseSightingView(views.APIView):
         occur_date = data.get('occur_date', None)
 
         cache.FileCache(location='suds/')
+        cache.DocumentCache(location='suds/')
+        cache.ObjectCache(location='suds/')
 
         try:
             cli = client.Client('http://ssn.sysvalue.com/ws/ws_ivigilate/wsdl')
