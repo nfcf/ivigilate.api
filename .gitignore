@@ -66,6 +66,7 @@ static/bower_components/
 .idea/
 .DS_store
 
+suds/
 media/
 
 ivigilate/settings_local.py

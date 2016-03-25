@@ -1,17 +1,9 @@
-import os
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import AnonymousUser
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
-from django.views.generic.base import TemplateView
-from django.utils.decorators import method_decorator
-from django.db.models import Q
+
 from rest_framework.response import Response
 from ivigilate.serializers import *
 from rest_framework import permissions, viewsets, status, views, mixins
-from ivigilate import utils
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
-from suds.client import Client
+from suds import client, cache
 import pytz, json, logging
 
 logger = logging.getLogger(__name__)
@@ -20,6 +12,7 @@ logger.addHandler(logging.NullHandler())
 
 class BcloseSightingView(views.APIView):
     permission_classes = (permissions.AllowAny, )
+    authentication_classes = ()
 
     PARTNER_TOKEN = 'ivigilate_hash_token'
 
@@ -32,9 +25,11 @@ class BcloseSightingView(views.APIView):
         beacon_uid = data.get('beacon_uid', None)
         occur_date = data.get('occur_date', None)
 
+        cache.FileCache(location='suds/')
+
         try:
-            client = Client('http://ssn.sysvalue.com/ws/ws_ivigilate/wsdl')
-            response = client.service.WsNewSighting(partner_token=self.PARTNER_TOKEN,
+            cli = client.Client('http://ssn.sysvalue.com/ws/ws_ivigilate/wsdl')
+            response = cli.service.WsNewSighting(partner_token=self.PARTNER_TOKEN,
                                                     sighting_code=int(event_id),
                                                     customer_id=company_id,
                                                     beacon_uid=beacon_uid,
