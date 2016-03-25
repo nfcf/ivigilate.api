@@ -43,14 +43,17 @@ def get_file_extension(file_name, decoded_file):
 
 
 def replace_tags(msg, event=None, beacon=None, detector=None, limit=None):
-    return msg.replace('%event_id%', event.reference_id if event is not None else ''). \
+    now = datetime.now(timezone.utc)
+    return msg.replace('%company_id%', event.account.company_id if event is not None else ''). \
+        replace('%event_id%', event.reference_id if event is not None else ''). \
         replace('%event_name%', event.name if event is not None else ''). \
-        replace('%beacon_id%', beacon.reference_id if beacon is not None else ''). \
+        replace('%beacon_id%', (beacon.reference_id or beacon.uid) if beacon is not None else ''). \
         replace('%beacon_name%', beacon.name if beacon is not None else ''). \
-        replace('%detector_id%', detector.reference_id if detector is not None else ''). \
+        replace('%detector_id%', (detector.reference_id or detector.uid) if detector is not None else ''). \
         replace('%detector_name%', detector.name if detector is not None else ''). \
         replace('%limit_id%', limit.reference_id if limit is not None else ''). \
-        replace('%limit_name%', limit.name if limit is not None else '')
+        replace('%limit_name%', limit.name if limit is not None else ''). \
+        replace('%occur_date%', now.strftime('%Y-%m-%dT%H:%M:%S'))
 
 
 def send_twilio_message(to, msg):
@@ -89,15 +92,15 @@ def trigger_event_actions(event, sighting):
     logger.info('Conditions met for event \'%s\'. Creating EventOccurrence and triggering actions...', event)
     event_occurrence = EventOccurrence.objects.create(event=event, sighting=sighting)
 
-    # check for events associated with this sighting in a different thread
-    t = threading.Thread(target=check_for_limits, args=(event_occurrence,))
-    t.start()
+    # check for limits associated with this sighting in a different thread
+    t1 = threading.Thread(target=check_for_limits, args=(event_occurrence,))
+    t1.start()
 
     metadata = json.loads(event.metadata)
     actions = metadata['actions']
     if actions:
         for action in actions:
-            perform_action(action, event, sighting.beacon, sighting.detector, None)
+            perform_action_async(action, event, sighting.beacon, sighting.detector, None)
 
 
 def trigger_limit_actions(limit, event, beacon):
@@ -108,7 +111,12 @@ def trigger_limit_actions(limit, event, beacon):
     actions = metadata['actions']
     if actions:
         for action in actions:
-            perform_action(action, event, beacon, None, limit)
+            perform_action_async(action, event, beacon, None, limit)
+
+
+def perform_action_async(action, event, beacon, detector, limit):
+    t = threading.Thread(target=perform_action, args=(action, event, beacon, detector, limit,))
+    t.start()
 
 
 def perform_action(action, event, beacon, detector, limit):
@@ -227,7 +235,7 @@ def check_for_events(sighting, new_sighting_detector=None):
             if conditions_met:
                 if (event_metadata.get('sighting_previous_event', None) is None):
                     # Check if we should trigger the same actions over and over again (or only once per sighting)
-                    once_per_sighting = False # TODO: new event parameter
+                    once_per_sighting = event_metadata.get('once_per_sighting', False)
                     same_occurrence_count = EventOccurrence.objects.filter(event=event, sighting=sighting).count()
                     if (not once_per_sighting or same_occurrence_count == 0):
                         previous_occurrences = EventOccurrence.objects.filter(event=event,

@@ -121,13 +121,15 @@
                 <div class="col-xs-4 col-md-4">
                     <div class="form-group">
                         <label for="sighting_is_current">Is Sighting Current?</label><br/>
-                        <input type="checkbox" id="sighting_is_current" ng-model="vm.event.metadata_object.sighting_is_current"/>
+                        <input type="checkbox" id="sighting_is_current"
+                               ng-model="vm.event.metadata_object.sighting_is_current"/>
                     </div>
                 </div>
                 <div class="col-xs-4 col-md-4">
                     <div class="form-group">
                         <label for="sighting_has_comment">Has comment?</label><br/>
-                        <input type="checkbox" id="sighting_has_comment" ng-model="vm.event.metadata_object.sighting_has_comment"/>
+                        <input type="checkbox" id="sighting_has_comment"
+                               ng-model="vm.event.metadata_object.sighting_has_comment"/>
                     </div>
                 </div>
                 <div class="col-xs-4 col-md-4">
@@ -148,10 +150,10 @@
                     </div>
                 </div>
                 <div class="col-xs-4 col-md-4">
-                    <div class="form-group" show-errors>
-                        <label for="sighting_has_battery_below">Battery below (%)</label><br/>
-                        <input type="number" class="form-control" name="sighting_has_battery_below"
-                               ng-model="vm.event.metadata_object.sighting_has_battery_below" required/>
+                    <div class="form-group">
+                        <label for="once_per_sighting">Only once per sighting?</label><br/>
+                        <input type="checkbox" id="once_per_sighting"
+                               ng-model="vm.event.metadata_object.once_per_sighting"/>
                     </div>
                 </div>
                 <div class="col-xs-4 col-md-4">
@@ -191,6 +193,16 @@
                                 <small ng-bind-html="event.reference_id | highlight: $select.search"/>
                             </ui-select-choices>
                         </ui-select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-xs-4 col-md-4">
+                    <div class="form-group" show-errors>
+                        <label for="sighting_has_battery_below">Battery below (%)</label><br/>
+                        <input type="number" class="form-control" name="sighting_has_battery_below"
+                               ng-model="vm.event.metadata_object.sighting_has_battery_below" required/>
                     </div>
                 </div>
             </div>

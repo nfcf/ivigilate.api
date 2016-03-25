@@ -284,6 +284,7 @@ class MakePaymentView(views.APIView):
 
 
 class BeaconHistoryView(views.APIView):
+    permission_classes = (permissions.IsAuthenticated, )
     queryset = Sighting.objects.all()
 
     def get(self, request, format=None):
@@ -306,6 +307,7 @@ class BeaconHistoryView(views.APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 class DetectorHistoryView(views.APIView):
+    permission_classes = (permissions.IsAuthenticated, )
     queryset = Sighting.objects.all()
 
     def get(self, request, format=None):
@@ -323,8 +325,9 @@ class DetectorHistoryView(views.APIView):
                                             Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
                                     .order_by('-id')
 
-            print(queryset.query)
             return utils.view_list(request, account, queryset, SightingDetectorHistorySerializer)
         else:
             return Response('The current logged on user is not associated with any account.',
                             status=status.HTTP_400_BAD_REQUEST)
+
+

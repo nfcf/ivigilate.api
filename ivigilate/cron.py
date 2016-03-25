@@ -47,7 +47,7 @@ class CloseSightingsJob(CronJobBase):
     RETRY_AFTER_FAILURE_MINS = 1
 
     NUMBER_OF_SECONDS_TO_BE_CONSIDERED_OLD = 10
-    NUMBER_OF_TIMES_TO_RUN = 5  # since cron only runs every minute...trying to minimize the interval
+    NUMBER_OF_TIMES_TO_RUN = 6  # since cron only runs every minute...trying to minimize the interval
 
     schedule = Schedule(run_every_mins=RUN_EVERY_MINS, retry_after_failure_mins=RETRY_AFTER_FAILURE_MINS)
     code = 'ivigilate.close_sightings_job'  # a unique code

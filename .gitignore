@@ -49,6 +49,9 @@ coverage.xml
 
 # Django stuff:
 *.log
+static/admin/
+static/rest_framework/
+static/gis/
 
 # Sphinx documentation
 docs/_build/
@@ -61,5 +64,8 @@ static/bower_components/
 
 #PyCharm
 .idea/
+.DS_store
 
 media/
+
+ivigilate/settings_local.py
