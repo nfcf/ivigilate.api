@@ -6,7 +6,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'twfw@itai1qz^3+$21=8&pd8w=zf6hfa_$&gg$)=a8$wd2^+_t'
 
-SITE_ID = 2
+SITE_ID = 1
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -109,6 +109,7 @@ COMPRESS_ENABLED = os.environ.get('COMPRESS_ENABLED', False) # or comment this t
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+
 EMAIL_HOST = 'smtp.mandrillapp.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = os.environ['EMAIL_HOST_USER']
@@ -120,8 +121,14 @@ TWILIO_ACCOUNT_SID = os.environ['TWILIO_ACCOUNT_SID']
 TWILIO_AUTH_TOKEN = os.environ['TWILIO_AUTH_TOKEN']
 TWILIO_DEFAULT_CALLERID = os.environ['TWILIO_DEFAULT_CALLERID']
 
-LOG_LEVEL = 'DEBUG' if DEBUG else 'INFO'
+
+FORCE_SCRIPT_NAME = ''
+
+LOG_LEVEL = 'DEBUG' if DEBUG else 'INFO' # overwritten in settings_local.py
 LOG_SIZE = 2 * 1024 * 1024
+
+from ivigilate.settings_local import *
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -182,5 +189,3 @@ LOGGING = {
         'level': 'WARNING'
     },
 }
-
-from ivigilate.settings_local import *
