@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from ivigilate.serializers import *
 from rest_framework import permissions, viewsets, status, mixins
 from ivigilate import utils
-import json, logging
+import json, logging, threading
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())

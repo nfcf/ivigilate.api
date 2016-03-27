@@ -1,8 +1,5 @@
 from datetime import datetime, timezone, timedelta
-import threading
-import pytz
-import requests
-import twilio
+import threading, pytz, requests, twilio
 from rest_framework.response import Response
 from rest_framework import status
 from twilio.rest import TwilioRestClient
