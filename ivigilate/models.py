@@ -374,6 +374,7 @@ class LimitOccurrence(models.Model):
 
 class Notification(models.Model):
     account = models.ForeignKey(Account)
+    event = models.ForeignKey(Event, null=True)
     metadata = models.TextField(blank=True)  # populated with title, category, duration and message by event occurrence / limit actions
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(editable=False)

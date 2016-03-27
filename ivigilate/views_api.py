@@ -137,6 +137,7 @@ class AddSightingsView(views.APIView):
                     # if the abs_diff between the 2 rssi values is bigger than X, "ignore" most recent value
                     step_change = 1 if rssi - previous_sighting.rssi > 0 else - 1
                     avg_rssi = previous_sighting.rssi + step_change if abs(previous_sighting.rssi - rssi) > 15 else 0.6 * previous_sighting.rssi + 0.4 * rssi
+
                     if previous_sighting.detector == detector and avg_rssi < detector.departure_rssi:
                         logger.info('Closing previous related sighting \'%s\' as the rssi dropped below the ' + \
                                     'departure_rssi configured for this detector (%s < %s).',

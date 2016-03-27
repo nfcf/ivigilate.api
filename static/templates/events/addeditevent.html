@@ -84,11 +84,11 @@
                         <ui-select multiple='true' ng-model="vm.beacons_selected"
                                    theme="select2" ng-disabled="disabled" style="width: 100%">
                             <ui-select-match placeholder="Select beacon(s) or leave empty for all...">
-                                {{$item.name}}
+                                {{ $item.name || $item.reference_id || $item.id }}
                             </ui-select-match>
                             <ui-select-choices
                                     repeat="beacon in vm.beacons | propsFilter: {name: $select.search, reference_id: $select.search} track by beacon.id">
-                                <div ng-bind-html="beacon.name | highlight: $select.search"></div>
+                                <div ng-bind-html="(beacon.name || beacon.reference_id || beacon.id) | highlight: $select.search"></div>
                                 <small>
                                     {{ beacon.type_display }} with ID: <span
                                         ng-bind-html="(beacon.reference_id || beacon.id) | highlight: $select.search"></span>
@@ -103,10 +103,11 @@
                         <ui-select multiple='true' ng-model="vm.detectors_selected"
                                    theme="select2" ng-disabled="disabled" style="width: 100%">
                             <ui-select-match placeholder="Select detector(s) or leave empty for all...">
-                                {{$item.name}}</ui-select-match>
+                                {{ $item.name || $item.reference_id || $item.id }}
+                            </ui-select-match>
                             <ui-select-choices
                                     repeat="detector in vm.detectors | propsFilter: {name: $select.search, reference_id: $select.search} track by detector.id">
-                                <div ng-bind-html="detector.name | highlight: $select.search"></div>
+                                <div ng-bind-html="(detector.name || detector.reference_id || detector.id) | highlight: $select.search"></div>
                                 <small>
                                     {{ detector.type_display }} with ID: <span
                                         ng-bind-html="(detector.reference_id || detector.id) | highlight: $select.search"></span>
@@ -168,15 +169,15 @@
             <div class="row">
                 <div class="col-xs-4 col-md-4">
                     <div class="form-group" show-errors>
-                        <label for="arrival_rssi">Arrival Proximity</label>
-                        <input type="number" class="form-control" name="arrival_rssi" ng-model="vm.event.metadata_object.sighting_arrival_rssi"
+                        <label for="max_rssi">Max RSSI</label>
+                        <input type="number" class="form-control" name="max_rssi" ng-model="vm.event.metadata_object.sighting_max_rssi"
                                placeholder="Default is 0" required/>
                     </div>
                 </div>
                 <div class="col-xs-4 col-md-4">
                     <div class="form-group" show-errors>
-                        <label for="departure_rssi">Departure Proximity</label>
-                        <input type="number" class="form-control" name="departure_rssi" ng-model="vm.event.metadata_object.sighting_departure_rssi"
+                        <label for="min_rssi">Min RSSI</label>
+                        <input type="number" class="form-control" name="min_rssi" ng-model="vm.event.metadata_object.sighting_min_rssi"
                                placeholder="Default is -99" required/>
                     </div>
                 </div>

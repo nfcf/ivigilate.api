@@ -56,6 +56,14 @@ def replace_tags(msg, event=None, beacon=None, detector=None, limit=None):
         replace('%occur_date%', now.strftime('%Y-%m-%dT%H:%M:%S'))
 
 
+def create_notification(event, metadata):
+    previous_notifications = Notification.objects.filter(event=event, is_active=True). \
+                                            order_by('-id')[:1]
+
+    if previous_notifications is None or len(previous_notifications) == 0:
+        Notification.objects.create(account=event.account, event=event, metadata=metadata)
+
+
 def send_twilio_message(to, msg):
     # logger.debug('%s', msg)
     # logger.debug('%s', to)
@@ -100,7 +108,7 @@ def trigger_event_actions(event, sighting):
     actions = metadata['actions']
     if actions:
         for action in actions:
-            perform_action_async(action, event, sighting.beacon, sighting.detector, None)
+            perform_action(action, event, sighting.beacon, sighting.detector, None)
 
 
 def trigger_limit_actions(limit, event, beacon):
@@ -111,7 +119,7 @@ def trigger_limit_actions(limit, event, beacon):
     actions = metadata['actions']
     if actions:
         for action in actions:
-            perform_action_async(action, event, beacon, None, limit)
+            perform_action(action, event, beacon, None, limit)
 
 
 def perform_action_async(action, event, beacon, detector, limit):
@@ -129,7 +137,7 @@ def perform_action(action, event, beacon, detector, limit):
             action_metadata['timeout'] = action.get('timeout', 0)
             action_metadata['title'] = replace_tags(action.get('title', ''), event, beacon, detector, limit)
             action_metadata['message'] = replace_tags(action.get('message', ''), event, beacon, detector, limit)
-            Notification.objects.create(account=event.account, metadata=json.dumps(action_metadata))
+            create_notification(event, json.dumps(action_metadata))
         elif action['type'] == 'SMS':
             logger.info('Action for ' + ('event' if event is not None else 'limit') + ' \'%s\': Sending SMS to %s recipient(s).',
                     event if event is not None else limit, len(re.split(',|;', action['recipients'])))
@@ -209,8 +217,8 @@ def check_for_events(sighting, new_sighting_detector=None):
                     (event_metadata.get('sighting_has_been_confirmed', None) is None or
                          (event_metadata['sighting_has_been_confirmed'] and sighting.confirmed) or
                          (not event_metadata['sighting_has_been_confirmed'] and not sighting.confirmed)) and \
-                    (event_metadata.get('sighting_arrival_rssi', 0) >= sighting.rssi and
-                         (event_metadata.get('sighting_departure_rssi', -99) < sighting.rssi)) and \
+                    (event_metadata.get('sighting_max_rssi', 0) >= sighting.rssi and
+                         (event_metadata.get('sighting_min_rssi', -99) < sighting.rssi)) and \
                     (new_sighting_detector is None or len(event.detectors.all()) == 0 or new_sighting_detector in event.detectors.all()):
 
                 # Check the sighting duration within the proximity range specified in the event

@@ -46,7 +46,7 @@ class CloseSightingsJob(CronJobBase):
     RUN_EVERY_MINS = 1
     RETRY_AFTER_FAILURE_MINS = 1
 
-    NUMBER_OF_SECONDS_TO_BE_CONSIDERED_OLD = 10
+    NUMBER_OF_SECONDS_TO_BE_CONSIDERED_OLD = 6
     NUMBER_OF_TIMES_TO_RUN = 6  # since cron only runs every minute...trying to minimize the interval
 
     schedule = Schedule(run_every_mins=RUN_EVERY_MINS, retry_after_failure_mins=RETRY_AFTER_FAILURE_MINS)
@@ -69,7 +69,7 @@ class CloseSightingsJob(CronJobBase):
         filter_datetime = now - timedelta(seconds=CloseSightingsJob.NUMBER_OF_SECONDS_TO_BE_CONSIDERED_OLD)
         sightings = Sighting.objects.filter(is_current=True, last_seen_at__lt=filter_datetime)
         if sightings:
-            logger.info('Found %s sighting(s) that need closing.', len(sightings))
+            logger.info('CloseSightingsJob: Found %s sighting(s) that need closing.', len(sightings))
             for sighting in sightings:
                 close_sighting(sighting)
         logger.debug('Finished CloseSightingsJob iteration %s...', iteration)

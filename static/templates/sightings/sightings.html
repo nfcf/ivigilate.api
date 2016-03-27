@@ -26,10 +26,12 @@
 
                     <div class="form-group">
                         <ui-select multiple ng-model="vm.filterFixedBeaconsAndDetectors" theme="select2" ng-disabled="disabled" style="width: 100%">
-                            <ui-select-match placeholder="Select fixed beacon(s) or detector(s)...">{{$item.name}}</ui-select-match>
+                            <ui-select-match placeholder="Select fixed beacon(s) or detector(s)...">
+                                {{ $item.name || $item.reference_id || $item.id }}
+                            </ui-select-match>
                             <ui-select-choices
                                     repeat="fixedBeaconOrDetector in vm.fixedBeaconsAndDetectors | propsFilter: {name: $select.search, reference_id: $select.search}">
-                                <div ng-bind-html="fixedBeaconOrDetector.name | highlight: $select.search"></div>
+                                <div ng-bind-html="(fixedBeaconOrDetector.name || fixedBeaconOrDetector.reference_id || fixedBeaconOrDetector.id) | highlight: $select.search"></div>
                                 <small>
                                     {{ fixedBeaconOrDetector.kind }} with ID: <span ng-bind-html="fixedBeaconOrDetector.reference_id"></span>
                                 </small>
