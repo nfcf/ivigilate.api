@@ -83,7 +83,7 @@ def main():
             if now.date() > last_respawn_date and now.hour == config.getint('BASE', 'daily_respawn_hour'):
                 autoupdate.respawn_script(ble_thread)
             elif now > last_update_check + timedelta(minutes=5):
-                autoupdate.check()
+                autoupdate.check(ble_thread)
                 last_update_check = datetime.now()
 
             # if new sightings, send them to the server

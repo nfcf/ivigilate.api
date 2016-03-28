@@ -31,7 +31,7 @@ def restart_pi():
     print output
 
 
-def check():
+def check(ble_thread=None):
     metadata = json.dumps({'hardware': config.get('DEVICE', 'hardware'),
                            'revision': config.get('DEVICE', 'revision'),
                            'os_uname': config.get('DEVICE', 'uname'),
@@ -41,14 +41,19 @@ def check():
                        'metadata': metadata})
 
     response = None
+    iteration = 0
     while response == None:
         try:
             response = requests.post(config.get('SERVER', 'address') + config.get('SERVER', 'autoupdate_uri'),
                                      data)
             logger.debug('check() received from server: %s', response)
         except Exception:
-            time.sleep(5)
             logger.exception('check() failed to contact the server with error:')
+            if iteration < 3:
+                time.sleep(5)
+                iteration = iteration + 1
+            else:
+                restart_pi()
 
     if response.status_code == 200:  # Everything is up-to-date
         logger.info('check() returned 200 OK (Everything is up-to-date).')
@@ -83,7 +88,7 @@ def check():
         if update['restart']:
             restart_pi()
         else:
-            respawn_script()
+            respawn_script(ble_thread)
         sys.exit()
     else:
         logger.warn('check() returned %s. Ignoring and continuing work...', response.status_code)
