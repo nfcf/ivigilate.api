@@ -80,6 +80,7 @@ def scheduled_check_for_event(event, sighting, seconds_in_the_future, iteration=
         new_sightings = new_sightings.filter(detector__in=event.detectors.all())
 
     new_sightings = new_sightings.order_by('-id')[:1]
+    logger.warn(str(new_sightings.query))
     if new_sightings is None or len(new_sightings) == 0:
         trigger_event_actions(event, sighting)
 
