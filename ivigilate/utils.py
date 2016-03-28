@@ -71,9 +71,9 @@ def trigger_limit_actions(limit, event, beacon):
 
 
 def scheduled_check_for_event(event, sighting, seconds_in_the_future, iteration=1):
-    logger.debug('scheduled_check_for_event() Going to sleep for %ds...', seconds_in_the_future)
+    logger.info('scheduled_check_for_event() Going to sleep for %ds...', seconds_in_the_future)
     time.sleep(seconds_in_the_future if seconds_in_the_future > 0 else 1)
-    logger.debug('scheduled_check_for_event() Checking if \'%s\' event conditions are met...', event)
+    logger.info('scheduled_check_for_event() Checking if \'%s\' event conditions are met...', event)
 
     new_sightings = Sighting.objects.filter(beacon=sighting.beacon, first_seen_at__gt=sighting.last_seen_at)
     if event.detectors is not None and len(event.detectors.all()) > 0:
