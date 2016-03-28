@@ -143,7 +143,8 @@ class AddSightingsView(views.APIView):
                                     'departure_rssi configured for this detector (%s < %s).',
                                     previous_sighting, avg_rssi, detector.departure_rssi)
                         utils.close_sighting(previous_sighting, detector)
-                    elif previous_sighting.detector != detector and rssi > (previous_sighting.rssi if previous_sighting.rssi is not None else 0):
+                        # TODO: instead of having the 5% margin, force that at least 2 or 3 new sightings are > than the current one...
+                    elif previous_sighting.detector != detector and rssi * 1.05 > (previous_sighting.rssi if previous_sighting.rssi is not None else 0):
                         logger.info('AddSightingsView.post() Closing previous related sighting \'%s\' as the beacon moved to another location.',
                                     previous_sighting)
                         utils.close_sighting(previous_sighting, detector)
