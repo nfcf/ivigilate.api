@@ -88,7 +88,7 @@ class AddSightingsView(views.APIView):
         data = json.loads(request.body.decode('utf-8'))
 
         if (data is not None and len(data) > 0):
-            logger.info('Got %s sightings', len(data))
+            logger.info('AddSightingsView.post() Got %s sightings', len(data))
             for sighting in data:
                 company_id = sighting.get('company_id')
                 beacon_uid = sighting.get('beacon_uid', None)
@@ -96,7 +96,7 @@ class AddSightingsView(views.APIView):
                 rssi = sighting.get('rssi', None)
                 battery = sighting.get('battery', None)
                 location = sighting.get('location', None)
-                logger.debug('Sighting: %s %s %s %s %s', company_id, beacon_uid, detector_uid, rssi, battery)
+                logger.debug('AddSightingsView.post() Sighting: %s %s %s %s %s', company_id, beacon_uid, detector_uid, rssi, battery)
 
                 try:
                     account = Account.objects.get(company_id=company_id)
@@ -104,7 +104,7 @@ class AddSightingsView(views.APIView):
                         return Response('Ignoring sighting as the Account doesn\'t have a valid subscription.',
                                         status=status.HTTP_400_BAD_REQUEST)
                 except Account.DoesNotExist:
-                    logger.warning('Attempt to add a sighting for an invalid Company ID.')
+                    logger.warning('AddSightingsView.post() Attempt to add a sighting for an invalid Company ID.')
                     return Response('Invalid Company ID.', status=status.HTTP_400_BAD_REQUEST)
 
                 try:
@@ -139,16 +139,16 @@ class AddSightingsView(views.APIView):
                     avg_rssi = previous_sighting.rssi + step_change if abs(previous_sighting.rssi - rssi) > 15 else 0.6 * previous_sighting.rssi + 0.4 * rssi
 
                     if previous_sighting.detector == detector and avg_rssi < detector.departure_rssi:
-                        logger.info('Closing previous related sighting \'%s\' as the rssi dropped below the ' + \
+                        logger.info('AddSightingsView.post() Closing previous related sighting \'%s\' as the rssi dropped below the ' + \
                                     'departure_rssi configured for this detector (%s < %s).',
                                     previous_sighting, avg_rssi, detector.departure_rssi)
                         utils.close_sighting(previous_sighting, detector)
                     elif previous_sighting.detector != detector and rssi > (previous_sighting.rssi if previous_sighting.rssi is not None else 0):
-                        logger.info('Closing previous related sighting \'%s\' as the beacon moved to another location.',
+                        logger.info('AddSightingsView.post() Closing previous related sighting \'%s\' as the beacon moved to another location.',
                                     previous_sighting)
                         utils.close_sighting(previous_sighting, detector)
                     else:
-                        logger.debug('Updating previous related sighting \'%s\'.', previous_sighting)
+                        logger.debug('AddSightingsView.post() Updating previous related sighting \'%s\'.', previous_sighting)
                         new_sighting = previous_sighting
                         previous_sighting_occurred_at = previous_sighting.last_seen_at
                         if not beacon.reported_missing or \
@@ -163,7 +163,7 @@ class AddSightingsView(views.APIView):
                     if beacon.reported_missing:
                         if (previous_sighting_occurred_at is None or
                             (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60):
-                            logger.info('Reported missing beacon was seen at / by \'%s\'. ' +
+                            logger.info('AddSightingsView.post() Reported missing beacon was seen at / by \'%s\'. ' +
                                         'Notifying corresponding account owners...', detector)
                             try:
                                 send_mail('Reported missing: {0}'.format(beacon.name),
@@ -171,26 +171,26 @@ class AddSightingsView(views.APIView):
                                           settings.DEFAULT_FROM_EMAIL,
                                           [u.email for u in beacon.account.get_account_admins()])
                             except Exception as ex:
-                                logger.exception('Failed to send reported missing email to account admins!')
+                                logger.exception('AddSightingsView.post() Failed to send reported missing email to account admins!')
                         else:
-                            logger.info('Reported missing beacon was seen at / by \'%s\'. ' + \
+                            logger.info('AddSightingsView.post() Reported missing beacon was seen at / by \'%s\'. ' + \
                                         'Skipping notification as the last one was triggered less than 1 minute ago...', detector)
                             return Response('Ignored sighting as the beacon doesn\'t belong to this account.')
                     else:
-                        logger.info('Ignoring current sighting as the beacon \'%s\' was seen at / by another account\'s ' +
+                        logger.info('AddSightingsView.post() Ignoring current sighting as the beacon \'%s\' was seen at / by another account\'s ' +
                                     'detector / user \'%s\' but has not been reported missing.', beacon, detector)
                         return Response('Ignored sighting as the beacon doesn\'t belong to this account.')
 
                 if new_sighting is None:
                     if detector is not None and rssi < detector.arrival_rssi and \
                             (beacon.account_id == account.id or not beacon.reported_missing):
-                        logger.info('Ignoring sighting of beacon \'%s\' at / by \'%s\' as the rssi is lower than the ' +
+                        logger.info('AddSightingsView.post() Ignoring sighting of beacon \'%s\' at / by \'%s\' as the rssi is lower than the ' +
                                     'arrival_rssi configured for this detector / user (%s < %s).', beacon, detector, rssi, detector.arrival_rssi)
                         return Response('Ignored sighting due to weak rssi.')
                     else:
                         new_sighting = Sighting.objects.create(beacon=beacon, detector=detector,
                                                                location=location, rssi=rssi, battery=battery)
-                        logger.debug('Created new sighting \'%s\'.', new_sighting)
+                        logger.debug('AddSightingsView.post() Created new sighting \'%s\'.', new_sighting)
 
                 utils.check_for_events_async(new_sighting,)
 
@@ -209,7 +209,7 @@ class AutoUpdateView(views.APIView):
         detector_uid = data.get('detector_uid').lower()
         metadata = data.get('metadata', None)
 
-        logger.info('Auto update check from detector \'%s: %s\'', company_id, detector_uid)
+        logger.info('AutoUpdateView.post() Auto update check from detector \'%s: %s\'', company_id, detector_uid)
 
         try:
             account = Account.objects.get(company_id=company_id)
@@ -262,7 +262,7 @@ class MakePaymentView(views.APIView):
             license_due_for_payment.valid_until = license_due_for_payment.valid_from + relativedelta(months=license_metadata['duration_in_months'])
 
             try:
-                logger.debug('Charging %s%s on the card with token %s', license_due_for_payment.currency,
+                logger.debug('MakePaymentView.post() Charging %s%s on the card with token %s', license_due_for_payment.currency,
                              license_due_for_payment.amount, license_due_for_payment.reference_id)
                 stripe.api_key = os.environ['STRIPE_SECRET_KEY']
                 charge = stripe.Charge.create(
@@ -272,10 +272,10 @@ class MakePaymentView(views.APIView):
                     description=license_due_for_payment.description,
                     receipt_email=data.get('receipt_email', None)
                 )
-                logger.info('Payment completed successfuly: %s', charge)
+                logger.info('MakePaymentView.post() Payment completed successfuly: %s', charge)
                 license_due_for_payment.save()
             except stripe.error.CardError as ex:
-                logger.exception('The card has been declined:')
+                logger.exception('MakePaymentView.post() The card has been declined:')
                 return Response(ex.message, status=status.HTTP_401_UNAUTHORIZED)
 
             serialized = LicenseSerializer(license_due_for_payment, context={'request': request})

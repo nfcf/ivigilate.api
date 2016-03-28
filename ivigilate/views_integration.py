@@ -35,7 +35,7 @@ class BcloseSightingView(views.APIView):
                                                     detector_uid=detector_uid,
                                                     localdate=datetime.strptime(occur_date, '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d-%H:%M:%S'))
         except Exception as ex:
-            logger.exception('Failed while sending message to Bclose:')
+            logger.exception('BcloseSightingView.post() Failed while sending message to Bclose:')
             return Response(str(ex), status=status.HTTP_400_BAD_REQUEST)
 
         return Response('', status=status.HTTP_200_OK)

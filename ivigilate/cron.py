@@ -16,12 +16,12 @@ class RecurringLicensesJob(CronJobBase):
     code = 'ivigilate.recurring_licenses_job'  # a unique code
 
     def do(self):
-        logger.debug('Starting RecurringLicensesJob...')
+        logger.debug('RecurringLicensesJob.do() Starting...')
         accounts = Account.objects.filter()
         if accounts:
             for account in accounts:
                 if account.get_license_about_to_expire() is not None and account.get_license_due_for_payment() is None:
-                    logger.debug('Found account that needs to renew the license in a few days: \'%s\'', account)
+                    logger.debug('RecurringLicensesJob.do() Found account that needs to renew the license in a few days: \'%s\'', account)
                     try:
                         account_metadata = json.loads(account.metadata)
                         if 'plan' in account_metadata:
@@ -34,12 +34,12 @@ class RecurringLicensesJob(CronJobBase):
                                                              currency=account_metadata['plan']['currency'],
                                                              description='%s Month(s) Subscription' % str(account_metadata['plan']['duration_in_months']),
                                                              metadata=json.dumps(license_metadata))
-                            logger.debug('Generated a new License item for account: \'%s\'.', account)
+                            logger.debug('RecurringLicensesJob.do() Generated a new License item for account: \'%s\'.', account)
                         else:
-                            logger.warning('No subscription plan metadata information available for account: \'%s\'.', account)
+                            logger.warning('RecurringLicensesJob.do() No subscription plan metadata information available for account: \'%s\'.', account)
                     except Exception as ex:
-                        logger.exception('Failed to generate License for account: \'%s\'', account)
-        logger.debug('Finished RecurringLicensesJob...')
+                        logger.exception('RecurringLicensesJob.do() Failed to generate License for account: \'%s\'', account)
+        logger.debug('RecurringLicensesJob.do() Finished...')
 
 
 class CloseSightingsJob(CronJobBase):
@@ -61,15 +61,15 @@ class CloseSightingsJob(CronJobBase):
                 iteration +=1
                 sleep(10)
         except Exception as ex:
-            logger.exception('CloseSightingsJob failed with exception:')
+            logger.exception('CloseSightingsJob.do() failed with exception:')
 
     def asyncJob(self, iteration):
-        logger.debug('Starting CloseSightingsJob iteration %s...', iteration)
+        logger.debug('CloseSightingsJob.do() Starting iteration %s...', iteration)
         now = datetime.now(timezone.utc)
         filter_datetime = now - timedelta(seconds=CloseSightingsJob.NUMBER_OF_SECONDS_TO_BE_CONSIDERED_OLD)
         sightings = Sighting.objects.filter(is_current=True, last_seen_at__lt=filter_datetime)
         if sightings:
-            logger.info('CloseSightingsJob: Found %s sighting(s) that need closing.', len(sightings))
+            logger.info('CloseSightingsJob.do() Found %s sighting(s) that need closing.', len(sightings))
             for sighting in sightings:
                 close_sighting(sighting)
-        logger.debug('Finished CloseSightingsJob iteration %s...', iteration)
+        logger.debug('CloseSightingsJob.do() Finished iteration %s...', iteration)

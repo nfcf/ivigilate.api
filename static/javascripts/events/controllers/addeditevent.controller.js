@@ -96,7 +96,7 @@
                     vm.event = {'is_active': true, 'schedule_timezone_offset': Math.abs(now.getTimezoneOffset()),
                                 'metadata_object': {
                                     'action_notification_category': 'Info',
-                                    'sighting_is_current': false,
+                                    'sighting_is_current': true,
                                     'sighting_duration_in_seconds': 0,
                                     'sighting_has_battery_below': 100,
                                     'sighting_dormant_period_in_seconds': 0,

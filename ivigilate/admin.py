@@ -38,7 +38,7 @@ class AccountAdmin(admin.ModelAdmin):
                                                      valid_until=valid_until,
                                                      metadata=json.dumps(account_metadata['setup']))
             except Exception as ex:
-                logger.exception('Failed to create initial license for account with exception:')
+                logger.exception('AccountAdmin.save_model() Failed to create initial license for account with exception:')
 
 
 @admin.register(License)

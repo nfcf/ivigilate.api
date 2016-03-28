@@ -1,4 +1,4 @@
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import Q
 from rest_framework.response import Response
@@ -26,7 +26,7 @@ class AccountViewSet(viewsets.ModelViewSet):
             queryset = self.queryset.filter(Q(licenses__valid_until=None) | Q(licenses__valid_until__gt=datetime.now(timezone.utc))).distinct()
             return utils.view_list(request, None, queryset, self.get_serializer_class())
         else:
-            logger.critical('The user \'%s\' tried to access the accounts list without admin permissions.',
+            logger.critical('AccountViewSet.list() The user \'%s\' tried to access the accounts list without admin permissions.',
                             request.user)
             return Response('You do not have permissions to access this list.',
                             status=status.HTTP_400_BAD_REQUEST)
