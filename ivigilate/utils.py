@@ -94,7 +94,7 @@ def scheduled_check_for_event(event, sighting, seconds_in_the_future, iteration=
                 t = threading.Thread(target=scheduled_check_for_event, args=(event, sighting, event_sighting_dormant_period_in_seconds, iteration+1))
                 t.start()
             else:
-                logger.warn('scheduled_check_for_event() Already ran 3 times so that\'s\' enough. No more checks for this sighting.')
+                logger.warn('scheduled_check_for_event() Already ran 3 times so that\'s enough. No more checks for this sighting.')
     else:
         logger.info('scheduled_check_for_event() Conditions not met for event \'%s\'. ' +
                     'The corresponding beacon has been active in the meantime...', event)
