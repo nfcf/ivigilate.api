@@ -158,9 +158,11 @@ def check_for_events(sighting, new_sighting_detector=None):
                          (event_metadata['sighting_has_been_confirmed'] and sighting.confirmed) or
                          (not event_metadata['sighting_has_been_confirmed'] and not sighting.confirmed)) and \
                     (event_metadata.get('sighting_max_rssi', 0) >= sighting.rssi and
-                         (event_metadata.get('sighting_min_rssi', -99) < sighting.rssi)) and \
-                    (new_sighting_detector is None or len(event.detectors.all()) == 0 or new_sighting_detector in event.detectors.all()):
+                         (event_metadata.get('sighting_min_rssi', -99) < sighting.rssi)):
+                    # and \
+                    # (new_sighting_detector is None or len(event.detectors.all()) == 0 or new_sighting_detector in event.detectors.all()):
 
+                # TODO: use the new_sighting_detector to keep an event alive when moving between detectors ^^^^
                 # Check the sighting duration within the proximity range specified in the event
                 event_sighting_duration_in_seconds = event_metadata.get('sighting_duration_in_seconds', 0)
                 if event_sighting_duration_in_seconds > 0:
