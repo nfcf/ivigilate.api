@@ -166,6 +166,7 @@ def check_for_events(sighting, new_sighting_detector=None):
                 if event_sighting_duration_in_seconds > 0:
                     if not sighting.is_current:
                         seconds_in_the_future = event_sighting_duration_in_seconds - (now - sighting.last_seen_at).total_seconds()
+                        logger.warn('DEBUG: %s %s', 'scheduling_check', str(seconds_in_the_future))
                         # schedule check for missing beacon (to occur after X seconds)
                         t = threading.Thread(target=scheduled_check_for_event, args=(event, sighting, seconds_in_the_future))
                         t.start()
