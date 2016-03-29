@@ -81,7 +81,8 @@ def main():
             now = datetime.now()
             # if configured daily_respawn_hour, stop the ble_thread and respawn the process
             if now.date() > last_respawn_date and now.hour == config.getint('BASE', 'daily_respawn_hour'):
-                autoupdate.respawn_script(ble_thread)
+                # autoupdate.respawn_script(ble_thread)
+                autoupdate.restart_pi()
             elif now > last_update_check + timedelta(minutes=5):
                 autoupdate.check(ble_thread)
                 last_update_check = datetime.now()

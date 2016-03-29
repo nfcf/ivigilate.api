@@ -43,7 +43,11 @@
                             if (!isPlaying && sound.paused) {
                                 isPlaying = true;
                                 sound.play();
-                                setTimeout(function () { sound.pause(); }, !!metadata.timeout ? metadata.timeout * 1000 : 0);
+                                if (!!metadata.timeout) {
+                                    setTimeout(function () {
+                                        sound.pause();
+                                    }, metadata.timeout * 1000);
+                                }
                             }
                         } catch (ex) {
                             console.log('Failed to parse notification data with error: ' + ex.message);
