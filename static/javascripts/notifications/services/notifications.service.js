@@ -64,6 +64,7 @@
 
         function closeNotification(notification) {
             notification.is_active = false;
+            sound.pause();
             return $http.put('/api/v1/notifications/' + notification.id + '/', notification).then(successFn, errorFn);
 
             function successFn(data, status, headers, config) {
