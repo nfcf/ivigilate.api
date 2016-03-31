@@ -114,6 +114,10 @@ class DetectorWriteSerializer(serializers.ModelSerializer):
         fields = ('reference_id', 'type', 'photo', 'name', 'location',
                   'arrival_rssi', 'departure_rssi', 'metadata', 'is_active')
 
+    def create(self, validated_data):
+        detector = Detector.objects.create(**validated_data)
+        return detector
+
     def update(self, instance, validated_data):
         instance.reference_id = validated_data.get('reference_id', instance.reference_id)
         instance.type = validated_data.get('type', instance.type)

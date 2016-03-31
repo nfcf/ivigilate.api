@@ -194,6 +194,7 @@ class Detector(models.Model):
     def save(self, *args, **kwargs):
         now = datetime.now(timezone.utc)
         if not self.id:
+            self.uid = self.uid or self.reference_id
             self.created_at = now
             self.updated_at = now
         else:
@@ -201,7 +202,7 @@ class Detector(models.Model):
         super(Detector, self).save(*args, **kwargs)
 
     def __str__(self):
-        return '%s: uid=%s, name=%s' % (self.account.company_id, self.uid, self.name)
+        return '%s: uid=%s, name=%s' % (self.account.name, self.uid, self.name)
 
 
 class Beacon(models.Model):

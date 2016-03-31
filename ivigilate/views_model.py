@@ -150,6 +150,22 @@ class DetectorViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
         serializer = self.get_serializer_class()(queryset, many=False, context={'request': request})
         return Response(serializer.data)
 
+    def create(self, request):
+        user = request.user if not isinstance(request.user, AnonymousUser) else None
+        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
+
+        if account:
+            serializer = self.get_serializer_class()(data=request.data)
+            if serializer.is_valid():
+                if serializer.save(updated_by=user, account=account):
+                    return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response('The current logged on user is not associated with any account.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
     def update(self, request, pk=None):
         user = request.user if not isinstance(request.user, AnonymousUser) else None
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
