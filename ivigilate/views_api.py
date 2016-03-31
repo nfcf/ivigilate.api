@@ -116,7 +116,7 @@ class AddSightingsView(views.APIView):
                     beacon = Beacon.objects.create(account=account, uid=beacon_uid)
 
                 try:
-                    detector = Detector.objects.get(uid=detector_uid)
+                    detector = Detector.objects.get(account=account, uid=detector_uid)
                     if not detector.is_active:
                         return Response('Ignoring sighting as the Detector is not active on the system.',
                                         status=status.HTTP_400_BAD_REQUEST)
