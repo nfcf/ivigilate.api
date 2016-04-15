@@ -2,11 +2,7 @@
 
 # External module imports, making sure we have root superuser privileges
 import time
-try:
-    import RPi.GPIO as GPIO
-except RuntimeError:
-    print("Error importing RPi.GPIO!  This is probably because you need superuser privileges.  You can achieve this by using 'sudo' to run your script")
-
+import RPi.GPIO as GPIO # Required for GPIO access. Make sure we have root superuser privileges!
 
 # Definitions (user changeable)
 buzzerPin = 17 # Broadcom pin 17 (P1 pin 11)
@@ -20,6 +16,7 @@ buzzer = None
 
 def init():
 	global buzzer
+
 	GPIO.setmode(GPIO.BCM) # Broadcom pin-numbering scheme
 	GPIO.setup(buzzerPin, GPIO.OUT) # Buzzer pin set as output
 	buzzer = GPIO.PWM(buzzerPin, freq_l)  # Initialize PWM on lower frequency tone

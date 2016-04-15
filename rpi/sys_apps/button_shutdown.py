@@ -3,12 +3,8 @@
 # This script will monitor the pwr_sw GPIO and if a falling edge is
 # detected then a shutdown is immediately  initiated.
 
-# Required for GPIO access. Make sure we have root superuser privileges
-try:
-    import RPi.GPIO as GPIO
-except RuntimeError:
-    print("Error importing RPi.GPIO!  This is probably because you need superuser privileges.  You can achieve this by using 'sudo' to run your script")
 
+import RPi.GPIO as GPIO # Required for GPIO access. Make sure we have root superuser privileges!
 import time
 import os # Required for executing an OS command
 
