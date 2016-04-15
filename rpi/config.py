@@ -33,15 +33,11 @@ def get_cpuinfo():
 def init():
     global __cfg
     __cfg = ConfigParser.SafeConfigParser()
+    __cfg.readfp(open(BASE_APP_PATH + 'defaults.conf')) # Load defaults
     __cfg.read(BASE_APP_PATH + 'ivigilate.conf')
 
     global __cpuinfo
     __cpuinfo = get_cpuinfo()
-
-    if not __cfg.has_option('DEVICE', 'last_respawn_date'):
-        __cfg.set('DEVICE', 'last_respawn_date', '2000-01-01')
-    if not __cfg.has_option('DEVICE', 'last_update_date'):
-        __cfg.set('DEVICE', 'last_update_date', '2000-01-01 00:00')
 
 
 def set(section, var, value):
