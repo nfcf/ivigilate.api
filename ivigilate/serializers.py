@@ -175,6 +175,10 @@ class BeaconWriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Invalid Company ID.')
         return value
 
+    def create(self, validated_data):
+        beacon = Beacon.objects.create(**validated_data)
+        return beacon
+
     def update(self, instance, validated_data):
         instance.reference_id = validated_data.get('reference_id', instance.reference_id)
         instance.type = validated_data.get('type', instance.type)
@@ -307,12 +311,13 @@ class EventDetectorSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class EventReadSerializer(serializers.HyperlinkedModelSerializer):
-    beacons = EventBeaconSerializer(many=True, read_only=True)
     detectors = EventDetectorSerializer(many=True, read_only=True)
+    unauthorized_beacons = EventBeaconSerializer(many=True, read_only=True)
+    authorized_beacons = EventBeaconSerializer(many=True, read_only=True)
 
     class Meta:
         model = Event
-        fields = ('id', 'account', 'reference_id', 'name', 'beacons', 'detectors',
+        fields = ('id', 'account', 'reference_id', 'name', 'detectors', 'unauthorized_beacons', 'authorized_beacons',
                   'schedule_days_of_week', 'schedule_start_time', 'schedule_end_time', 'schedule_timezone_offset',
                   'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
 

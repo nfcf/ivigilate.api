@@ -10,18 +10,20 @@ import math, json, logging, time, threading, pytz
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
+def wrap_response_with_timestamp(response):
+    return {'timestamp': datetime.now(timezone.utc),
+            'list': response}
 
-def view_list(request, account, queryset, serializer):
+def view_list(request, account, queryset, serializer, wrap=False):
     if account is None or account.get_license_in_force() is not None:
         serializer_response = serializer(queryset, many=True, context={'request': request})
         # page = self.paginate_queryset(queryset)
         # serializer = self.get_pagination_serializer(page)
 
-        responseObject = {'timestamp': datetime.now(timezone.utc),
-                          'list': serializer_response.data} \
-            if issubclass(serializer, SightingReadSerializer) else \
+        responseObject = wrap_response_with_timestamp(serializer_response.data) \
+            if wrap else \
             serializer_response.data
-        return Response(responseObject)
+        return Response(responseObject, status=status.HTTP_200_OK)
     else:
         return Response('view_list() Your license has expired. Please ask the account administrator to renew the subscription.',
                         status=status.HTTP_401_UNAUTHORIZED)
@@ -149,7 +151,8 @@ def check_for_events(sighting, new_sighting_detector=None):
             initial_timestamp = sighting_metadata.get('timestamp_event_id_' + str(event.id), None)
 
             # Check if the bulk of the conditions are met...
-            if event_metadata.get('sighting_is_current', True) == sighting.is_current and \
+            if event_metadata.get('event_is_local', False) == False and \
+                            event_metadata.get('sighting_is_current', True) == sighting.is_current and \
                             event_metadata.get('sighting_has_battery_below', 0) >= sighting.battery and \
                     (event_metadata.get('sighting_has_comment', None) is None or
                          (event_metadata['sighting_has_comment'] and sighting.comment) or

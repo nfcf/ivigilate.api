@@ -1,6 +1,7 @@
 import os
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import AnonymousUser
+from django.forms import model_to_dict
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.generic.base import TemplateView
 from django.utils.decorators import method_decorator
@@ -91,7 +92,7 @@ class AddSightingsView(views.APIView):
             logger.info('AddSightingsView.post() Got %s sightings', len(data))
             for sighting in data:
                 company_id = sighting.get('company_id')
-                beacon_uid = sighting.get('beacon_uid', None)
+                beacon_uid = sighting.get('beacon_uid', None).lower()
                 detector_uid = sighting.get('detector_uid').lower()
                 rssi = sighting.get('rssi', None)
                 battery = sighting.get('battery', None)
@@ -110,10 +111,11 @@ class AddSightingsView(views.APIView):
                 try:
                     beacon = Beacon.objects.get(uid=beacon_uid)
                     if not beacon.is_active:
-                        return Response('Ignoring sighting as the Beacon is not active on the system.',
+                        return Response('Ignoring sighting as the Beacon is not active in the system.',
                                         status=status.HTTP_400_BAD_REQUEST)
                 except Beacon.DoesNotExist:
-                    beacon = Beacon.objects.create(account=account, uid=beacon_uid)
+                    return Response('Ignoring sighting as the Beacon has not been provisioned in the system.',
+                                        status=status.HTTP_400_BAD_REQUEST)
 
                 try:
                     detector = Detector.objects.get(account=account, uid=detector_uid)
@@ -244,6 +246,49 @@ class AutoUpdateView(views.APIView):
         return Response('', status=status.HTTP_200_OK)
 
 
+class LocalEventView(views.APIView):
+    permission_classes = (permissions.AllowAny, )
+
+    def get(self, request, format=None):
+        company_id = request.query_params.get('company_id')
+        detector_uid = request.query_params.get('detector_uid').lower()
+
+        logger.info('LocalEventView.get() Retrieving local events for detector \'%s: %s\'', company_id, detector_uid)
+
+        try:
+            account = Account.objects.get(company_id=company_id)
+        except Account.DoesNotExist:
+            return Response('Invalid Company ID.', status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            detector = Detector.objects.get(uid=detector_uid)
+        except Detector.DoesNotExist:
+            return Response('Invalid Detector UID.', status=status.HTTP_400_BAD_REQUEST)
+
+        events = Event.objects.filter(Q(account=account),
+                                      Q(is_active=True),
+                                      Q(detectors=None)|Q(detectors__id__exact=detector.id))
+        local_event_list = []
+        if events is not None and len(events) > 0:
+            for event in events:
+                event_metadata = json.loads(event.metadata)
+                is_local_event = event_metadata.get('is_local_event', False)
+                if is_local_event:
+                    event_dict = model_to_dict(event)
+
+                    if len(event_dict.get('unauthorized_beacons', [])) > 0:
+                        event_dict['unauthorized_beacons'] = Beacon.objects.filter(is_active=True, id__in=event_dict['unauthorized_beacons']).\
+                            values_list('uid', flat=True)
+
+                    if 'detectors' in event_dict:
+                        del event_dict['detectors']
+                    local_event_list.append(event_dict)
+
+        responseObject = utils.wrap_response_with_timestamp(local_event_list)
+
+        return Response(responseObject, status=status.HTTP_200_OK)
+
+
 class MakePaymentView(views.APIView):
     permission_classes = (permissions.IsAuthenticated, )
 
@@ -307,6 +352,7 @@ class BeaconHistoryView(views.APIView):
         else:
             return Response('The current logged on user is not associated with any account.',
                             status=status.HTTP_400_BAD_REQUEST)
+
 
 class DetectorHistoryView(views.APIView):
     permission_classes = (permissions.IsAuthenticated, )

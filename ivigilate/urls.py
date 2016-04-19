@@ -30,6 +30,7 @@ urlpatterns = patterns('',
     url(r'^api/v1/logout/$', views_api.LogoutView.as_view(), name='logout'),
     url(r'^api/v1/addsightings/$', views_api.AddSightingsView.as_view(), name='addsightings'),
     url(r'^api/v1/autoupdate/$', views_api.AutoUpdateView.as_view(), name='autoupdate'),
+    url(r'^api/v1/localevent/$', views_api.LocalEventView.as_view(), name='localevent'),
     url(r'^api/v1/makepayment/$', views_api.MakePaymentView.as_view(), name='makepayment'),
 
     url(r'^api/v1/beaconhistory/$', views_api.BeaconHistoryView.as_view(), name='beaconhistory'),

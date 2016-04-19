@@ -88,9 +88,9 @@
                                     sighting.beacon.photo"/>
                         </td>
                         <td class="valign-middle">
-                            <a ng-if="sighting.beacon.type == 'F' && !sighting.detector.reference_id" ng-click="vm.editDetector(sighting.detector)">{{ sighting.detector.uid.substring(0, 3) + '...' + sighting.detector.uid.substring(29) }}</a>
+                            <a ng-if="sighting.beacon.type == 'F' && !sighting.detector.reference_id" ng-click="vm.editDetector(sighting.detector)">{{ sighting.detector.uid.substring(0, 3) + '...' + sighting.detector.uid.substring(sighting.detector.uid.length - 3) }}</a>
                             <span ng-if="sighting.beacon.type == 'F' && !!sighting.detector.reference_id" ng-click="vm.editDetector(sighting.detector)">{{ sighting.detector.reference_id }}</span>
-                            <a ng-if="sighting.beacon.type != 'F' && !sighting.beacon.reference_id" ng-click="vm.editBeacon(sighting.beacon)">{{ sighting.beacon.uid.substring(0, 3) + '...' + sighting.beacon.uid.substring(29) }}</a>
+                            <a ng-if="sighting.beacon.type != 'F' && !sighting.beacon.reference_id" ng-click="vm.editBeacon(sighting.beacon)">{{ sighting.beacon.uid.substring(0, 3) + '...' + sighting.beacon.uid.substring(sighting.beacon.uid.length - 3) }}</a>
                             <span ng-if="sighting.beacon.type != 'F' && !!sighting.beacon.reference_id" ng-click="vm.editBeacon(sighting.beacon)">{{ sighting.beacon.reference_id }}</span>
                         </td>
                         <td class="valign-middle">

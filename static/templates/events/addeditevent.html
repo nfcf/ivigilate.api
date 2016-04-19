@@ -80,8 +80,37 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label>Beacon(s)</label>
-                        <ui-select multiple='true' ng-model="vm.beacons_selected"
+                        <label>Detector(s)</label>
+                        <ui-select multiple='true' ng-model="vm.detectors_selected"
+                                   theme="select2" ng-disabled="disabled" style="width: 100%">
+                            <ui-select-match placeholder="Select detector(s) or leave empty for all...">
+                                {{ $item.name || $item.reference_id || $item.id }}
+                            </ui-select-match>
+                            <ui-select-choices
+                                    repeat="detector in vm.detectors | propsFilter: {name: $select.search, reference_id: $select.search} track by detector.id">
+                                <div ng-bind-html="(detector.name || detector.reference_id || detector.id) | highlight: $select.search"></div>
+                                <small>
+                                    {{ detector.type_display }} with ID: <span
+                                        ng-bind-html="(detector.reference_id || detector.id) | highlight: $select.search"></span>
+                                </small>
+                            </ui-select-choices>
+                        </ui-select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="event_is_local">Is Local Event?</label><br/>
+                        <input type="checkbox" id="event_is_local"
+                               ng-model="vm.event.metadata_object.event_is_local"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Unauthorized Beacon(s)</label>
+                        <ui-select multiple='true' ng-model="vm.unauthorized_beacons_selected"
                                    theme="select2" ng-disabled="disabled" style="width: 100%">
                             <ui-select-match placeholder="Select beacon(s) or leave empty for all...">
                                 {{ $item.name || $item.reference_id || $item.id }}
@@ -99,18 +128,18 @@
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label>Detector(s)</label>
-                        <ui-select multiple='true' ng-model="vm.detectors_selected"
+                        <label>Authorized Beacon(s)</label>
+                        <ui-select multiple='true' ng-model="vm.authorized_beacons_selected"
                                    theme="select2" ng-disabled="disabled" style="width: 100%">
-                            <ui-select-match placeholder="Select detector(s) or leave empty for all...">
+                            <ui-select-match placeholder="Select beacon(s) or leave empty for none...">
                                 {{ $item.name || $item.reference_id || $item.id }}
                             </ui-select-match>
                             <ui-select-choices
-                                    repeat="detector in vm.detectors | propsFilter: {name: $select.search, reference_id: $select.search} track by detector.id">
-                                <div ng-bind-html="(detector.name || detector.reference_id || detector.id) | highlight: $select.search"></div>
+                                    repeat="beacon in vm.beacons | propsFilter: {name: $select.search, reference_id: $select.search} track by beacon.id">
+                                <div ng-bind-html="(beacon.name || beacon.reference_id || beacon.id) | highlight: $select.search"></div>
                                 <small>
-                                    {{ detector.type_display }} with ID: <span
-                                        ng-bind-html="(detector.reference_id || detector.id) | highlight: $select.search"></span>
+                                    {{ beacon.type_display }} with ID: <span
+                                        ng-bind-html="(beacon.reference_id || beacon.id) | highlight: $select.search"></span>
                                 </small>
                             </ui-select-choices>
                         </ui-select>
@@ -209,7 +238,7 @@
             </div>
         </fieldset>
 
-        <fieldset>
+        <fieldset ng-if="!vm.event.metadata_object.event_is_local">
             <legend>Actions</legend>
             <div class="row">
                 <div class="col-md-offset-1 col-md-10">

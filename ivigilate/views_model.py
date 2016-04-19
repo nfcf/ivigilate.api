@@ -154,17 +154,21 @@ class DetectorViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
         user = request.user if not isinstance(request.user, AnonymousUser) else None
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
 
-        if account:
-            serializer = self.get_serializer_class()(data=request.data)
-            if serializer.is_valid():
-                if serializer.save(updated_by=user, account=account):
-                    return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
+        try:
+            if account:
+                serializer = self.get_serializer_class()(data=request.data)
+                if serializer.is_valid():
+                    if serializer.save(updated_by=user, account=account):
+                        return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response('The current logged on user is not associated with any account.',
+                return Response('The current logged on user is not associated with any account.',
+                                status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            logger.exception('Failed to create Detector with error:')
+            return Response('Failed to create Detector.',
                             status=status.HTTP_400_BAD_REQUEST)
-
 
     def update(self, request, pk=None):
         user = request.user if not isinstance(request.user, AnonymousUser) else None
@@ -216,6 +220,26 @@ class BeaconViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
 
         serializer = self.get_serializer_class()(queryset, many=False, context={'request': request})
         return Response(serializer.data)
+
+    def create(self, request):
+        user = request.user if not isinstance(request.user, AnonymousUser) else None
+        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
+
+        try:
+            if account:
+                serializer = self.get_serializer_class()(data=request.data)
+                if serializer.is_valid():
+                    if serializer.save(updated_by=user, account=account):
+                        return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response('The current logged on user is not associated with any account.',
+                                status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            logger.exception('Failed to create Beacon with error:')
+            return Response('Failed to create Beacon.',
+                            status=status.HTTP_400_BAD_REQUEST)
 
     def update(self, request, pk=None):
         user = request.user if not isinstance(request.user, AnonymousUser) else None
@@ -325,7 +349,7 @@ class SightingViewSet(viewsets.ModelViewSet):
             queryset = self.queryset.raw(showAllQuery if filter_show_all else filteredQuery,
                                          showAllQueryParams if filter_show_all else filteredQueryParams)
             # print(queryset.query)
-            return utils.view_list(request, account, queryset, self.get_serializer_class())
+            return utils.view_list(request, account, queryset, self.get_serializer_class(), True)
         else:
             return Response('The current logged on user is not associated with any account.',
                             status=status.HTTP_400_BAD_REQUEST)
@@ -420,9 +444,10 @@ class EventViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             event = serializer.save(updated_by=user, account=account)
             if event:
-                beacons = self.request.DATA.get('beacons', None)
+                unauthorized_beacons = self.request.DATA.get('unauthorized_beacons', None)
+                authorized_beacons = self.request.DATA.get('authorized_beacons', None)
                 detectors = self.request.DATA.get('detectors', None)
-                self.update_m2m_fields(event, beacons, detectors)
+                self.update_m2m_fields(event, unauthorized_beacons, authorized_beacons, detectors)
 
                 return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
 
@@ -442,25 +467,37 @@ class EventViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             event = serializer.save(updated_by=user)
             if event:
-                beacons = self.request.DATA.get('beacons', None)
+                unauthorized_beacons = self.request.DATA.get('unauthorized_beacons', None)
+                authorized_beacons = self.request.DATA.get('authorized_beacons', None)
                 detectors = self.request.DATA.get('detectors', None)
-                self.update_m2m_fields(event, beacons, detectors)
+                self.update_m2m_fields(event, unauthorized_beacons, authorized_beacons, detectors)
 
                 return Response(serializer.validated_data, status=status.HTTP_202_ACCEPTED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def update_m2m_fields(self, event, beacons, detectors):
+    def update_m2m_fields(self, event, unauthorized_beacons, authorized_beacons, detectors):
         # work around to handle the M2M field as DRF doesn't handle them well...
-        if isinstance(beacons, list):
-            new_list = beacons
-            old_list = event.beacons.all().values_list('id', flat=True)
+        if isinstance(unauthorized_beacons, list):
+            new_list = unauthorized_beacons
+            old_list = event.unauthorized_beacons.all().values_list('id', flat=True)
             to_add_list = list(set(new_list) - set(old_list))
             to_remove_list = list(set(old_list) - set(new_list))
             for id in to_add_list:
-                event.beacons.add(id)
+                event.unauthorized_beacons.add(id)
             for id in to_remove_list:
-                event.beacons.remove(id)
+                event.unauthorized_beacons.remove(id)
+
+        # work around to handle the M2M field as DRF doesn't handle them well...
+        if isinstance(authorized_beacons, list):
+            new_list = authorized_beacons
+            old_list = event.authorized_beacons.all().values_list('id', flat=True)
+            to_add_list = list(set(new_list) - set(old_list))
+            to_remove_list = list(set(old_list) - set(new_list))
+            for id in to_add_list:
+                event.authorized_beacons.add(id)
+            for id in to_remove_list:
+                event.authorized_beacons.remove(id)
 
         # work around to handle the M2M field as DRF doesn't handle them well...
         if isinstance(detectors, list):

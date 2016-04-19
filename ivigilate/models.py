@@ -52,7 +52,7 @@ class Account(models.Model):
         return account_admins
 
     def __str__(self):
-        return '%s - %s' % (self.company_id, self.name)
+        return '%s - %s' % (self.name, self.company_id)
 
 
 class License(models.Model):
@@ -79,7 +79,7 @@ class License(models.Model):
 
     def __str__(self):
         return "%s: %s, from=%s, until=%s" % \
-               (self.account.company_id, self.description,
+               (self.account.name, self.description,
                 self.valid_from.strftime('%Y-%m-%d') if self.valid_from else 'N/D',
                 self.valid_until.strftime('%Y-%m-%d') if self.valid_until else 'N/D')
 
@@ -231,6 +231,7 @@ class Beacon(models.Model):
     def save(self, *args, **kwargs):
         now = datetime.now(timezone.utc)
         if not self.id:
+            self.uid = self.uid or self.reference_id
             self.created_at = now
             self.updated_at = now
         else:
@@ -238,7 +239,7 @@ class Beacon(models.Model):
         super(Beacon, self).save(*args, **kwargs)
 
     def __str__(self):
-        return '%s: uid=%s, type=%s, name=%s' % (self.account.company_id, self.uid, self.type, self.name)
+        return '%s: uid=%s, type=%s, name=%s' % (self.account.name, self.uid, self.type, self.name)
 
 
 class Sighting(models.Model):
@@ -286,15 +287,16 @@ class Event(models.Model):
     account = models.ForeignKey(Account)
     reference_id = models.CharField(max_length=64, blank=True)
     name = models.CharField(max_length=64)
-    beacons = models.ManyToManyField(Beacon, blank=True, related_name='events')
     detectors = models.ManyToManyField(Detector, blank=True)
+    unauthorized_beacons = models.ManyToManyField(Beacon, blank=True, related_name='unauthorized_events')
+    authorized_beacons = models.ManyToManyField(Beacon, blank=True, related_name='authorized_events')
     schedule_days_of_week = models.PositiveSmallIntegerField(default=0)  # used as an 8bit field for easy logical ops
     # schedule_specific_date = models.DateTimeField()
     schedule_start_time = models.TimeField()
     schedule_end_time = models.TimeField()
     schedule_timezone_offset = models.SmallIntegerField(default=0)
 
-    metadata = models.TextField(blank=True) # event actions: Notification, SMS, Email, REST call
+    metadata = models.TextField(blank=True)  # event actions: Notification, SMS, Email, REST call
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(editable=False)
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
@@ -310,7 +312,7 @@ class Event(models.Model):
         super(Event, self).save(*args, **kwargs)
 
     def __str__(self):
-        return "%s: reference_id=%s, name=%s" % (self.account.company_id, self.reference_id, self.name)
+        return "%s: id=%s, name=%s" % (self.account.name, self.reference_id, self.name)
 
 
 class EventOccurrence(models.Model):
@@ -326,7 +328,7 @@ class EventOccurrence(models.Model):
 
     def __str__(self):
         return "%s: event_reference_id=%s, occurred_at=%s" % \
-               (self.event.account.company_id, self.event.reference_id, self.occurred_at)
+               (self.event.account.name, self.event.reference_id, self.occurred_at)
 
 
 class Limit(models.Model):
@@ -353,7 +355,7 @@ class Limit(models.Model):
         super(Limit, self).save(*args, **kwargs)
 
     def __str__(self):
-        return "%s: reference_id=%s, name=%s" % (self.account.company_id, self.reference_id, self.name)
+        return "%s: reference_id=%s, name=%s" % (self.account.name, self.reference_id, self.name)
 
 
 class LimitOccurrence(models.Model):
@@ -370,7 +372,7 @@ class LimitOccurrence(models.Model):
 
     def __str__(self):
         return "%s: limit_reference_id=%s, occurred_at=%s" % \
-               (self.limit.account.company_id, self.limit.reference_id, self.occurred_at)
+               (self.limit.account.name, self.limit.reference_id, self.occurred_at)
 
 
 class Notification(models.Model):
