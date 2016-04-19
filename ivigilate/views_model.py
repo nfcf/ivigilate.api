@@ -252,8 +252,8 @@ class BeaconViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
         if serializer.is_valid():
             beacon = serializer.save(user=user)
             if beacon:
-                events = self.request.DATA.get('events', None)
-                self.update_m2m_fields(beacon, events)
+                unauthorized_events = self.request.DATA.get('unauthorized_events', None)
+                self.update_m2m_fields(beacon, unauthorized_events)
 
                 # delete this field from the response as it isn't serializable
                 if 'photo' in serializer.validated_data:
@@ -262,17 +262,17 @@ class BeaconViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def update_m2m_fields(self, beacon, events):
+    def update_m2m_fields(self, beacon, unauthorized_events):
         # work around to handle the M2M field as DRF doesn't handle them well...
-        if isinstance(events, list):
-            new_list = events
-            old_list = beacon.events.all().values_list('id', flat=True)
+        if isinstance(unauthorized_events, list):
+            new_list = unauthorized_events
+            old_list = beacon.unauthorized_events.all().values_list('id', flat=True)
             to_add_list = list(set(new_list) - set(old_list))
             to_remove_list = list(set(old_list) - set(new_list))
             for id in to_add_list:
-                beacon.events.add(id)
+                beacon.unauthorized_events.add(id)
             for id in to_remove_list:
-                beacon.events.remove(id)
+                beacon.unauthorized_events.remove(id)
 
 
 class SightingViewSet(viewsets.ModelViewSet):

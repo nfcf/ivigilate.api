@@ -129,7 +129,7 @@
             $scope.$broadcast('show-errors-check-validity');
 
             if (vm.form.$valid) {
-                vm.beacon.events = vm.events_selected;
+                vm.beacon.unauthorized_events = vm.events_selected;
                 Beacons.update(vm.beacon, vm.imageToUpload).then(successFn, errorFn, progressFn);
             } else {
                 vm.error = 'There are invalid fields in the form.';

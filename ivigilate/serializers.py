@@ -150,14 +150,14 @@ class BeaconDetectorHistorySerializer(gis_serializers.GeoModelSerializer):
 
 
 class BeaconReadSerializer(serializers.HyperlinkedModelSerializer):
-    events = SimpleEventSerializer(many=True, read_only=True)
+    unauthorized_events = SimpleEventSerializer(many=True, read_only=True)
     type_display = serializers.CharField(source='get_type_display', read_only=True)
 
     class Meta:
         model = Beacon
         geo_field = 'location'
         fields = ('id', 'account', 'uid', 'reference_id', 'type', 'type_display',
-                  'name', 'photo', 'location', 'reported_missing', 'events',
+                  'name', 'photo', 'location', 'reported_missing', 'unauthorized_events',
                   'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
 
 
