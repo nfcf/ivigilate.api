@@ -100,7 +100,7 @@
 
             function eventsSuccessFn(data, status, headers, config) {
                 vm.events = data.data;
-                vm.events_selected = vm.beacon.events;
+                vm.events_selected = vm.beacon.unauthorized_events;
             }
 
             function eventsErrorFn(data, status, headers, config) {
