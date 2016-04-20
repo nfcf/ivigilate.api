@@ -167,7 +167,7 @@
                         'duration_in_seconds': vm.event.metadata_object.action_buzzer_duration
                     });
                 }
-                vm.event.metadata_object.action_buzzer_duration = undefined; 
+                vm.event.metadata_object.action_buzzer_duration = undefined;
 
                 if (vm.event.metadata_object.action_notification_message) {
                     vm.event.metadata_object.actions.push({
