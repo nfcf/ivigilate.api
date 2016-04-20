@@ -110,7 +110,7 @@ COMPRESS_ENABLED = os.environ.get('COMPRESS_ENABLED', False) # or comment this t
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
-EMAIL_HOST = 'smtp.mandrillapp.com'
+EMAIL_HOST = 'smtp-relay.sendinblue.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = os.environ['EMAIL_HOST_USER']
 EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
