@@ -272,7 +272,7 @@ class LocalEventView(views.APIView):
         if events is not None and len(events) > 0:
             for event in events:
                 event_metadata = json.loads(event.metadata)
-                is_local_event = event_metadata.get('is_local_event', False)
+                is_local_event = event_metadata.get('event_is_local', False)
                 if is_local_event:
                     event_dict = model_to_dict(event)
 
