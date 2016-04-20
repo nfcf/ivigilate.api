@@ -116,7 +116,7 @@ def check_for_events(sighting, new_sighting_detector=None):
 
     raw_query = Event.objects.raw('SELECT e.* ' +
                                   'FROM ivigilate_event e ' +
-                                  'LEFT OUTER JOIN ivigilate_event_beacons eb ON e.id = eb.event_id ' +
+                                  'LEFT OUTER JOIN ivigilate_event_unauthorized_beacons eb ON e.id = eb.event_id ' +
                                   'LEFT OUTER JOIN ivigilate_event_detectors ed ON e.id = ed.event_id ' +
                                   'WHERE (e.is_active = True ' +
                                   'AND e.account_id = %s ' +
