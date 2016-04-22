@@ -6,6 +6,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.generic.base import TemplateView
 from django.utils.decorators import method_decorator
 from django.db.models import Q
+from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 import stripe
 from ivigilate.serializers import *
@@ -41,6 +42,9 @@ class LoginView(views.APIView):
         if user is not None:
             if user.is_active:
                 login(request, user)
+
+                user.token = Token.objects.get_or_create(user=user)
+
                 if metadata is not None and len(metadata.strip()) > 0:
                     now = datetime.now(timezone.utc)
                     metadata = json.loads(metadata)
@@ -65,6 +69,7 @@ class LoginView(views.APIView):
                                                 name=user.get_full_name(), type='U')
 
                 serialized = AuthUserReadSerializer(user, context={'request': request})
+
                 return Response(serialized.data, status=status.HTTP_200_OK)
             else:
                 return Response('This user has been disabled.', status=status.HTTP_401_UNAUTHORIZED)

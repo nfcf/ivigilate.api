@@ -12,7 +12,7 @@ logger.addHandler(logging.NullHandler())
 
 def wrap_response_with_timestamp(response):
     return {'timestamp': datetime.now(timezone.utc),
-            'list': response}
+            'data': response}
 
 def view_list(request, account, queryset, serializer, wrap=False):
     if account is None or account.get_license_in_force() is not None:

@@ -36,13 +36,14 @@ class AccountSerializer(serializers.ModelSerializer):
 
 class AuthUserReadSerializer(serializers.ModelSerializer):
     company_id = serializers.CharField(source='account.company_id')
+    token = serializers.CharField()
     license_about_to_expire = LicenseSerializer(source='account.get_license_about_to_expire', read_only=True)
     license_due_for_payment = LicenseSerializer(source='account.get_license_due_for_payment', read_only=True)
 
     class Meta:
         model = AuthUser
         fields = ('id', 'company_id', 'email', 'first_name', 'last_name',
-                  'metadata', 'is_account_admin', 'is_active',
+                  'metadata', 'is_account_admin', 'is_active', 'token',
                   'created_at', 'updated_at', 'license_about_to_expire', 'license_due_for_payment')
 
 
