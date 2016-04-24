@@ -6,13 +6,11 @@ import RPi.GPIO as GPIO # Required for GPIO access. Make sure we have root super
 
 # Definitions (user changeable)
 buzzerPin = 17 # Broadcom pin 17 (P1 pin 11)
-freq_l = 600 # tone low frequency
-freq_h = 800 # tone high frequency
-
 
 # Definitions
 dc = 50 # duty cycle (0-100) for PWM pin
 buzzer = None
+
 
 def init():
 	global buzzer
@@ -26,7 +24,11 @@ def end():
 
 
 # If no argument is passed to this function then it will play for 30 seconds
-def play(duration = 30):
+def play_alarm(duration = 30):
+	
+	freq_l = 587 # tone low frequency (NOTE_D5)
+	freq_h = 784 # tone high frequency (NOTE_G5)
+
 	try:
 		buzzer.start(dc)
 	except AttributeError:
