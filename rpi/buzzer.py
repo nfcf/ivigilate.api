@@ -19,7 +19,7 @@ def init():
 
 	GPIO.setmode(GPIO.BCM) # Broadcom pin-numbering scheme
 	GPIO.setup(buzzerPin, GPIO.OUT) # Buzzer pin set as output
-	buzzer = GPIO.PWM(buzzerPin, freq_l)  # Initialize PWM on lower frequency tone
+	buzzer = GPIO.PWM(buzzerPin, 1)  # Initialize PWM on very low frequency
 
 # If no argument is passed to this function then it will play for 30 seconds
 def play(duration = 30):
