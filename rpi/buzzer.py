@@ -46,6 +46,32 @@ def play_alarm(duration = 30):
 		
 		loops -= 1
 
-	# Cleanup			
 	buzzer.stop() # stop PWM
-	GPIO.cleanup() # cleanup all used GPIOs
+	
+    
+def play_alert(duration = 5):
+	
+	freq = 1046.50 # Approximately the highest note reproducible by the average female human voice.
+	
+	try:
+		buzzer.ChangeFrequency(freq)
+	except AttributeError:
+		print("Error: Buzzer not previously initialized! You must call init() before play().")
+		return
+		
+	buzzer.start(dc)
+	
+	while duration > 0:
+		buzzer.ChangeDutyCycle(dc)
+		time.sleep(0.1)
+		buzzer.ChangeDutyCycle(0)
+		time.sleep(0.1)
+		buzzer.ChangeDutyCycle(dc)
+		time.sleep(0.1)
+		buzzer.ChangeDutyCycle(0)
+		time.sleep(0.7)
+		
+		duration -= 1
+		
+	buzzer.stop() # stop PWM
+	
