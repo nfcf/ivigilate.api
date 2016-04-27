@@ -149,10 +149,10 @@ class AddSightingsView(views.APIView):
                 logger.debug('AddSightingsView.post() Sighting: %s %s %s %s %s %s %s %s %s %s',
                              timestamp, detector_uid, detector_battery, beacon_mac, beacon_uid, beacon_battery, rssi, is_active, metadata, location)
 
-                if now_timestamp - timestamp > utils.TIMESTAMP_DIFF_ALLOWED:
-                    logger.error('AddSightingsView.post() ignoring sighting with outdated timestamp...')
-                    return utils.build_http_response('Ignoring sighting with outdated timestamp.',
-                                                     status.HTTP_400_BAD_REQUEST)
+                #if now_timestamp - timestamp > utils.TIMESTAMP_DIFF_ALLOWED:
+                #    logger.error('AddSightingsView.post() ignoring sighting with outdated timestamp...')
+                #    return utils.build_http_response('Ignoring sighting with outdated timestamp.',
+                #                                     status.HTTP_400_BAD_REQUEST)
 
                 try:
                     detector = Detector.objects.get(uid=detector_uid)
@@ -273,6 +273,7 @@ class AddSightingsView(views.APIView):
         previous_sightings = Sighting.objects.filter(type='M', is_active=True, beacon=beacon, detector=detector).order_by('-last_seen_at')[:1]
         if previous_sightings:
             previous_sighting = previous_sightings[0]
+            previous_sighting.last_seen_at = None  # this forces the datetime update on the model save()
             previous_sighting.rssi = rssi
             previous_sighting.detector_battery = detector_battery
             previous_sighting.beacon_battery = beacon_battery
