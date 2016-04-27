@@ -33,6 +33,7 @@ class BcloseSightingView(views.APIView):
                                                     customer_id=company_id,
                                                     beacon_uid=beacon_uid,
                                                     detector_uid=detector_uid,
+                                                    situation=1,
                                                     localdate=datetime.strptime(occur_date, '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d-%H:%M:%S'))
         except Exception as ex:
             logger.exception('BcloseSightingView.post() Failed while sending message to Bclose:')
