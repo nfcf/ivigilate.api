@@ -5,9 +5,9 @@
         .module('ivigilate.authentication.services')
         .factory('AuthInterceptor', AuthInterceptor);
 
-    AuthInterceptor.$inject = ['$cookieStore', '$q'];
+    AuthInterceptor.$inject = ['$cookieStore', '$location', '$q'];
 
-    function AuthInterceptor($cookieStore, $q) {
+    function AuthInterceptor($cookieStore, $location, $q) {
 
         var AuthInterceptor = {
             request: request,
@@ -31,6 +31,7 @@
 
         function responseError (rejection) {
             if (rejection.status === 401) {
+                $cookieStore.remove('authenticatedUser');
                 $location.path('/login');
             }
             return $q.reject(rejection);

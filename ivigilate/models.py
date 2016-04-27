@@ -243,13 +243,19 @@ class Beacon(models.Model):
 
 
 class Sighting(models.Model):
+    TYPE = (
+        ('A', 'AutoClosing'),
+        ('M', 'ManualClosing'),
+    )
     beacon = models.ForeignKey(Beacon)
     detector = models.ForeignKey(Detector, null=True)
+    type = models.CharField(max_length=1, choices=TYPE, default='A')
     first_seen_at = models.DateTimeField()
     last_seen_at = models.DateTimeField()
     location = models.PointField(null=True, blank=True)
     rssi = models.IntegerField(null=True, blank=True)
-    battery = models.IntegerField(null=True, blank=True)
+    detector_battery = models.IntegerField(null=True, blank=True)
+    beacon_battery = models.IntegerField(null=True, blank=True)
     metadata = models.TextField(blank=True)
     confirmed = models.BooleanField(default=False)
     confirmed_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
@@ -257,7 +263,7 @@ class Sighting(models.Model):
     comment = models.TextField(blank=True)
     commented_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='+')
     commented_at = models.DateTimeField(null=True)
-    is_current = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
     objects = models.GeoManager()
 
     def get_duration(self):

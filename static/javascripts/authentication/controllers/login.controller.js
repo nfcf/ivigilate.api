@@ -24,13 +24,13 @@
         function login() {
             Authentication.login(vm.email, vm.password).then(successFn, errorFn);
 
-            function successFn(data, status, headers, config) {
-                Authentication.setAuthenticatedUser(data.data);
+            function successFn(response, status, headers, config) {
+                Authentication.setAuthenticatedUser(response.data.data);
                 $location.url('/sightings');
             }
 
-            function errorFn(data, status, headers, config) {
-                vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
+            function errorFn(response, status, headers, config) {
+                vm.error = response.status != 500 ? JSON.stringify(response.data) : response.statusText;
             }
         }
 

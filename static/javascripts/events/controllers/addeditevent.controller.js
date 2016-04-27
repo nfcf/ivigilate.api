@@ -100,7 +100,7 @@
                                 'metadata_object': {
                                     'action_buzzer_duration': 5,
                                     'action_notification_category': 'Info',
-                                    'sighting_is_current': true,
+                                    'sighting_is_active': true,
                                     'sighting_duration_in_seconds': 0,
                                     'sighting_has_battery_below': 100,
                                     'sighting_dormant_period_in_seconds': 0,
@@ -277,7 +277,7 @@
          event_types.push({
          name: 'Gone out of sight',
          description: 'Triggered as soon as a movable gets out of the configured place(s) detector\'s range.',
-         sighting_is_current: false,
+         sighting_is_active: false,
          sighting_duration_in_seconds: 5,
          sighting_has_battery_below: 100,
          sighting_has_comment: null,
@@ -287,7 +287,7 @@
          event_types.push({
          name: 'Seen at place',
          description: 'Triggered immediately after a movable is seen at any of the configured places.',
-         sighting_is_current: true,
+         sighting_is_active: true,
          sighting_duration_in_seconds: 0,
          sighting_has_battery_below: 100,
          sighting_has_comment: null,
@@ -297,7 +297,7 @@
          event_types.push({
          name: 'Same place for more than X minutes',
          description: 'Triggered if a movable stays in the same place for more than the configured time.',
-         sighting_is_current: true,
+         sighting_is_active: true,
          sighting_duration_in_seconds: 5,
          sighting_has_battery_below: 100,
          sighting_has_comment: null,

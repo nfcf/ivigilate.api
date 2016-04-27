@@ -204,7 +204,7 @@ class SightingBeaconHistorySerializer(gis_serializers.GeoModelSerializer):
         model = Sighting
         geo_field = 'location'
         fields = ('id', 'beacon', 'detector', 'first_seen_at', 'last_seen_at', 'duration_in_seconds',
-                  'location', 'battery', 'is_current')
+                  'location', 'battery', 'is_active')
 
 
 class SightingDetectorHistorySerializer(gis_serializers.GeoModelSerializer):
@@ -216,7 +216,7 @@ class SightingDetectorHistorySerializer(gis_serializers.GeoModelSerializer):
         model = Sighting
         geo_field = 'location'
         fields = ('id', 'beacon', 'detector', 'first_seen_at', 'last_seen_at', 'duration_in_seconds',
-                  'location', 'battery', 'is_current')
+                  'location', 'battery', 'is_active')
 
 
 class SightingReadSerializer(gis_serializers.GeoModelSerializer):
@@ -226,24 +226,25 @@ class SightingReadSerializer(gis_serializers.GeoModelSerializer):
     class Meta:
         model = Sighting
         geo_field = 'location'
-        fields = ('id', 'beacon', 'detector', 'first_seen_at', 'last_seen_at',
-                  'location', 'rssi', 'battery', 'metadata', 'confirmed',
-                  'confirmed_by', 'confirmed_at', 'comment', 'commented_by', 'commented_at', 'is_current')
+        fields = ('id', 'detector', 'detector_battery', 'beacon', 'beacon_battery', 'first_seen_at', 'last_seen_at',
+                  'location', 'rssi', 'metadata', 'confirmed',
+                  'confirmed_by', 'confirmed_at', 'comment', 'commented_by', 'commented_at', 'is_active')
 
 
 class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
     first_seen_at = serializers.DateTimeField(allow_null=True, required=False)
     last_seen_at = serializers.DateTimeField(allow_null=True, required=False)
     location = serializers.CharField(allow_null=True, required=False)
-    battery = serializers.IntegerField(allow_null=True, required=False)
+    detector_battery = serializers.IntegerField(allow_null=True, required=False)
+    beacon_battery = serializers.IntegerField(allow_null=True, required=False)
     rssi = serializers.IntegerField(allow_null=True, required=False)
     confirmed = serializers.BooleanField(default=False)
 
     class Meta:
         model = Sighting
         geo_field = 'location'
-        fields = ('id', 'beacon', 'detector', 'first_seen_at', 'last_seen_at',
-                  'location', 'rssi', 'battery', 'metadata', 'confirmed', 'comment')
+        fields = ('id', 'detector', 'detector_battery', 'beacon', 'beacon_battery', 'first_seen_at', 'last_seen_at',
+                  'location', 'rssi', 'metadata', 'confirmed', 'comment')
 
     def create(self, validated_data):
         validated_data['confirmed_by'] = validated_data.get('user') if validated_data.get('confirmed') else None
@@ -277,7 +278,8 @@ class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
         instance.location = validated_data.get('location', instance.location)
 
         instance.rssi = validated_data.get('rssi', instance.rssi)
-        instance.battery = validated_data.get('battery', instance.battery)
+        instance.detector_battery = validated_data.get('detector_battery', instance.detector_battery)
+        instance.beacon_battery = validated_data.get('beacon_battery', instance.beacon_battery)
         instance.metadata = validated_data.get('metadata', instance.metadata)
         instance.confirmed = validated_data.get('confirmed', instance.confirmed)
         confirmed_by_user_email = validated_data.get('confirmed_by_user_email')

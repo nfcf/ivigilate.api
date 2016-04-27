@@ -5,7 +5,7 @@
     "fields": {
       "name": "Gone out of sight",
       "description": "Triggered as soon as a movable gets out of the configured place(s) detector's range.",
-      "sighting_is_current": false,
+      "sighting_is_active": false,
       "sighting_duration_in_seconds": 5,
       "sighting_has_battery_below": 100,
       "sighting_has_comment": null,
@@ -18,7 +18,7 @@
     "fields": {
       "name": "Seen at place",
       "description": "Triggered immediately after a movable is seen at any of the configured places.",
-      "sighting_is_current": true,
+      "sighting_is_active": true,
       "sighting_duration_in_seconds": 0,
       "sighting_has_battery_below": 100,
       "sighting_has_comment": null,
@@ -31,7 +31,7 @@
     "fields": {
       "name": "'Seen at place after specific event occurrence",
       "description": "Triggered immediately after a movable is seen at a place after a specific event occurred.",
-      "sighting_is_current": true,
+      "sighting_is_active": true,
       "sighting_duration_in_seconds": 0,
       "sighting_has_battery_below": 100,
       "sighting_has_comment": null,
@@ -44,7 +44,7 @@
     "fields": {
       "name": "Same place for more than X minutes",
       "description": "Triggered if a movable stays in the same place for more than the configured time.",
-      "sighting_is_current": true,
+      "sighting_is_active": true,
       "sighting_duration_in_seconds": 60,
       "sighting_has_battery_below": 100,
       "sighting_has_comment": null,
@@ -57,7 +57,7 @@
     "fields": {
       "name": "Low battery",
       "description": "Triggered whenever the battery level for a movable goes below 10%.",
-      "sighting_is_current": true,
+      "sighting_is_active": true,
       "sighting_duration_in_seconds": 10,
       "sighting_has_battery_below": 10,
       "sighting_has_comment": null,

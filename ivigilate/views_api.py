@@ -1,4 +1,6 @@
 import os
+import threading
+
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import AnonymousUser
 from django.forms import model_to_dict
@@ -14,7 +16,7 @@ from rest_framework import permissions, viewsets, status, views, mixins
 from ivigilate import utils
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-import pytz, json, logging
+import pytz, json, logging, time
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
@@ -44,6 +46,7 @@ class LoginView(views.APIView):
                 login(request, user)
 
                 user.token = Token.objects.get_or_create(user=user)
+                user.token = user.token[0]  # take first part of tuple
 
                 if metadata is not None and len(metadata.strip()) > 0:
                     now = datetime.now(timezone.utc)
@@ -51,7 +54,8 @@ class LoginView(views.APIView):
                     metadata['device']['last_login_date'] = now.strftime('%Y-%m-%d %H:%M')
                     if user.metadata is not None and len(user.metadata.strip()) > 0:
                         user_metadata = json.loads(user.metadata)
-                        existing_device = next((device for device in user_metadata['devices'] if device['imei'] == metadata['device']['imei']), None)
+                        existing_device = next(
+                                (device for device in user_metadata['devices'] if device.get('uid', '') == metadata['device'].get('uid', '')), None)
                         if existing_device is not None:
                             existing_device['last_login_date'] = now.strftime('%Y-%m-%d %H:%M')
                     else:
@@ -62,19 +66,13 @@ class LoginView(views.APIView):
                     user.metadata = json.dumps(user_metadata)
                     user.save()
 
-                    try:
-                        Detector.objects.get(uid=user.email)
-                    except Detector.DoesNotExist:
-                        Detector.objects.create(account=user.account,uid=user.email,reference_id=user.email,
-                                                name=user.get_full_name(), type='U')
-
                 serialized = AuthUserReadSerializer(user, context={'request': request})
 
-                return Response(serialized.data, status=status.HTTP_200_OK)
+                return utils.build_http_response(serialized.data, status.HTTP_200_OK)
             else:
-                return Response('This user has been disabled.', status=status.HTTP_401_UNAUTHORIZED)
+                return utils.build_http_response('This user has been disabled.', status.HTTP_401_UNAUTHORIZED)
         else:
-            return Response('Invalid email/password combination.', status=status.HTTP_401_UNAUTHORIZED)
+            return utils.build_http_response('Invalid email/password combination.', status.HTTP_401_UNAUTHORIZED)
 
 
 class LogoutView(views.APIView):
@@ -83,132 +81,208 @@ class LogoutView(views.APIView):
     def post(self, request, format=None):
         logout(request)
 
-        return Response({}, status=status.HTTP_204_NO_CONTENT)
+        return utils.build_http_response({}, status.HTTP_200_OK)
+
+
+class ProvisionDeviceView(views.APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request, format=None):
+        user = request.user if not isinstance(request.user, AnonymousUser) else None
+        account = request.user.account if not isinstance(request.user, AnonymousUser) else None
+
+        if account:
+            data = json.loads(request.body.decode('utf-8'))
+
+            type = data.get('type', None)
+            uid = data.get('uid', None).lower()
+            name = data.get('name', None)
+            metadata = data.get('metadata', '')
+            # serialized = None
+
+            if type[0] == 'B':
+                try:
+                    beacon = Beacon.objects.get(account=account, uid=uid)
+                except Beacon.DoesNotExist:
+                    beacon = Beacon.objects.create(account=account, uid=uid, name=name, type=type[1], metadata=metadata)
+
+                # serialized = BeaconReadSerializer(beacon, context={'request': request})
+            elif type[0] == 'D':
+                try:
+                    detector = Detector.objects.get(account=account, uid=uid)
+                except Detector.DoesNotExist:
+                    detector = Detector.objects.create(account=account, uid=uid, name=name, type=type[1], metadata=metadata)
+
+                # serialized = DetectorReadSerializer(detector, context={'request': request})
+
+            return utils.build_http_response({}, status.HTTP_200_OK)
+        else:
+            return utils.build_http_response('The current logged on user is not associated with any account.',
+                                             status.HTTP_400_BAD_REQUEST)
 
 
 class AddSightingsView(views.APIView):
-    permission_classes = (permissions.AllowAny, )
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request, format=None):
-        REPORTED_MISSING_NOTIFICATION_EVERY_MINS = 1
         data = json.loads(request.body.decode('utf-8'))
+        now_timestamp = time.time() * 1000
 
         if (data is not None and len(data) > 0):
             logger.info('AddSightingsView.post() Got %s sightings', len(data))
             for sighting in data:
-                company_id = sighting.get('company_id')
-                beacon_uid = sighting.get('beacon_uid', None).lower()
+
+                timestamp = sighting.get('timestamp', None)
+
                 detector_uid = sighting.get('detector_uid').lower()
+                detector_battery = sighting.get('detector_battery', None)
+                beacon_mac = sighting.get('beacon_mac', None).lower()
+                beacon_uid = sighting.get('beacon_uid', None).lower()
+                beacon_battery = sighting.get('beacon_battery', None)
+
                 rssi = sighting.get('rssi', None)
-                battery = sighting.get('battery', None)
                 location = sighting.get('location', None)
-                logger.debug('AddSightingsView.post() Sighting: %s %s %s %s %s', company_id, beacon_uid, detector_uid, rssi, battery)
+                metadata = sighting.get('metadata', '')
+
+                is_active = sighting.get('is_active', True)  # for now, only mobile apps are smart enough to send this set to False...
+
+                logger.debug('AddSightingsView.post() Sighting: %s %s %s %s %s %s %s %s %s %s',
+                             timestamp, detector_uid, detector_battery, beacon_mac, beacon_uid, beacon_battery, rssi, is_active, metadata, location)
+
+                if now_timestamp - timestamp > utils.TIMESTAMP_DIFF_ALLOWED:
+                    logger.error('AddSightingsView.post() ignoring sighting with outdated timestamp...')
+                    return utils.build_http_response('Ignoring sighting with outdated timestamp.',
+                                                     status.HTTP_400_BAD_REQUEST)
 
                 try:
-                    account = Account.objects.get(company_id=company_id)
-                    if account.get_license_in_force() is None:
-                        return Response('Ignoring sighting as the Account doesn\'t have a valid subscription.',
-                                        status=status.HTTP_400_BAD_REQUEST)
-                except Account.DoesNotExist:
-                    logger.warning('AddSightingsView.post() Attempt to add a sighting for an invalid Company ID.')
-                    return Response('Invalid Company ID.', status=status.HTTP_400_BAD_REQUEST)
-
-                try:
-                    beacon = Beacon.objects.get(uid=beacon_uid)
-                    if not beacon.is_active:
-                        return Response('Ignoring sighting as the Beacon is not active in the system.',
-                                        status=status.HTTP_400_BAD_REQUEST)
-                except Beacon.DoesNotExist:
-                    return Response('Ignoring sighting as the Beacon has not been provisioned in the system.',
-                                        status=status.HTTP_400_BAD_REQUEST)
-
-                try:
-                    detector = Detector.objects.get(account=account, uid=detector_uid)
+                    detector = Detector.objects.get(uid=detector_uid)
                     if not detector.is_active:
-                        return Response('Ignoring sighting as the Detector is not active on the system.',
-                                        status=status.HTTP_400_BAD_REQUEST)
+                        return utils.build_http_response('AddSightingsView.post() Ignoring sighting as the Detector is not active on the system.',
+                                                         status.HTTP_400_BAD_REQUEST)
                     elif location is not None:
                         location = json.dumps(location)
                     else:
                         location = detector.location
                 except Detector.DoesNotExist:
-                    return Response('Invalid Detector UID (couldn\'t find corresponding detector).',
-                                    status=status.HTTP_400_BAD_REQUEST)
+                    return utils.build_http_response('AddSightingsView.post() Invalid Detector UID (couldn\'t find corresponding detector).',
+                                                     status.HTTP_400_BAD_REQUEST)
 
-                now = datetime.now(timezone.utc)
-                previous_sightings = Sighting.objects.filter(is_current=True, beacon=beacon).order_by('-last_seen_at')[:1]
-                previous_sighting_occurred_at = None
-                new_sighting = None
-                if previous_sightings:
-                    previous_sighting = previous_sightings[0]
-                    # if the abs_diff between the 2 rssi values is bigger than X, "ignore" most recent value
-                    step_change = 1 if rssi - previous_sighting.rssi > 0 else - 1
-                    avg_rssi = previous_sighting.rssi + step_change if abs(previous_sighting.rssi - rssi) > 15 else 0.6 * previous_sighting.rssi + 0.4 * rssi
+                if detector.account.get_license_in_force() is None:
+                        return utils.build_http_response('AddSightingsView.post() Ignoring sighting as the associated Account doesn\'t have a valid subscription.',
+                                                         status.HTTP_400_BAD_REQUEST)
 
-                    if previous_sighting.detector == detector and avg_rssi < detector.departure_rssi:
-                        logger.info('AddSightingsView.post() Closing previous related sighting \'%s\' as the rssi dropped below the ' + \
-                                    'departure_rssi configured for this detector (%s < %s).',
-                                    previous_sighting, avg_rssi, detector.departure_rssi)
-                        utils.close_sighting(previous_sighting, detector)
-                        # TODO: instead of having the 5% margin, force that at least 2 or 3 new sightings are > than the current one...
-                    elif previous_sighting.detector != detector and rssi * 1.05 > (previous_sighting.rssi if previous_sighting.rssi is not None else 0):
-                        logger.info('AddSightingsView.post() Closing previous related sighting \'%s\' as the beacon moved to another location.',
-                                    previous_sighting)
-                        utils.close_sighting(previous_sighting, detector)
+
+                beacons = Beacon.objects.filter(Q(is_active=True),
+                                                Q(uid=beacon_mac)|Q(uid=beacon_uid))  # this can yield more than one beacon...
+                for beacon in beacons:
+                    if is_active:
+                        self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata)
                     else:
-                        logger.debug('AddSightingsView.post() Updating previous related sighting \'%s\'.', previous_sighting)
-                        new_sighting = previous_sighting
-                        previous_sighting_occurred_at = previous_sighting.last_seen_at
-                        if not beacon.reported_missing or \
-                            (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60:
-                            new_sighting.last_seen_at = None  # this forces the datetime update on the model save()
-                        new_sighting.rssi = avg_rssi
-                        new_sighting.battery = battery
-                        new_sighting.location = location
-                        new_sighting.save()
+                        self.close_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata)
 
-                if beacon.account_id != account.id:
-                    if beacon.reported_missing:
-                        if (previous_sighting_occurred_at is None or
-                            (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60):
-                            logger.info('AddSightingsView.post() Reported missing beacon was seen at / by \'%s\'. ' +
-                                        'Notifying corresponding account owners...', detector)
-                            try:
-                                send_mail('Reported missing: {0}'.format(beacon.name),
-                                          '{0} was seen near the following coordinates: {1}'.format(beacon.name, detector.location),
-                                          settings.DEFAULT_FROM_EMAIL,
-                                          [u.email for u in beacon.account.get_account_admins()])
-                            except Exception as ex:
-                                logger.exception('AddSightingsView.post() Failed to send reported missing email to account admins!')
-                        else:
-                            logger.info('AddSightingsView.post() Reported missing beacon was seen at / by \'%s\'. ' + \
-                                        'Skipping notification as the last one was triggered less than 1 minute ago...', detector)
-                            return Response('Ignored sighting as the beacon doesn\'t belong to this account.')
-                    else:
-                        logger.info('AddSightingsView.post() Ignoring current sighting as the beacon \'%s\' was seen at / by another account\'s ' +
-                                    'detector / user \'%s\' but has not been reported missing.', beacon, detector)
-                        return Response('Ignored sighting as the beacon doesn\'t belong to this account.')
-
-                if new_sighting is None:
-                    if detector is not None and rssi < detector.arrival_rssi and \
-                            (beacon.account_id == account.id or not beacon.reported_missing):
-                        logger.info('AddSightingsView.post() Ignoring sighting of beacon \'%s\' at / by \'%s\' as the rssi is lower than the ' +
-                                    'arrival_rssi configured for this detector / user (%s < %s).', beacon, detector, rssi, detector.arrival_rssi)
-                        return Response('Ignored sighting due to weak rssi.')
-                    else:
-                        new_sighting = Sighting.objects.create(beacon=beacon, detector=detector,
-                                                               location=location, rssi=rssi, battery=battery)
-                        logger.debug('AddSightingsView.post() Created new sighting \'%s\'.', new_sighting)
-
-                utils.check_for_events_async(new_sighting,)
 
         # serialized = SightingReadSerializer(new_sighting, context={'request': request})
         # return Response(serialized.data)
-        return Response('', status=status.HTTP_200_OK)
+        return utils.build_http_response(None, status.HTTP_200_OK)
+
+
+    def open_sighting_async(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata):
+        # check for events associated with this sighting in a different  thread
+        t = threading.Thread(target=self.open_sighting, args=(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata))
+        t.start()
+
+
+    def open_sighting(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata):
+        REPORTED_MISSING_NOTIFICATION_EVERY_MINS = 1
+
+        now = datetime.now(timezone.utc)
+        previous_sightings = Sighting.objects.filter(is_active=True, beacon=beacon).order_by('-last_seen_at')[:1]
+        previous_sighting_occurred_at = None
+        new_sighting = None
+        if previous_sightings:
+            previous_sighting = previous_sightings[0]
+            # if the abs_diff between the 2 rssi values is bigger than X, "ignore" most recent value
+            step_change = 1 if rssi - previous_sighting.rssi > 0 else - 1
+            avg_rssi = previous_sighting.rssi + step_change if abs(
+                previous_sighting.rssi - rssi) > 15 else 0.6 * previous_sighting.rssi + 0.4 * rssi
+
+            if previous_sighting.detector == detector and avg_rssi < detector.departure_rssi:
+                logger.info('open_sighting() Closing previous related sighting \'%s\' as the rssi dropped below the ' + \
+                            'departure_rssi configured for this detector (%s < %s).',
+                            previous_sighting, avg_rssi, detector.departure_rssi)
+                utils.close_sighting(previous_sighting, detector)
+                # TODO: instead of having the 5% margin, force that at least 2 or 3 new sightings are > than the current one...
+            elif previous_sighting.detector != detector and rssi * 1.05 > (
+            previous_sighting.rssi if previous_sighting.rssi is not None else 0):
+                logger.info('open_sighting() Closing previous related sighting \'%s\' as the beacon moved to another location.',
+                            previous_sighting)
+                utils.close_sighting(previous_sighting, detector)
+            else:
+                logger.debug('open_sighting() Updating previous related sighting \'%s\'.', previous_sighting)
+                new_sighting = previous_sighting
+                previous_sighting_occurred_at = previous_sighting.last_seen_at
+                if not beacon.reported_missing or \
+                                (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60:
+                    new_sighting.last_seen_at = None  # this forces the datetime update on the model save()
+                new_sighting.rssi = avg_rssi
+                new_sighting.detector_battery = detector_battery
+                new_sighting.beacon_battery = beacon_battery
+                new_sighting.location = location
+                new_sighting.save()
+
+        if beacon.account_id != detector.account.id:
+            if beacon.reported_missing:
+                if (previous_sighting_occurred_at is None or
+                            (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60):
+                    logger.info('open_sighting() Reported missing beacon was seen at / by \'%s\'. ' +
+                                'Notifying corresponding account owners...', detector)
+                    try:
+                        send_mail('Reported missing: {0}'.format(beacon.name),
+                                  '{0} was seen near the following coordinates: {1}'.format(beacon.name, detector.location),
+                                  settings.DEFAULT_FROM_EMAIL,
+                                  [u.email for u in beacon.account.get_account_admins()])
+                    except Exception as ex:
+                        logger.exception('open_sighting() Failed to send reported missing email to account admins!')
+                else:
+                    logger.info('open_sighting() Reported missing beacon was seen at / by \'%s\'. ' + \
+                                'Skipping notification as the last one was triggered less than 1 minute ago...', detector)
+            else:
+                logger.info('open_sighting() Ignoring current sighting as the beacon \'%s\' was seen at / by another account\'s ' +
+                            'detector / user \'%s\' but has not been reported missing.', beacon, detector)
+
+        if new_sighting is None:
+            if detector is not None and rssi < detector.arrival_rssi and \
+                    (beacon.account_id == detector.account.id or not beacon.reported_missing):
+                logger.info('open_sighting() Ignoring sighting of beacon \'%s\' at / by \'%s\' as the rssi is lower than the ' +
+                            'arrival_rssi configured for this detector / user (%s < %s).', beacon, detector, rssi, detector.arrival_rssi)
+            else:
+                new_sighting = Sighting.objects.create(beacon=beacon, beacon_battery=beacon_battery, detector=detector, detector_battery=detector_battery,
+                                                       location=location, rssi=rssi)
+                logger.debug('open_sighting() Created new sighting \'%s\'.', new_sighting)
+
+        utils.check_for_events_async(new_sighting, )
+
+
+    def close_sighting_async(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata):
+        # check for events associated with this sighting in a different  thread
+        t = threading.Thread(target=self.close_sighting, args=(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata))
+        t.start()
+
+
+    def close_sighting(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata):
+        previous_sightings = Sighting.objects.filter(type='M', is_active=True, beacon=beacon, detector=detector).order_by('-last_seen_at')[:1]
+        if previous_sightings:
+            previous_sighting = previous_sightings[0]
+            previous_sighting.rssi = rssi
+            previous_sighting.detector_battery = detector_battery
+            previous_sighting.beacon_battery = beacon_battery
+            previous_sighting.location = location
+
+            utils.close_sighting(previous_sighting)
 
 
 class AutoUpdateView(views.APIView):
-    permission_classes = (permissions.AllowAny, )
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request, format=None):
         data = json.loads(request.body.decode('utf-8'))
@@ -222,7 +296,7 @@ class AutoUpdateView(views.APIView):
         try:
             account = Account.objects.get(company_id=company_id)
         except Account.DoesNotExist:
-            return Response('Invalid Company ID.', status=status.HTTP_400_BAD_REQUEST)
+            return utils.build_http_response('Invalid Company ID.', status.HTTP_400_BAD_REQUEST)
 
         try:
             detector = Detector.objects.get(uid=detector_uid)
@@ -239,20 +313,20 @@ class AutoUpdateView(views.APIView):
             full_metadata = {}  # dict()
             full_metadata['device'] = metadata
             full_metadata['auto_update'] = None
-            Detector.objects.create(account=account,uid=detector_uid,metadata=json.dumps(full_metadata))
+            Detector.objects.create(account=account, uid=detector_uid, metadata=json.dumps(full_metadata))
 
         # check for updates by comparing last_update_date in the metadata field
         if 'auto_update' in full_metadata and \
                 full_metadata['auto_update'] and \
                         'date' in full_metadata['auto_update'] and \
                         full_metadata['device']['last_update_date'] < full_metadata['auto_update']['date']:
-            return Response(full_metadata['auto_update'], status=status.HTTP_412_PRECONDITION_FAILED)
+            return utils.build_http_response(full_metadata['auto_update'], status.HTTP_412_PRECONDITION_FAILED)
 
-        return Response('', status=status.HTTP_200_OK)
+        return utils.build_http_response(None, status.HTTP_200_OK)
 
 
 class LocalEventView(views.APIView):
-    permission_classes = (permissions.AllowAny, )
+    permission_classes = (permissions.AllowAny,)
 
     def get(self, request, format=None):
         company_id = request.query_params.get('company_id')
@@ -263,16 +337,16 @@ class LocalEventView(views.APIView):
         try:
             account = Account.objects.get(company_id=company_id)
         except Account.DoesNotExist:
-            return Response('Invalid Company ID.', status=status.HTTP_400_BAD_REQUEST)
+            return utils.build_http_response('Invalid Company ID.', status.HTTP_400_BAD_REQUEST)
 
         try:
             detector = Detector.objects.get(uid=detector_uid)
         except Detector.DoesNotExist:
-            return Response('Invalid Detector UID.', status=status.HTTP_400_BAD_REQUEST)
+            return utils.build_http_response('Invalid Detector UID.', status.HTTP_400_BAD_REQUEST)
 
         events = Event.objects.filter(Q(account=account),
                                       Q(is_active=True),
-                                      Q(detectors=None)|Q(detectors__id__exact=detector.id))
+                                      Q(detectors=None) | Q(detectors__id__exact=detector.id))
         local_event_list = []
         if events is not None and len(events) > 0:
             for event in events:
@@ -282,20 +356,19 @@ class LocalEventView(views.APIView):
                     event_dict = model_to_dict(event)
 
                     if len(event_dict.get('unauthorized_beacons', [])) > 0:
-                        event_dict['unauthorized_beacons'] = Beacon.objects.filter(is_active=True, id__in=event_dict['unauthorized_beacons']).\
+                        event_dict['unauthorized_beacons'] = Beacon.objects.filter(is_active=True,
+                                                                                   id__in=event_dict['unauthorized_beacons']). \
                             values_list('uid', flat=True)
 
                     if 'detectors' in event_dict:
                         del event_dict['detectors']
                     local_event_list.append(event_dict)
 
-        responseObject = utils.wrap_response_with_timestamp(local_event_list)
-
-        return Response(responseObject, status=status.HTTP_200_OK)
+        return utils.build_http_response(local_event_list, status.HTTP_200_OK)
 
 
 class MakePaymentView(views.APIView):
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request, format=None):
         data = json.loads(request.body.decode('utf-8'))
@@ -310,18 +383,19 @@ class MakePaymentView(views.APIView):
             license_due_for_payment.updated_by = request.user
             license_due_for_payment.reference_id = data.get('token_id', None)
             license_due_for_payment.valid_from = license_about_to_expire.valid_until if license_about_to_expire else now
-            license_due_for_payment.valid_until = license_due_for_payment.valid_from + relativedelta(months=license_metadata['duration_in_months'])
+            license_due_for_payment.valid_until = license_due_for_payment.valid_from + relativedelta(
+                months=license_metadata['duration_in_months'])
 
             try:
                 logger.debug('MakePaymentView.post() Charging %s%s on the card with token %s', license_due_for_payment.currency,
                              license_due_for_payment.amount, license_due_for_payment.reference_id)
                 stripe.api_key = os.environ['STRIPE_SECRET_KEY']
                 charge = stripe.Charge.create(
-                    amount=license_due_for_payment.amount,
-                    currency=license_due_for_payment.currency,
-                    source=license_due_for_payment.reference_id,
-                    description=license_due_for_payment.description,
-                    receipt_email=data.get('receipt_email', None)
+                        amount=license_due_for_payment.amount,
+                        currency=license_due_for_payment.currency,
+                        source=license_due_for_payment.reference_id,
+                        description=license_due_for_payment.description,
+                        receipt_email=data.get('receipt_email', None)
                 )
                 logger.info('MakePaymentView.post() Payment completed successfuly: %s', charge)
                 license_due_for_payment.save()
@@ -330,13 +404,13 @@ class MakePaymentView(views.APIView):
                 return Response(ex.message, status=status.HTTP_401_UNAUTHORIZED)
 
             serialized = LicenseSerializer(license_due_for_payment, context={'request': request})
-            return Response(serialized.data)
+            return utils.build_http_response(serialized.data, status.HTTP_200_OK)
         else:
-            return Response('No payment is due...', status=status.HTTP_400_BAD_REQUEST)
+            return utils.build_http_response('No payment is due...', status.HTTP_400_BAD_REQUEST)
 
 
 class BeaconHistoryView(views.APIView):
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
     queryset = Sighting.objects.all()
 
     def get(self, request, format=None):
@@ -345,22 +419,24 @@ class BeaconHistoryView(views.APIView):
             filter_beacon_id = request.query_params.get('beaconId', '')
             filter_timezone_offset = int(request.query_params.get('timezoneOffset', 0))
             filter_start_date = request.query_params.get('startDate', str(datetime.now(timezone.utc).date()) + 'T00:00:00')
-            filter_start_date = str(datetime.strptime(filter_start_date, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=filter_timezone_offset)) + '+00'
+            filter_start_date = str(
+                datetime.strptime(filter_start_date, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=filter_timezone_offset)) + '+00'
             filter_end_date = request.query_params.get('endDate', str(datetime.now(timezone.utc).date()) + 'T23:59:59')
-            filter_end_date = str(datetime.strptime(filter_end_date, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=filter_timezone_offset)) + '+00'
+            filter_end_date = str(
+                datetime.strptime(filter_end_date, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=filter_timezone_offset)) + '+00'
 
-            queryset = self.queryset.filter(Q(beacon__uid=filter_beacon_id)|Q(beacon__reference_id=filter_beacon_id),
-                                            Q(first_seen_at__range=(filter_start_date, filter_end_date)))\
-                                    .order_by('-id')
+            queryset = self.queryset.filter(Q(beacon__uid=filter_beacon_id) | Q(beacon__reference_id=filter_beacon_id),
+                                            Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
+                .order_by('-id')
 
             return utils.view_list(request, account, queryset, SightingBeaconHistorySerializer)
         else:
-            return Response('The current logged on user is not associated with any account.',
-                            status=status.HTTP_400_BAD_REQUEST)
+            return utils.build_http_response('The current logged on user is not associated with any account.',
+                                             status.HTTP_400_BAD_REQUEST)
 
 
 class DetectorHistoryView(views.APIView):
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
     queryset = Sighting.objects.all()
 
     def get(self, request, format=None):
@@ -370,17 +446,17 @@ class DetectorHistoryView(views.APIView):
             filter_detector_id = request.query_params.get('detectorId', '')
             filter_timezone_offset = int(request.query_params.get('timezoneOffset', 0))
             filter_start_date = request.query_params.get('startDate', todayString + 'T00:00:00')
-            filter_start_date = str(datetime.strptime(filter_start_date, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=filter_timezone_offset)) + '+00'
+            filter_start_date = str(
+                datetime.strptime(filter_start_date, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=filter_timezone_offset)) + '+00'
             filter_end_date = request.query_params.get('endDate', todayString + 'T23:59:59')
-            filter_end_date = str(datetime.strptime(filter_end_date, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=filter_timezone_offset)) + '+00'
+            filter_end_date = str(
+                datetime.strptime(filter_end_date, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=filter_timezone_offset)) + '+00'
 
-            queryset = self.queryset.filter(Q(detector__uid=filter_detector_id)|Q(detector__reference_id=filter_detector_id),
+            queryset = self.queryset.filter(Q(detector__uid=filter_detector_id) | Q(detector__reference_id=filter_detector_id),
                                             Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
-                                    .order_by('-id')
+                .order_by('-id')
 
             return utils.view_list(request, account, queryset, SightingDetectorHistorySerializer)
         else:
-            return Response('The current logged on user is not associated with any account.',
-                            status=status.HTTP_400_BAD_REQUEST)
-
-
+            return utils.build_http_response('The current logged on user is not associated with any account.',
+                                             status.HTTP_400_BAD_REQUEST)

@@ -109,7 +109,7 @@
             }
 
             function errorFn(response, status, headers, config) {
-                vm.error = response.status != 500 ? JSON.stringify(data.data) : data.statusText;
+                vm.error = response.status != 500 ? JSON.stringify(response.data) : response.statusText;
             }
         }
 
@@ -148,8 +148,8 @@
                 // Do nothing...
             }
 
-            function errorFn(data, status, headers, config) {
-                vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
+            function errorFn(response, status, headers, config) {
+                vm.error = response.status != 500 ? JSON.stringify(response.data) : response.statusText;
                 sighting.confirmed = !sighting.confirmed;
             }
         }
