@@ -36,13 +36,14 @@ class AccountSerializer(serializers.ModelSerializer):
 
 class AuthUserReadSerializer(serializers.ModelSerializer):
     company_id = serializers.CharField(source='account.company_id')
+    token = serializers.CharField()
     license_about_to_expire = LicenseSerializer(source='account.get_license_about_to_expire', read_only=True)
     license_due_for_payment = LicenseSerializer(source='account.get_license_due_for_payment', read_only=True)
 
     class Meta:
         model = AuthUser
         fields = ('id', 'company_id', 'email', 'first_name', 'last_name',
-                  'metadata', 'is_account_admin', 'is_active',
+                  'metadata', 'is_account_admin', 'is_active', 'token',
                   'created_at', 'updated_at', 'license_about_to_expire', 'license_due_for_payment')
 
 
@@ -150,14 +151,14 @@ class BeaconDetectorHistorySerializer(gis_serializers.GeoModelSerializer):
 
 
 class BeaconReadSerializer(serializers.HyperlinkedModelSerializer):
-    events = SimpleEventSerializer(many=True, read_only=True)
+    unauthorized_events = SimpleEventSerializer(many=True, read_only=True)
     type_display = serializers.CharField(source='get_type_display', read_only=True)
 
     class Meta:
         model = Beacon
         geo_field = 'location'
         fields = ('id', 'account', 'uid', 'reference_id', 'type', 'type_display',
-                  'name', 'photo', 'location', 'reported_missing', 'events',
+                  'name', 'photo', 'location', 'reported_missing', 'unauthorized_events',
                   'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
 
 
@@ -174,6 +175,10 @@ class BeaconWriteSerializer(serializers.ModelSerializer):
         except Account.DoesNotExist:
             raise serializers.ValidationError('Invalid Company ID.')
         return value
+
+    def create(self, validated_data):
+        beacon = Beacon.objects.create(**validated_data)
+        return beacon
 
     def update(self, instance, validated_data):
         instance.reference_id = validated_data.get('reference_id', instance.reference_id)
@@ -199,7 +204,7 @@ class SightingBeaconHistorySerializer(gis_serializers.GeoModelSerializer):
         model = Sighting
         geo_field = 'location'
         fields = ('id', 'beacon', 'detector', 'first_seen_at', 'last_seen_at', 'duration_in_seconds',
-                  'location', 'battery', 'is_current')
+                  'location', 'battery', 'is_active')
 
 
 class SightingDetectorHistorySerializer(gis_serializers.GeoModelSerializer):
@@ -211,7 +216,7 @@ class SightingDetectorHistorySerializer(gis_serializers.GeoModelSerializer):
         model = Sighting
         geo_field = 'location'
         fields = ('id', 'beacon', 'detector', 'first_seen_at', 'last_seen_at', 'duration_in_seconds',
-                  'location', 'battery', 'is_current')
+                  'location', 'battery', 'is_active')
 
 
 class SightingReadSerializer(gis_serializers.GeoModelSerializer):
@@ -221,24 +226,25 @@ class SightingReadSerializer(gis_serializers.GeoModelSerializer):
     class Meta:
         model = Sighting
         geo_field = 'location'
-        fields = ('id', 'beacon', 'detector', 'first_seen_at', 'last_seen_at',
-                  'location', 'rssi', 'battery', 'metadata', 'confirmed',
-                  'confirmed_by', 'confirmed_at', 'comment', 'commented_by', 'commented_at', 'is_current')
+        fields = ('id', 'detector', 'detector_battery', 'beacon', 'beacon_battery', 'first_seen_at', 'last_seen_at',
+                  'location', 'rssi', 'metadata', 'confirmed',
+                  'confirmed_by', 'confirmed_at', 'comment', 'commented_by', 'commented_at', 'is_active')
 
 
 class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
     first_seen_at = serializers.DateTimeField(allow_null=True, required=False)
     last_seen_at = serializers.DateTimeField(allow_null=True, required=False)
     location = serializers.CharField(allow_null=True, required=False)
-    battery = serializers.IntegerField(allow_null=True, required=False)
+    detector_battery = serializers.IntegerField(allow_null=True, required=False)
+    beacon_battery = serializers.IntegerField(allow_null=True, required=False)
     rssi = serializers.IntegerField(allow_null=True, required=False)
     confirmed = serializers.BooleanField(default=False)
 
     class Meta:
         model = Sighting
         geo_field = 'location'
-        fields = ('id', 'beacon', 'detector', 'first_seen_at', 'last_seen_at',
-                  'location', 'rssi', 'battery', 'metadata', 'confirmed', 'comment')
+        fields = ('id', 'detector', 'detector_battery', 'beacon', 'beacon_battery', 'first_seen_at', 'last_seen_at',
+                  'location', 'rssi', 'metadata', 'confirmed', 'comment')
 
     def create(self, validated_data):
         validated_data['confirmed_by'] = validated_data.get('user') if validated_data.get('confirmed') else None
@@ -272,7 +278,8 @@ class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
         instance.location = validated_data.get('location', instance.location)
 
         instance.rssi = validated_data.get('rssi', instance.rssi)
-        instance.battery = validated_data.get('battery', instance.battery)
+        instance.detector_battery = validated_data.get('detector_battery', instance.detector_battery)
+        instance.beacon_battery = validated_data.get('beacon_battery', instance.beacon_battery)
         instance.metadata = validated_data.get('metadata', instance.metadata)
         instance.confirmed = validated_data.get('confirmed', instance.confirmed)
         confirmed_by_user_email = validated_data.get('confirmed_by_user_email')
@@ -307,12 +314,13 @@ class EventDetectorSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class EventReadSerializer(serializers.HyperlinkedModelSerializer):
-    beacons = EventBeaconSerializer(many=True, read_only=True)
     detectors = EventDetectorSerializer(many=True, read_only=True)
+    unauthorized_beacons = EventBeaconSerializer(many=True, read_only=True)
+    authorized_beacons = EventBeaconSerializer(many=True, read_only=True)
 
     class Meta:
         model = Event
-        fields = ('id', 'account', 'reference_id', 'name', 'beacons', 'detectors',
+        fields = ('id', 'account', 'reference_id', 'name', 'detectors', 'unauthorized_beacons', 'authorized_beacons',
                   'schedule_days_of_week', 'schedule_start_time', 'schedule_end_time', 'schedule_timezone_offset',
                   'metadata', 'created_at', 'updated_at', 'updated_by', 'is_active')
 

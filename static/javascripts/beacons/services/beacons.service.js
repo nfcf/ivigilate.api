@@ -34,9 +34,9 @@
         function update(beacon, image) {
             var beaconToSend = JSON.parse(JSON.stringify(beacon));
             beaconToSend.photo = undefined;
-            beaconToSend.events = [];
-            for (var i = 0; i < beacon.events.length; i++) {  // Required for the REST serializer
-                beaconToSend.events.push(beacon.events[i].id);
+            beaconToSend.unauthorized_events = [];
+            for (var i = 0; i < beacon.unauthorized_events.length; i++) {  // Required for the REST serializer
+                beaconToSend.unauthorized_events.push(beacon.unauthorized_events[i].id);
             }
 
             if (!!image) {

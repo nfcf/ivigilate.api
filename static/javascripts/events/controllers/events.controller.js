@@ -67,7 +67,8 @@
         function updateEventState(event) {
             var eventToSend = JSON.parse(JSON.stringify(event));
             eventToSend.sighting_previous_event = !!eventToSend.sighting_previous_event ? eventToSend.sighting_previous_event.id : undefined;
-            eventToSend.beacons = null;
+            eventToSend.unauthorized_beacons = null;
+            eventToSend.authorized_beacons = null;
             eventToSend.detectors = null;
             Events.update(eventToSend).then(successFn, errorFn);
 

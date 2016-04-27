@@ -67,7 +67,7 @@ class CloseSightingsJob(CronJobBase):
         logger.debug('CloseSightingsJob.do() Starting iteration %s...', iteration)
         now = datetime.now(timezone.utc)
         filter_datetime = now - timedelta(seconds=CloseSightingsJob.NUMBER_OF_SECONDS_TO_BE_CONSIDERED_OLD)
-        sightings = Sighting.objects.filter(is_current=True, last_seen_at__lt=filter_datetime)
+        sightings = Sighting.objects.filter(type='A', is_active=True, last_seen_at__lt=filter_datetime)
         if sightings:
             logger.info('CloseSightingsJob.do() Found %s sighting(s) that need closing.', len(sightings))
             for sighting in sightings:

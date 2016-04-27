@@ -29,7 +29,7 @@
                         <td style="height:56px">
                             <img ng-src="{{ detector.photo }}" height="40px" ng-if="detector.photo"/>
                         </td>
-                        <td class="valign-middle">{{ detector.reference_id || detector.uid }}</td>
+                        <td class="valign-middle">{{ detector.reference_id || detector.uid.substring(0, 3) + '...' + detector.uid.substring(detector.uid.length - 3) }}</td>
                         <td class="valign-middle">{{ detector.name }}</td>
                         <td class="valign-middle text-center">{{ detector.type_display }}</td>
                         <td class="valign-middle text-center">{{ detector.arrival_rssi }}</td>

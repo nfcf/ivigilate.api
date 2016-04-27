@@ -10,21 +10,26 @@ import math, json, logging, time, threading, pytz
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
+TIMESTAMP_DIFF_ALLOWED = 30 * 1000
 
-def view_list(request, account, queryset, serializer):
+def build_http_response(response, status):
+    return Response({'timestamp': int(time.time() * 1000),  # all ints are long in python 3...
+              'data': response},
+              status=status)
+
+def view_list(request, account, queryset, serializer, wrap=False):
     if account is None or account.get_license_in_force() is not None:
         serializer_response = serializer(queryset, many=True, context={'request': request})
         # page = self.paginate_queryset(queryset)
         # serializer = self.get_pagination_serializer(page)
 
-        responseObject = {'timestamp': datetime.now(timezone.utc),
-                          'list': serializer_response.data} \
-            if issubclass(serializer, SightingReadSerializer) else \
-            serializer_response.data
-        return Response(responseObject)
+        if (wrap):
+            return build_http_response(serializer_response.data, status.HTTP_200_OK)
+        else:
+            return Response(serializer_response.data, status=status.HTTP_200_OK)
     else:
-        return Response('view_list() Your license has expired. Please ask the account administrator to renew the subscription.',
-                        status=status.HTTP_401_UNAUTHORIZED)
+        return build_http_response('view_list() Your license has expired. Please ask the account administrator to renew the subscription.',
+                        status.HTTP_401_UNAUTHORIZED)
 
 
 def get_file_extension(file_name, decoded_file):
@@ -37,13 +42,11 @@ def get_file_extension(file_name, decoded_file):
 
 
 def close_sighting(sighting, new_sighting_detector=None):
-    sighting.is_current = False
+    sighting.is_active = False
     sighting.save()
     logger.debug('close_sighting() Sighting \'%s\' is no longer current.', sighting)
 
-    # check for events associated with this sighting in a different thread
-    t = threading.Thread(target=check_for_events, args=(sighting, new_sighting_detector,))
-    t.start()
+    check_for_events_async(sighting, new_sighting_detector)
 
 
 def trigger_event_actions(event, sighting):
@@ -114,7 +117,7 @@ def check_for_events(sighting, new_sighting_detector=None):
 
     raw_query = Event.objects.raw('SELECT e.* ' +
                                   'FROM ivigilate_event e ' +
-                                  'LEFT OUTER JOIN ivigilate_event_beacons eb ON e.id = eb.event_id ' +
+                                  'LEFT OUTER JOIN ivigilate_event_unauthorized_beacons eb ON e.id = eb.event_id ' +
                                   'LEFT OUTER JOIN ivigilate_event_detectors ed ON e.id = ed.event_id ' +
                                   'WHERE (e.is_active = True ' +
                                   'AND e.account_id = %s ' +
@@ -149,8 +152,9 @@ def check_for_events(sighting, new_sighting_detector=None):
             initial_timestamp = sighting_metadata.get('timestamp_event_id_' + str(event.id), None)
 
             # Check if the bulk of the conditions are met...
-            if event_metadata.get('sighting_is_current', True) == sighting.is_current and \
-                            event_metadata.get('sighting_has_battery_below', 0) >= sighting.battery and \
+            if event_metadata.get('event_is_local', False) == False and \
+                            event_metadata.get('sighting_is_active', True) == sighting.is_active and \
+                            event_metadata.get('sighting_has_battery_below', 0) >= sighting.beacon_battery and \
                     (event_metadata.get('sighting_has_comment', None) is None or
                          (event_metadata['sighting_has_comment'] and sighting.comment) or
                          (not event_metadata['sighting_has_comment'] and not sighting.comment)) and \
@@ -166,7 +170,7 @@ def check_for_events(sighting, new_sighting_detector=None):
                 # Check the sighting duration within the proximity range specified in the event
                 event_sighting_duration_in_seconds = event_metadata.get('sighting_duration_in_seconds', 0)
                 if event_sighting_duration_in_seconds > 0:
-                    if not sighting.is_current:
+                    if not sighting.is_active:
                         seconds_in_the_future = event_sighting_duration_in_seconds - (now - sighting.last_seen_at).total_seconds()
                         # schedule check for missing beacon (to occur after X seconds)
                         t = threading.Thread(target=scheduled_check_for_event, args=(event, sighting, seconds_in_the_future))

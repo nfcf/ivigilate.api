@@ -156,9 +156,10 @@ def parse_events(sock, queue, loop_count=100):
                                 logger.info('Parsed: %s,%s,%i,%i,%i,%i,%i' % (mac, uuid, major, minor, power, battery, rssi))
                                 sighting = {}  # dict()
                                 sighting['timestamp'] = now
+                                sighting['beacon_mac'] = mac
                                 sighting['beacon_uid'] = uuid
+                                sighting['beacon_battery'] = battery
                                 sighting['rssi'] = rssi
-                                sighting['battery'] = battery
                                 queue.put(sighting)
                             # else:
                                 # logger.info('Skipping packet as a similar one happened less than 1 second ago.')

@@ -101,7 +101,7 @@
 
             function successFn(response, status, headers, config) {
                 vm.error = null;
-                vm.sightings = sortByKey(response.data.list, 'id');
+                vm.sightings = sortByKey(response.data.data, 'id');
 
                 applyClientServerTimeOffset(response.data.timestamp);
 
@@ -109,7 +109,7 @@
             }
 
             function errorFn(response, status, headers, config) {
-                vm.error = response.status != 500 ? JSON.stringify(data.data) : data.statusText;
+                vm.error = response.status != 500 ? JSON.stringify(response.data) : response.statusText;
             }
         }
 
@@ -135,7 +135,7 @@
         }
 
         function editDetector(detector) {
-            var dlg = dialogs.create('static/templates/sightings/editdetector.html', 'EditDetectorController as vm', detector, {'size': 'lg'});
+            var dlg = dialogs.create('static/templates/detectors/editdetector.html', 'EditDetectorController as vm', detector, {'size': 'lg'});
             dlg.result.then(function (editedDetector) {
                 refresh();
             });
@@ -148,8 +148,8 @@
                 // Do nothing...
             }
 
-            function errorFn(data, status, headers, config) {
-                vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
+            function errorFn(response, status, headers, config) {
+                vm.error = response.status != 500 ? JSON.stringify(response.data) : response.statusText;
                 sighting.confirmed = !sighting.confirmed;
             }
         }

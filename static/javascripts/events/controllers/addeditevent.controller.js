@@ -35,9 +35,10 @@
 
         vm.events = [];
         vm.nullEventOption = {"name": "-- Don't care --"};
-        vm.beacons = [];
-        vm.beacons_selected = [];
         vm.detectors = [];
+        vm.beacons = [];
+        vm.unauthorized_beacons_selected = [];
+        vm.authorized_beacons_selected = [];
         vm.detectors_selected = [];
 
         vm.is_edit = data !== null;
@@ -72,7 +73,9 @@
                         vm.event.metadata_object = metadata;
                         vm.event.metadata_object.action_notification_category = 'Info'; // Default value
                         for (var i = 0; i < metadata.actions.length; i++) {  // Required for the REST serializer
-                            if (metadata.actions[i].type == 'NOTIFICATION') {
+                            if (metadata.actions[i].type == 'BUZZER') {
+                                vm.event.metadata_object.action_buzzer_duration = metadata.actions[i].duration_in_seconds;
+                            } else if (metadata.actions[i].type == 'NOTIFICATION') {
                                 vm.event.metadata_object.action_notification_title = metadata.actions[i].title;
                                 vm.event.metadata_object.action_notification_category = metadata.actions[i].category;
                                 vm.event.metadata_object.action_notification_timeout = metadata.actions[i].timeout;
@@ -95,8 +98,9 @@
                     vm.title = 'New Event';
                     vm.event = {'is_active': true, 'schedule_timezone_offset': Math.abs(now.getTimezoneOffset()),
                                 'metadata_object': {
+                                    'action_buzzer_duration': 5,
                                     'action_notification_category': 'Info',
-                                    'sighting_is_current': true,
+                                    'sighting_is_active': true,
                                     'sighting_duration_in_seconds': 0,
                                     'sighting_has_battery_below': 100,
                                     'sighting_dormant_period_in_seconds': 0,
@@ -119,7 +123,10 @@
 
             function beaconsSuccessFn(data, status, headers, config) {
                 vm.beacons = data.data;
-                if (vm.is_edit) vm.beacons_selected = vm.event.beacons;
+                if (vm.is_edit) {
+                    vm.authorized_beacons_selected = vm.event.authorized_beacons;
+                    vm.unauthorized_beacons_selected = vm.event.unauthorized_beacons;
+                }
             }
 
             function detectorsSuccessFn(data, status, headers, config) {
@@ -154,6 +161,14 @@
                     vm.event.metadata_object.sighting_previous_event = vm.event.metadata_object.sighting_previous_event.id;
                 }
                 vm.event.metadata_object.actions = [];
+                if (vm.event.metadata_object.event_is_local) {
+                    vm.event.metadata_object.actions.push({
+                        'type': 'BUZZER',
+                        'duration_in_seconds': vm.event.metadata_object.action_buzzer_duration
+                    });
+                }
+                vm.event.metadata_object.action_buzzer_duration = undefined;
+
                 if (vm.event.metadata_object.action_notification_message) {
                     vm.event.metadata_object.actions.push({
                         'type': 'NOTIFICATION',
@@ -206,9 +221,13 @@
 
                 var eventToSend = JSON.parse(JSON.stringify(vm.event));
                 eventToSend.metadata_object = undefined;
-                eventToSend.beacons = [];
-                for (var i = 0; i < vm.beacons_selected.length; i++) {  // Required for the REST serializer
-                    eventToSend.beacons.push(vm.beacons_selected[i].id);
+                eventToSend.unauthorized_beacons = [];
+                for (var i = 0; i < vm.unauthorized_beacons_selected.length; i++) {  // Required for the REST serializer
+                    eventToSend.unauthorized_beacons.push(vm.unauthorized_beacons_selected[i].id);
+                }
+                eventToSend.authorized_beacons = [];
+                for (var i = 0; i < vm.authorized_beacons_selected.length; i++) {  // Required for the REST serializer
+                    eventToSend.authorized_beacons.push(vm.authorized_beacons_selected[i].id);
                 }
                 eventToSend.detectors = [];
                 for (var i = 0; i < vm.detectors_selected.length; i++) {  // Required for the REST serializer
@@ -225,7 +244,8 @@
             }
 
             function successFn(data, status, headers, config) {
-                vm.event.beacons = vm.beacons_selected;
+                vm.event.unauthorized_beacons = vm.unauthorized_beacons_selected;
+                vm.event.authorized_beacons = vm.authorized_beacons_selected;
                 vm.event.detectors = vm.detectors_selected;
                 $modalInstance.close(vm.event);
             }
@@ -257,7 +277,7 @@
          event_types.push({
          name: 'Gone out of sight',
          description: 'Triggered as soon as a movable gets out of the configured place(s) detector\'s range.',
-         sighting_is_current: false,
+         sighting_is_active: false,
          sighting_duration_in_seconds: 5,
          sighting_has_battery_below: 100,
          sighting_has_comment: null,
@@ -267,7 +287,7 @@
          event_types.push({
          name: 'Seen at place',
          description: 'Triggered immediately after a movable is seen at any of the configured places.',
-         sighting_is_current: true,
+         sighting_is_active: true,
          sighting_duration_in_seconds: 0,
          sighting_has_battery_below: 100,
          sighting_has_comment: null,
@@ -277,7 +297,7 @@
          event_types.push({
          name: 'Same place for more than X minutes',
          description: 'Triggered if a movable stays in the same place for more than the configured time.',
-         sighting_is_current: true,
+         sighting_is_active: true,
          sighting_duration_in_seconds: 5,
          sighting_has_battery_below: 100,
          sighting_has_comment: null,

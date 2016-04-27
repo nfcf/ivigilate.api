@@ -5,15 +5,14 @@
         .module('ivigilate.config')
         .config(config);
 
-    config.$inject = ['$locationProvider', 'uiGmapGoogleMapApiProvider', 'dialogsProvider', '$translateProvider',
+    config.$inject = ['$httpProvider', '$locationProvider', 'uiGmapGoogleMapApiProvider', 'dialogsProvider', '$translateProvider',
         'stripeProvider', 'showErrorsConfigProvider', 'toastrConfig'];
 
-    /**
-     * @name config
-     * @desc Enable HTML5 routing
-     */
-    function config($locationProvider, uiGmapGoogleMapApiProvider, dialogsProvider, $translateProvider,
+    function config($httpProvider, $locationProvider, uiGmapGoogleMapApiProvider, dialogsProvider, $translateProvider,
                     stripeProvider, showErrorsConfigProvider, toastrConfig) {
+
+        $httpProvider.interceptors.push('AuthInterceptor');
+
         $locationProvider.html5Mode(true);
         $locationProvider.hashPrefix('!');
 
