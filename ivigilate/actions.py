@@ -20,7 +20,7 @@ def replace_tags(msg, event=None, beacon=None, detector=None, limit=None, sighti
         replace('%limit_id%', limit.reference_id if limit is not None else ''). \
         replace('%limit_name%', limit.name if limit is not None else ''). \
         replace('%occur_date%', now.strftime('%Y-%m-%dT%H:%M:%S')). \
-        replace('%sighting_metadata%', sighting.metadata if sighting is not None else '{}')
+        replace('%sighting_metadata%', sighting.metadata.replace('"','\"') if sighting is not None else '{}')
 
 
 def create_notification(event, metadata):
