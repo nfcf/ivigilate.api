@@ -10,7 +10,7 @@ import math, json, logging, time, threading, pytz
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
-TIMESTAMP_DIFF_ALLOWED = 30 * 1000
+TIMESTAMP_DIFF_ALLOWED = 60 * 1000
 
 def build_http_response(response, status):
     return Response({'timestamp': int(time.time() * 1000),  # all ints are long in python 3...
