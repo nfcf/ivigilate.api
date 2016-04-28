@@ -147,8 +147,8 @@ class AddSightingsView(views.APIView):
 
                 is_active = sighting.get('is_active', True)  # for now, only mobile apps are smart enough to send this set to False...
 
-                logger.debug('AddSightingsView.post() Sighting: %s %s %s %s %s %s %s %s %s %s',
-                             timestamp, detector_uid, detector_battery, beacon_mac, beacon_uid, beacon_battery, rssi, is_active, metadata, location)
+                logger.debug('AddSightingsView.post() Sighting: %s %s %s %s %s %s %s %s %s %s %s',
+                             timestamp, type, detector_uid, detector_battery, beacon_mac, beacon_uid, beacon_battery, rssi, is_active, metadata, location)
 
                 #if now_timestamp - timestamp > utils.TIMESTAMP_DIFF_ALLOWED:
                 #    logger.error('AddSightingsView.post() ignoring sighting with outdated timestamp...')
@@ -195,6 +195,7 @@ class AddSightingsView(views.APIView):
 
     def open_sighting(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type):
         REPORTED_MISSING_NOTIFICATION_EVERY_MINS = 1
+        logger.debug('open_sighting() Started...')
 
         now = datetime.now(timezone.utc)
         previous_sightings = Sighting.objects.filter(is_active=True, beacon=beacon).order_by('-last_seen_at')[:1]
@@ -271,6 +272,7 @@ class AddSightingsView(views.APIView):
 
 
     def close_sighting(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata):
+        logger.debug('close_sighting() Started...')
         existing_sightings = Sighting.objects.filter(type='M', is_active=True, beacon=beacon, detector=detector).order_by('-last_seen_at')[:1]
         if existing_sightings:
             existing_sighting = existing_sightings[0]
