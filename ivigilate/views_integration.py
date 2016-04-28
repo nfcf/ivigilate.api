@@ -26,7 +26,7 @@ class BcloseSightingView(views.APIView):
         occur_date = data.get('occur_date', None)
         metadata = json.loads(data.get('metadata', '{}'))
 
-        situation = 1 if metadata['guard_tour'] else 0
+        situation = 1 if metadata.get('guard_tour', None) else 0
 
         try:
             # TODO: have a cache, just change its location as /tmp/suds/ is not allowed in shared envs...
