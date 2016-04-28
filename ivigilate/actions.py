@@ -91,7 +91,6 @@ def perform_action(action, event, beacon, detector, limit, sighting):
         elif action['type'] == 'REST':
             uri = replace_tags(action['uri'], event, beacon, detector, limit, sighting)
             body = replace_tags(action.get('body', ''), event, beacon, detector, limit, sighting)
-            body = json.loads(body)
             logger.info('perform_action() Action for ' + ('event' if event is not None else 'limit') + ' \'%s\': Making a \'%s\' call to \'%s\' with the following payload: %s',
                     event if event is not None else limit, action['method'], uri, body)
 
