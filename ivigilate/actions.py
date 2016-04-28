@@ -20,7 +20,7 @@ def replace_tags(msg, event=None, beacon=None, detector=None, limit=None, sighti
         replace('%limit_id%', limit.reference_id if limit is not None else ''). \
         replace('%limit_name%', limit.name if limit is not None else ''). \
         replace('%occur_date%', now.strftime('%Y-%m-%dT%H:%M:%S')). \
-        replace('%sighting_metadata%', json.dumps(sighting.metadata) if sighting is not None else '{}')
+        replace('%sighting_metadata%', sighting.metadata if sighting is not None else '{}')
 
 
 def create_notification(event, metadata):
@@ -91,6 +91,7 @@ def perform_action(action, event, beacon, detector, limit, sighting):
         elif action['type'] == 'REST':
             uri = replace_tags(action['uri'], event, beacon, detector, limit, sighting)
             body = replace_tags(action.get('body', ''), event, beacon, detector, limit, sighting)
+            body = json.loads(body)
             logger.info('perform_action() Action for ' + ('event' if event is not None else 'limit') + ' \'%s\': Making a \'%s\' call to \'%s\' with the following payload: %s',
                     event if event is not None else limit, action['method'], uri, body)
 
