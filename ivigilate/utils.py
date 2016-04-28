@@ -60,7 +60,7 @@ def trigger_event_actions(event, sighting):
     metadata = json.loads(event.metadata)
     if metadata['actions']:
         for action in metadata['actions']:
-            actions.perform_action(action, event, sighting.beacon, sighting.detector, None)
+            actions.perform_action(action, event, sighting.beacon, sighting.detector, None, sighting)
 
 
 def trigger_limit_actions(limit, event, beacon):
@@ -70,7 +70,7 @@ def trigger_limit_actions(limit, event, beacon):
     metadata = json.loads(limit.metadata)
     if metadata['actions']:
         for action in metadata['actions']:
-            actions.perform_action(action, event, beacon, None, limit)
+            actions.perform_action(action, event, beacon, None, limit, sighting)
 
 
 def scheduled_check_for_event(event, sighting, seconds_in_the_future, iteration=1):

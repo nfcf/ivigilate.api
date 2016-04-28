@@ -24,6 +24,9 @@ class BcloseSightingView(views.APIView):
         detector_uid = data.get('detector_uid', None)
         beacon_uid = data.get('beacon_uid', None)
         occur_date = data.get('occur_date', None)
+        metadata = json.loads(data.get('metadata', '{}'))
+
+        situation = 1 if metadata['guard_tour'] else 0
 
         try:
             # TODO: have a cache, just change its location as /tmp/suds/ is not allowed in shared envs...
@@ -33,8 +36,8 @@ class BcloseSightingView(views.APIView):
                                                     customer_id=company_id,
                                                     beacon_uid=beacon_uid,
                                                     detector_uid=detector_uid,
-                                                    situation=1,
-                                                    localdate=datetime.strptime(occur_date, '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d-%H:%M:%S'))
+                                                    situation=situation,
+                                                    localdate=datetime.strptime(occur_date, '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S'))
         except Exception as ex:
             logger.exception('BcloseSightingView.post() Failed while sending message to Bclose:')
             return Response(str(ex), status=status.HTTP_400_BAD_REQUEST)
