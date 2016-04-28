@@ -26,7 +26,7 @@ class BcloseSightingView(views.APIView):
         detector_uid = data.get('detector_uid', None)
         beacon_uid = data.get('beacon_uid', None)
         occur_date = data.get('occur_date', None)
-        sighting_metadata = json.loads(data.get('sighting_metadata', '{}'))
+        sighting_metadata = json.loads(data.get('sighting_metadata', '{}') or '{}')
 
         situation = 1 if sighting_metadata.get('guard_tour', None) else 0
 
