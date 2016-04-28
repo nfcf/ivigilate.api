@@ -17,7 +17,9 @@ class BcloseSightingView(views.APIView):
     PARTNER_TOKEN = 'ivigilate_hash_token'
 
     def post(self, request, format=None):
-        data = json.loads(request.body.decode('utf-8') or '{}')
+        data = request.body.decode('utf-8') or '{}'
+        logger.info('BcloseSightingView.post() Started with data: ' + data)
+        data = json.loads(data)
 
         company_id = data.get('company_id', None)
         event_id = data.get('event_id', None)

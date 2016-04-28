@@ -90,9 +90,9 @@ def perform_action(action, event, beacon, detector, limit, sighting):
             send_email(subject, body, action['recipients'])
         elif action['type'] == 'REST':
             uri = replace_tags(action['uri'], event, beacon, detector, limit, sighting)
-            logger.info('perform_action() Action for ' + ('event' if event is not None else 'limit') + ' \'%s\': Making a \'%s\' call to \'%s\'.',
-                    event if event is not None else limit, action['method'], uri)
             body = replace_tags(action.get('body', ''), event, beacon, detector, limit, sighting)
+            logger.info('perform_action() Action for ' + ('event' if event is not None else 'limit') + ' \'%s\': Making a \'%s\' call to \'%s\' with the following payload: %s',
+                    event if event is not None else limit, action['method'], uri, body)
 
             make_rest_call(action['method'], uri, body)
     except Exception as ex:
