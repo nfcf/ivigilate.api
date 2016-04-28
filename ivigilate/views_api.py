@@ -147,8 +147,8 @@ class AddSightingsView(views.APIView):
 
                 is_active = sighting.get('is_active', True)  # for now, only mobile apps are smart enough to send this set to False...
 
-                logger.debug('AddSightingsView.post() Sighting: %s %s %s %s %s %s %s %s %s %s %s',
-                             timestamp, type, detector_uid, detector_battery, beacon_mac, beacon_uid, beacon_battery, rssi, is_active, metadata, location)
+                logger.info('AddSightingsView.post() Sighting: %s %s %s %s %s %s %s %s %s %s %s %s',
+                             timestamp, type, detector_uid, detector_battery, beacon_mac, beacon_uid, beacon_battery, rssi, is_active, metadata, location, is_active)
 
                 #if now_timestamp - timestamp > utils.TIMESTAMP_DIFF_ALLOWED:
                 #    logger.error('AddSightingsView.post() ignoring sighting with outdated timestamp...')
