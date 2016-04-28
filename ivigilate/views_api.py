@@ -266,7 +266,7 @@ class AddSightingsView(views.APIView):
                             'arrival_rssi configured for this detector / user (%s < %s).', beacon, detector, rssi, detector.arrival_rssi)
             else:
                 new_sighting = Sighting.objects.create(beacon=beacon, beacon_battery=beacon_battery, detector=detector, detector_battery=detector_battery,
-                                                       location=location, rssi=rssi, type=type)
+                                                       location=location, rssi=rssi, metadata=metadata,type=type)
                 logger.debug('open_sighting() Created new sighting \'%s\'.', new_sighting)
 
         utils.check_for_events_async(new_sighting, )
@@ -288,6 +288,9 @@ class AddSightingsView(views.APIView):
             existing_sighting.detector_battery = detector_battery
             existing_sighting.beacon_battery = beacon_battery
             existing_sighting.location = location
+
+            # This needs some work here...
+            # existing_sighting_metadata = json.loads(existing_sighting.metadata or '{}')
 
             utils.close_sighting(existing_sighting)
 
