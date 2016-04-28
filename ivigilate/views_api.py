@@ -136,7 +136,7 @@ class AddSightingsView(views.APIView):
 
                 detector_uid = sighting.get('detector_uid').lower()
                 detector_battery = sighting.get('detector_battery', None)
-                beacon_mac = sighting.get('beacon_mac', None).lower()
+                beacon_mac = sighting.get('beacon_mac', None)
                 beacon_uid = sighting.get('beacon_uid', None).lower()
                 beacon_battery = sighting.get('beacon_battery', None)
 
