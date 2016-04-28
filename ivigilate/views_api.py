@@ -133,6 +133,7 @@ class AddSightingsView(views.APIView):
             for sighting in data:
 
                 timestamp = sighting.get('timestamp', None)
+                type = sighting.get('type', 'A')
 
                 detector_uid = sighting.get('detector_uid').lower()
                 detector_battery = sighting.get('detector_battery', None)
@@ -176,7 +177,7 @@ class AddSightingsView(views.APIView):
                                                 Q(uid=beacon_mac)|Q(uid=beacon_uid))  # this can yield more than one beacon...
                 for beacon in beacons:
                     if is_active:
-                        self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata)
+                        self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type)
                     else:
                         self.close_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata)
 
@@ -186,13 +187,13 @@ class AddSightingsView(views.APIView):
         return utils.build_http_response(None, status.HTTP_200_OK)
 
 
-    def open_sighting_async(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata):
+    def open_sighting_async(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type):
         # check for events associated with this sighting in a different  thread
-        t = threading.Thread(target=self.open_sighting, args=(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata))
+        t = threading.Thread(target=self.open_sighting, args=(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type))
         t.start()
 
 
-    def open_sighting(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata):
+    def open_sighting(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type):
         REPORTED_MISSING_NOTIFICATION_EVERY_MINS = 1
 
         now = datetime.now(timezone.utc)
@@ -257,7 +258,7 @@ class AddSightingsView(views.APIView):
                             'arrival_rssi configured for this detector / user (%s < %s).', beacon, detector, rssi, detector.arrival_rssi)
             else:
                 new_sighting = Sighting.objects.create(beacon=beacon, beacon_battery=beacon_battery, detector=detector, detector_battery=detector_battery,
-                                                       location=location, rssi=rssi)
+                                                       location=location, rssi=rssi, type=type)
                 logger.debug('open_sighting() Created new sighting \'%s\'.', new_sighting)
 
         utils.check_for_events_async(new_sighting, )
@@ -270,16 +271,16 @@ class AddSightingsView(views.APIView):
 
 
     def close_sighting(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata):
-        previous_sightings = Sighting.objects.filter(type='M', is_active=True, beacon=beacon, detector=detector).order_by('-last_seen_at')[:1]
-        if previous_sightings:
-            previous_sighting = previous_sightings[0]
-            previous_sighting.last_seen_at = None  # this forces the datetime update on the model save()
-            previous_sighting.rssi = rssi
-            previous_sighting.detector_battery = detector_battery
-            previous_sighting.beacon_battery = beacon_battery
-            previous_sighting.location = location
+        existing_sightings = Sighting.objects.filter(type='M', is_active=True, beacon=beacon, detector=detector).order_by('-last_seen_at')[:1]
+        if existing_sightings:
+            existing_sighting = existing_sightings[0]
+            existing_sighting.last_seen_at = None  # this forces the datetime update on the model save()
+            existing_sighting.rssi = rssi
+            existing_sighting.detector_battery = detector_battery
+            existing_sighting.beacon_battery = beacon_battery
+            existing_sighting.location = location
 
-            utils.close_sighting(previous_sighting)
+            utils.close_sighting(existing_sighting)
 
 
 class AutoUpdateView(views.APIView):
