@@ -10,7 +10,7 @@ import math, json, logging, time, threading, pytz
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
-TIMESTAMP_DIFF_ALLOWED = 30 * 1000
+TIMESTAMP_DIFF_ALLOWED = 60 * 1000
 
 def build_http_response(response, status):
     return Response({'timestamp': int(time.time() * 1000),  # all ints are long in python 3...
@@ -60,7 +60,7 @@ def trigger_event_actions(event, sighting):
     metadata = json.loads(event.metadata)
     if metadata['actions']:
         for action in metadata['actions']:
-            actions.perform_action(action, event, sighting.beacon, sighting.detector, None)
+            actions.perform_action(action, event, sighting.beacon, sighting.detector, None, sighting)
 
 
 def trigger_limit_actions(limit, event, beacon):
@@ -70,7 +70,7 @@ def trigger_limit_actions(limit, event, beacon):
     metadata = json.loads(limit.metadata)
     if metadata['actions']:
         for action in metadata['actions']:
-            actions.perform_action(action, event, beacon, None, limit)
+            actions.perform_action(action, event, beacon, None, limit, sighting)
 
 
 def scheduled_check_for_event(event, sighting, seconds_in_the_future, iteration=1):

@@ -17,13 +17,18 @@ class BcloseSightingView(views.APIView):
     PARTNER_TOKEN = 'ivigilate_hash_token'
 
     def post(self, request, format=None):
-        data = json.loads(request.body.decode('utf-8') or '{}')
+        data = request.body.decode('utf-8') or '{}'
+        logger.info('BcloseSightingView.post() Started with data: ' + data)
+        data = json.loads(data)
 
         company_id = data.get('company_id', None)
         event_id = data.get('event_id', None)
         detector_uid = data.get('detector_uid', None)
         beacon_uid = data.get('beacon_uid', None)
         occur_date = data.get('occur_date', None)
+        sighting_metadata = json.loads(data.get('sighting_metadata', '{}') or '{}')
+
+        situation = 1 if sighting_metadata.get('guard_tour', None) else 0
 
         try:
             # TODO: have a cache, just change its location as /tmp/suds/ is not allowed in shared envs...
@@ -33,7 +38,8 @@ class BcloseSightingView(views.APIView):
                                                     customer_id=company_id,
                                                     beacon_uid=beacon_uid,
                                                     detector_uid=detector_uid,
-                                                    localdate=datetime.strptime(occur_date, '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d-%H:%M:%S'))
+                                                    situation=situation,
+                                                    localdate=datetime.strptime(occur_date, '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S'))
         except Exception as ex:
             logger.exception('BcloseSightingView.post() Failed while sending message to Bclose:')
             return Response(str(ex), status=status.HTTP_400_BAD_REQUEST)

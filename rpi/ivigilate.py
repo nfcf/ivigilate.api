@@ -4,6 +4,7 @@ import os, sys, subprocess, ConfigParser, logging
 import time, requests, json, Queue, threading, urllib
 import config, autoupdate, blescan
 import bluetooth._bluetooth as bluez
+import buzzer
 
 dev_id = 0
 logger = logging.getLogger(__name__)
@@ -54,14 +55,21 @@ def ble_scanner(queue):
 
 
 def main():
+    
+    locally_seen = set() # Set that contains unique locally seen beacons
+    authorized = set()
+    authorized.add("d099dab070934572ab334e69dc042f45")
+    unauthorized = set(["b9223382f8b94ba488133819f06d9a9c"])
+    
     config.init()
+    buzzer.init()
 
     log_level = config.getint('BASE', 'log_level')
     init_logger(log_level)
 
     logger.info('Started with log level: ' + logging.getLevelName(log_level))
 
-    autoupdate.check()
+    #autoupdate.check()
     last_update_check = datetime.now()
 
     # need to try catch and retry this as it some times fails...
@@ -75,31 +83,61 @@ def main():
     logger.info('BLE scanner thread started')
 
     last_respawn_date = datetime.strptime(config.get('DEVICE', 'last_respawn_date'), '%Y-%m-%d').date()
+    
+    print "Going into the main loop..."
+    print "Authorized: ",authorized
+    print "Unauthorized: ", unauthorized 
 
     try:
         while True:
             now = datetime.now()
             # if configured daily_respawn_hour, stop the ble_thread and respawn the process
-            if now.date() > last_respawn_date and now.hour == config.getint('BASE', 'daily_respawn_hour'):
+            # if now.date() > last_respawn_date and now.hour == config.getint('BASE', 'daily_respawn_hour'):
                 # autoupdate.respawn_script(ble_thread)
-                autoupdate.restart_pi()
-            elif now > last_update_check + timedelta(minutes=5):
-                autoupdate.check(ble_thread)
-                last_update_check = datetime.now()
+                # autoupdate.restart_pi()
+            # elif now > last_update_check + timedelta(minutes=5):
+                # autoupdate.check(ble_thread)
+                # last_update_check = datetime.now()
 
-            # if new sightings, send them to the server
+            # Take new sightings from queue
             sightings = []
             for i in range(100):
-                if ble_queue.empty(): break
-                else: sightings.append(ble_queue.get())
+                if ble_queue.empty():
+                    break
+                else: 
+                    sightings.append(ble_queue.get())
+                    # TODO Only add this beacon to the list if we have "events" for it
+                    ## Probably join all unauthorized lists into one and see if this new exists there or not
+                    locally_seen.add(sightings[len(sightings) - 1]['beacon_uid']) # Append the beacon_uid of the latest sighting
+                    # Launch threading.timer here
+                    
+           # print locally_seen
 
+            # Local events handling
+            if not locally_seen.isdisjoint(unauthorized):
+                # Rogue beacon is trying to escape!!
+                # TODO Add delay to checking authorized sightings
+                print "oh oh"
+                if locally_seen.isdisjoint(authorized):
+                    # no authorized beacon in sigh
+                    buzzer.play_alert(3);
+                    
+                print "All your base are belong to us."
+                locally_seen.clear();
+            else:
+                print "What? Nothing to do..."
+                
+            # if new sightings, send them to the server
             if len(sightings) > 0:
                 send_sightings(sightings)
 
             time.sleep(1)
+            
     except Exception:
+        buzzer.end() # Ensure we leave everything nice and clean
         logger.exception('main() loop failed with error:')
         autoupdate.respawn_script(ble_thread)
+        
 
 if __name__ == '__main__':
     main()

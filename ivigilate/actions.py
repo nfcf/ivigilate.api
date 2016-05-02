@@ -8,7 +8,7 @@ import json, re, logging, requests, threading
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
-def replace_tags(msg, event=None, beacon=None, detector=None, limit=None):
+def replace_tags(msg, event=None, beacon=None, detector=None, limit=None, sighting=None):
     now = datetime.now(timezone.utc)
     return msg.replace('%company_id%', event.account.company_id if event is not None else ''). \
         replace('%event_id%', event.reference_id if event is not None else ''). \
@@ -19,7 +19,8 @@ def replace_tags(msg, event=None, beacon=None, detector=None, limit=None):
         replace('%detector_name%', detector.name if detector is not None else ''). \
         replace('%limit_id%', limit.reference_id if limit is not None else ''). \
         replace('%limit_name%', limit.name if limit is not None else ''). \
-        replace('%occur_date%', now.strftime('%Y-%m-%dT%H:%M:%S'))
+        replace('%occur_date%', now.strftime('%Y-%m-%dT%H:%M:%S')). \
+        replace('%sighting_metadata%', sighting.metadata.replace('"','\\"') if sighting is not None else '{}')
 
 
 def create_notification(event, metadata):
@@ -57,12 +58,12 @@ def make_rest_call(method, uri, body):
         requests.put(uri, body)
 
 
-def perform_action_async(action, event, beacon, detector, limit):
-    t = threading.Thread(target=perform_action, args=(action, event, beacon, detector, limit,))
+def perform_action_async(action, event, beacon, detector, limit, sighting):
+    t = threading.Thread(target=perform_action, args=(action, event, beacon, detector, limit, sighting,))
     t.start()
 
 
-def perform_action(action, event, beacon, detector, limit):
+def perform_action(action, event, beacon, detector, limit, sighting):
     try:
         if action['type'] == 'NOTIFICATION':
             logger.info('perform_action() Action for ' + ('event' if event is not None else 'limit') + ' \'%s\': Generating On-Screen Notification.',
@@ -70,28 +71,28 @@ def perform_action(action, event, beacon, detector, limit):
             action_metadata = {}
             action_metadata['category'] = action['category']
             action_metadata['timeout'] = action.get('timeout', 0)
-            action_metadata['title'] = replace_tags(action.get('title', ''), event, beacon, detector, limit)
-            action_metadata['message'] = replace_tags(action.get('message', ''), event, beacon, detector, limit)
+            action_metadata['title'] = replace_tags(action.get('title', ''), event, beacon, detector, limit, sighting)
+            action_metadata['message'] = replace_tags(action.get('message', ''), event, beacon, detector, limit, sighting)
 
             create_notification(event, json.dumps(action_metadata))
         elif action['type'] == 'SMS':
             logger.info('perform_action() Action for ' + ('event' if event is not None else 'limit') + ' \'%s\': Sending SMS to %s recipient(s).',
                     event if event is not None else limit, len(re.split(',|;', action['recipients'])))
-            message = replace_tags(action.get('message', ''), event, beacon, detector, limit)
+            message = replace_tags(action.get('message', ''), event, beacon, detector, limit, sighting)
 
             send_twilio_message(action['recipients'], message)
         elif action['type'] == 'EMAIL':
             logger.info('perform_action() Action for ' + ('event' if event is not None else 'limit') + ' \'%s\': Sending EMAIL to %s recipient(s).',
                     event if event is not None else limit, len(re.split(',|;', action['recipients'])))
-            body = replace_tags(action.get('body', ''), event, beacon, detector, limit)
-            subject = replace_tags(action.get('subject', ''), event, beacon, detector, limit)
+            body = replace_tags(action.get('body', ''), event, beacon, detector, limit, sighting)
+            subject = replace_tags(action.get('subject', ''), event, beacon, detector, limit, sighting)
 
             send_email(subject, body, action['recipients'])
         elif action['type'] == 'REST':
-            uri = replace_tags(action['uri'], event, beacon, detector, limit)
-            logger.info('perform_action() Action for ' + ('event' if event is not None else 'limit') + ' \'%s\': Making a \'%s\' call to \'%s\'.',
-                    event if event is not None else limit, action['method'], uri)
-            body = replace_tags(action.get('body', ''), event, beacon, detector, limit)
+            uri = replace_tags(action['uri'], event, beacon, detector, limit, sighting)
+            body = replace_tags(action.get('body', ''), event, beacon, detector, limit, sighting)
+            logger.info('perform_action() Action for ' + ('event' if event is not None else 'limit') + ' \'%s\': Making a \'%s\' call to \'%s\' with the following payload: %s',
+                    event if event is not None else limit, action['method'], uri, body)
 
             make_rest_call(action['method'], uri, body)
     except Exception as ex:

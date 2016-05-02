@@ -103,6 +103,11 @@ class ProvisionDeviceView(views.APIView):
             if type[0] == 'B':
                 try:
                     beacon = Beacon.objects.get(account=account, uid=uid)
+                    beacon.name = name
+                    beacon.metadata = metadata
+                    beacon.save()
+                    return utils.build_http_response('Beacon already provisioned in the system for this account. Name field updated.',
+                                             status.HTTP_409_CONFLICT)
                 except Beacon.DoesNotExist:
                     beacon = Beacon.objects.create(account=account, uid=uid, name=name, type=type[1], metadata=metadata)
 
@@ -110,6 +115,11 @@ class ProvisionDeviceView(views.APIView):
             elif type[0] == 'D':
                 try:
                     detector = Detector.objects.get(account=account, uid=uid)
+                    detector.name = name
+                    detector.metadata = metadata
+                    detector.save()
+                    return utils.build_http_response('Detector already provisioned in the system for this account. Name field updated.',
+                                             status.HTTP_409_CONFLICT)
                 except Detector.DoesNotExist:
                     detector = Detector.objects.create(account=account, uid=uid, name=name, type=type[1], metadata=metadata)
 
@@ -133,10 +143,11 @@ class AddSightingsView(views.APIView):
             for sighting in data:
 
                 timestamp = sighting.get('timestamp', None)
+                type = sighting.get('type', 'A')
 
                 detector_uid = sighting.get('detector_uid').lower()
                 detector_battery = sighting.get('detector_battery', None)
-                beacon_mac = sighting.get('beacon_mac', None).lower()
+                beacon_mac = sighting.get('beacon_mac', None)
                 beacon_uid = sighting.get('beacon_uid', None).lower()
                 beacon_battery = sighting.get('beacon_battery', None)
 
@@ -146,8 +157,8 @@ class AddSightingsView(views.APIView):
 
                 is_active = sighting.get('is_active', True)  # for now, only mobile apps are smart enough to send this set to False...
 
-                logger.debug('AddSightingsView.post() Sighting: %s %s %s %s %s %s %s %s %s %s',
-                             timestamp, detector_uid, detector_battery, beacon_mac, beacon_uid, beacon_battery, rssi, is_active, metadata, location)
+                logger.info('AddSightingsView.post() Sighting: %s %s %s %s %s %s %s %s %s %s %s %s',
+                             timestamp, type, detector_uid, detector_battery, beacon_mac, beacon_uid, beacon_battery, rssi, is_active, metadata, location, is_active)
 
                 #if now_timestamp - timestamp > utils.TIMESTAMP_DIFF_ALLOWED:
                 #    logger.error('AddSightingsView.post() ignoring sighting with outdated timestamp...')
@@ -157,43 +168,51 @@ class AddSightingsView(views.APIView):
                 try:
                     detector = Detector.objects.get(uid=detector_uid)
                     if not detector.is_active:
-                        return utils.build_http_response('AddSightingsView.post() Ignoring sighting as the Detector is not active on the system.',
+                        logger.warning('AddSightingsView.post() Ignoring sighting as the Detector is not active on the system.')
+                        return utils.build_http_response('Ignoring sighting as the Detector is not active on the system.',
                                                          status.HTTP_400_BAD_REQUEST)
                     elif location is not None:
                         location = json.dumps(location)
                     else:
                         location = detector.location
                 except Detector.DoesNotExist:
-                    return utils.build_http_response('AddSightingsView.post() Invalid Detector UID (couldn\'t find corresponding detector).',
+                    logger.warning('AddSightingsView.post() Invalid Detector UID (couldn\'t find corresponding device).')
+                    return utils.build_http_response('Invalid Detector UID (couldn\'t find corresponding device).',
                                                      status.HTTP_400_BAD_REQUEST)
 
                 if detector.account.get_license_in_force() is None:
-                        return utils.build_http_response('AddSightingsView.post() Ignoring sighting as the associated Account doesn\'t have a valid subscription.',
-                                                         status.HTTP_400_BAD_REQUEST)
+                    logger.warning('AddSightingsView.post() Ignoring sighting as the associated Account doesn\'t have a valid subscription.')
+                    return utils.build_http_response('Ignoring sighting as the associated Account doesn\'t have a valid subscription.',
+                                                     status.HTTP_400_BAD_REQUEST)
 
 
                 beacons = Beacon.objects.filter(Q(is_active=True),
                                                 Q(uid=beacon_mac)|Q(uid=beacon_uid))  # this can yield more than one beacon...
-                for beacon in beacons:
-                    if is_active:
-                        self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata)
-                    else:
-                        self.close_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata)
-
+                if len(beacons) > 0:
+                    for beacon in beacons:
+                        if is_active:
+                            self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type)
+                        else:
+                            self.close_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata)
+                else:
+                    logger.warning('AddSightingsView.post() Invalid Beacon MAC / UID (couldn\'t find corresponding device).')
+                    return utils.build_http_response('Invalid Beacon MAC / UID (couldn\'t find corresponding device).',
+                                                     status.HTTP_400_BAD_REQUEST)
 
         # serialized = SightingReadSerializer(new_sighting, context={'request': request})
         # return Response(serialized.data)
         return utils.build_http_response(None, status.HTTP_200_OK)
 
 
-    def open_sighting_async(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata):
+    def open_sighting_async(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type):
         # check for events associated with this sighting in a different  thread
-        t = threading.Thread(target=self.open_sighting, args=(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata))
+        t = threading.Thread(target=self.open_sighting, args=(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type))
         t.start()
 
 
-    def open_sighting(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata):
+    def open_sighting(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type):
         REPORTED_MISSING_NOTIFICATION_EVERY_MINS = 1
+        logger.debug('open_sighting() Started...')
 
         now = datetime.now(timezone.utc)
         previous_sightings = Sighting.objects.filter(is_active=True, beacon=beacon).order_by('-last_seen_at')[:1]
@@ -257,7 +276,7 @@ class AddSightingsView(views.APIView):
                             'arrival_rssi configured for this detector / user (%s < %s).', beacon, detector, rssi, detector.arrival_rssi)
             else:
                 new_sighting = Sighting.objects.create(beacon=beacon, beacon_battery=beacon_battery, detector=detector, detector_battery=detector_battery,
-                                                       location=location, rssi=rssi)
+                                                       location=location, rssi=rssi, metadata=metadata,type=type)
                 logger.debug('open_sighting() Created new sighting \'%s\'.', new_sighting)
 
         utils.check_for_events_async(new_sighting, )
@@ -270,16 +289,20 @@ class AddSightingsView(views.APIView):
 
 
     def close_sighting(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata):
-        previous_sightings = Sighting.objects.filter(type='M', is_active=True, beacon=beacon, detector=detector).order_by('-last_seen_at')[:1]
-        if previous_sightings:
-            previous_sighting = previous_sightings[0]
-            previous_sighting.last_seen_at = None  # this forces the datetime update on the model save()
-            previous_sighting.rssi = rssi
-            previous_sighting.detector_battery = detector_battery
-            previous_sighting.beacon_battery = beacon_battery
-            previous_sighting.location = location
+        logger.debug('close_sighting() Started...')
+        existing_sightings = Sighting.objects.filter(type='M', is_active=True, beacon=beacon, detector=detector).order_by('-last_seen_at')[:1]
+        if existing_sightings:
+            existing_sighting = existing_sightings[0]
+            existing_sighting.last_seen_at = None  # this forces the datetime update on the model save()
+            existing_sighting.rssi = rssi
+            existing_sighting.detector_battery = detector_battery
+            existing_sighting.beacon_battery = beacon_battery
+            existing_sighting.location = location
 
-            utils.close_sighting(previous_sighting)
+            # This needs some work here...
+            # existing_sighting_metadata = json.loads(existing_sighting.metadata or '{}')
+
+            utils.close_sighting(existing_sighting)
 
 
 class AutoUpdateView(views.APIView):
