@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from datetime import datetime, timedelta
 import os, sys, subprocess, ConfigParser, logging
-import time, requests, json, Queue, threading, urllib
+import time, requests, json, Queue, threading
 import config, autoupdate, blescan
 import bluetooth._bluetooth as bluez
 import buzzer
@@ -22,17 +22,37 @@ def send_sightings_async(sightings):
 
 def send_sightings(sightings):
     for sighting in sightings:
-        sighting['detector_uid'] = config.get('DEVICE', 'hardware') + config.get('DEVICE', 'revision') + config.get('DEVICE', 'serial')
+        sighting['detector_uid'] = config.get_detector_uid()
         sighting['detector_battery'] = None  # this can be used in the future...
 
     try:
         logger.info('Sending %s sightings to the server...', len(sightings))
         response = requests.post(config.get('SERVER', 'address') + config.get('SERVER', 'addsightings_uri'),
-                                 json.dumps(sightings))
+                                 json.dumps(sightings), verify=True)
         logger.info('Received from addsightings: %s - %s', response.status_code, response.text)
     except Exception:
         logger.exception('Failed to contact the server with error:')
 
+def init_ble_advertiser():
+    # Configure Ble advertisement packet
+    ble_adv_string = '1e02011a1aff4c000215' + config.get_detector_uid() + '00000000c500000000000000000000000000'
+    ble_adv_array = [ble_adv_string[i:i+2] for i in range(0,len(ble_adv_string),2)]
+
+    hci_tool_params = [config.HCITOOL_FILE_PATH, '-i', 'hci0', 'cmd', '0x08', '0x0008']
+    hci_tool_params.extend(ble_adv_array)
+    subprocess.call(hci_tool_params)
+
+    # Configure Ble advertisement rate
+    # (check http://stackoverflow.com/questions/21124993/is-there-a-way-to-increase-ble-advertisement-frequency-in-bluez for math)
+    ble_config_string = '000800080300000000000000000700'
+    ble_config_array = [ble_config_string[i:i+2] for i in range(0,len(ble_config_string),2)]
+
+    hci_tool_params = [config.HCITOOL_FILE_PATH, '-i', 'hci0', 'cmd', '0x08', '0x0006']
+    hci_tool_params.extend(ble_config_array)
+    subprocess.call(hci_tool_params)
+
+    # Start Ble advertisement
+    subprocess.call([config.HCITOOL_FILE_PATH, '-i', 'hci0', 'cmd', '0x08', '0x000a', '01'])
 
 def ble_scanner(queue):
     try:
@@ -74,6 +94,8 @@ def main():
 
     # need to try catch and retry this as it some times fails...
     subprocess.call([config.HCICONFIG_FILE_PATH, 'hci0', 'up'])
+
+    init_ble_advertiser()
 
     ble_queue = Queue.Queue()
 

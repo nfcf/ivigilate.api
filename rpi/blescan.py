@@ -156,7 +156,7 @@ def parse_events(sock, queue, loop_count=100):
                                 logger.info('Parsed: %s,%s,%i,%i,%i,%i,%i' % (mac, uuid, major, minor, power, battery, rssi))
                                 sighting = {}  # dict()
                                 sighting['timestamp'] = now
-                                sighting['beacon_mac'] = mac
+                                sighting['beacon_mac'] = mac.replace(':', '')
                                 sighting['beacon_uid'] = uuid
                                 sighting['beacon_battery'] = battery
                                 sighting['rssi'] = rssi
