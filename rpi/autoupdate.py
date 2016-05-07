@@ -45,7 +45,7 @@ def check(ble_thread=None):
     while response == None:
         try:
             response = requests.post(config.get('SERVER', 'address') + config.get('SERVER', 'autoupdate_uri'),
-                                     data)
+                                     data, verify=True)
             logger.debug('check() received from server: %s', response)
         except Exception:
             logger.exception('check() failed to contact the server with error:')

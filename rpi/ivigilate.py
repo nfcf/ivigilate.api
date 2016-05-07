@@ -1,18 +1,25 @@
 #!/usr/bin/env python
 from datetime import datetime, timedelta
 import os, sys, subprocess, ConfigParser, logging
-import time, requests, json, Queue, threading, urllib
+import time, requests, json, Queue, threading
 import config, autoupdate, blescan
 import bluetooth._bluetooth as bluez
 import buzzer
+from logging.handlers import RotatingFileHandler
 
 dev_id = 0
 logger = logging.getLogger(__name__)
 
 
 def init_logger(log_level):
-    logging.basicConfig(filename=config.LOG_FILE_PATH, level=log_level,
-                        format='%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s')
+    log_formatter = logging.Formatter('%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s')
+
+    file_handler = RotatingFileHandler(config.LOG_FILE_PATH, mode='a', maxBytes=2*1024*1024,
+                                     backupCount=10, encoding=None, delay=0)
+    file_handler.setFormatter(log_formatter)
+    file_handler.setLevel(log_level)
+
+    logger.addHandler(file_handler)
 
 
 def send_sightings_async(sightings):
@@ -22,17 +29,42 @@ def send_sightings_async(sightings):
 
 def send_sightings(sightings):
     for sighting in sightings:
-        sighting['detector_uid'] = config.get('DEVICE', 'hardware') + config.get('DEVICE', 'revision') + config.get('DEVICE', 'serial')
+        sighting['detector_uid'] = config.get_detector_uid()
         sighting['detector_battery'] = None  # this can be used in the future...
 
     try:
         logger.info('Sending %s sightings to the server...', len(sightings))
         response = requests.post(config.get('SERVER', 'address') + config.get('SERVER', 'addsightings_uri'),
-                                 json.dumps(sightings))
+                                 json.dumps(sightings), verify=True)
         logger.info('Received from addsightings: %s - %s', response.status_code, response.text)
+
+        result = json.loads(response.text)
+        now = int(time.time() * 1000)
+        blescan.server_time_offset = result.get('timestamp', now) - now
+
     except Exception:
         logger.exception('Failed to contact the server with error:')
 
+def init_ble_advertiser():
+    # Configure Ble advertisement packet
+    ble_adv_string = '1e02011a1aff4c000215' + config.get_detector_uid() + '00000000c500000000000000000000000000'
+    ble_adv_array = [ble_adv_string[i:i+2] for i in range(0,len(ble_adv_string),2)]
+
+    hci_tool_params = [config.HCITOOL_FILE_PATH, '-i', 'hci0', 'cmd', '0x08', '0x0008']
+    hci_tool_params.extend(ble_adv_array)
+    subprocess.call(hci_tool_params)
+
+    # Configure Ble advertisement rate
+    # (check http://stackoverflow.com/questions/21124993/is-there-a-way-to-increase-ble-advertisement-frequency-in-bluez for math)
+    ble_config_string = '000800080300000000000000000700'
+    ble_config_array = [ble_config_string[i:i+2] for i in range(0,len(ble_config_string),2)]
+
+    hci_tool_params = [config.HCITOOL_FILE_PATH, '-i', 'hci0', 'cmd', '0x08', '0x0006']
+    hci_tool_params.extend(ble_config_array)
+    subprocess.call(hci_tool_params)
+
+    # Start Ble advertisement
+    subprocess.call([config.HCITOOL_FILE_PATH, '-i', 'hci0', 'cmd', '0x08', '0x000a', '01'])
 
 def ble_scanner(queue):
     try:
@@ -56,10 +88,12 @@ def ble_scanner(queue):
 
 def main():
     
-    locally_seen = set() # Set that contains unique locally seen beacons
+    locally_seen_macs = set() # Set that contains unique locally seen beacons
+    locally_seen_uids = set() # Set that contains unique locally seen beacons
     authorized = set()
-    authorized.add("d099dab070934572ab334e69dc042f45")
-    unauthorized = set(["b9223382f8b94ba488133819f06d9a9c"])
+    authorized.add('b0b448fba565')
+    authorized.add('123456781234123412341234567890ab')
+    unauthorized = set(['b0b448c87401'])
     
     config.init()
     buzzer.init()
@@ -75,6 +109,8 @@ def main():
     # need to try catch and retry this as it some times fails...
     subprocess.call([config.HCICONFIG_FILE_PATH, 'hci0', 'up'])
 
+    init_ble_advertiser()
+
     ble_queue = Queue.Queue()
 
     ble_thread = threading.Thread(target=ble_scanner, args=(ble_queue,))
@@ -85,7 +121,7 @@ def main():
     last_respawn_date = datetime.strptime(config.get('DEVICE', 'last_respawn_date'), '%Y-%m-%d').date()
     
     print "Going into the main loop..."
-    print "Authorized: ",authorized
+    print "Authorized: ", authorized
     print "Unauthorized: ", unauthorized 
 
     try:
@@ -108,24 +144,32 @@ def main():
                     sightings.append(ble_queue.get())
                     # TODO Only add this beacon to the list if we have "events" for it
                     ## Probably join all unauthorized lists into one and see if this new exists there or not
-                    locally_seen.add(sightings[len(sightings) - 1]['beacon_uid']) # Append the beacon_uid of the latest sighting
+                    if sightings[-1]['beacon_mac'] != '':
+                        locally_seen_macs.add(sightings[-1]['beacon_mac']) # Append the beacon_mac of the latest sighting
+                    if sightings[-1]['beacon_uid'] != '':
+                        locally_seen_uids.add(sightings[-1]['beacon_uid']) # Append the beacon_uid of the latest sighting
                     # Launch threading.timer here
                     
            # print locally_seen
 
             # Local events handling
-            if not locally_seen.isdisjoint(unauthorized):
+            if not locally_seen_macs.isdisjoint(unauthorized) or \
+                not locally_seen_uids.isdisjoint(unauthorized):
                 # Rogue beacon is trying to escape!!
                 # TODO Add delay to checking authorized sightings
                 print "oh oh"
-                if locally_seen.isdisjoint(authorized):
+                if (len(locally_seen_macs) == 0 or
+                        locally_seen_macs.isdisjoint(authorized)) and \
+                    (len(locally_seen_uids) == 0 or
+                        locally_seen_uids.isdisjoint(authorized)):
                     # no authorized beacon in sigh
-                    buzzer.play_alert(3);
+                    buzzer.play_alert(3)
                     
                 print "All your base are belong to us."
-                locally_seen.clear();
-            else:
-                print "What? Nothing to do..."
+                locally_seen_macs.clear()
+                locally_seen_uids.clear()
+            # else:
+            #    print "What? Nothing to do..."
                 
             # if new sightings, send them to the server
             if len(sightings) > 0:

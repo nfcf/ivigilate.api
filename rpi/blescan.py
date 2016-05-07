@@ -36,9 +36,10 @@ ADV_SCAN_IND = 0x02
 ADV_NONCONN_IND = 0x03
 ADV_SCAN_RSP = 0x04
 
-
 logger = logging.getLogger(__name__)
 is_running = True
+server_time_offset = 0
+adv_scan_rsp = {}
 
 
 def return_number_from_packet(pkt):
@@ -126,45 +127,93 @@ def parse_events(sock, queue, loop_count=100):
         if event == LE_META_EVENT:
             subevent, = struct.unpack('B', pkt[3])
             pkt = pkt[4:]
-            if subevent == EVT_LE_CONN_COMPLETE:
-                pass  # le_handle_connection_complete(pkt)
-            elif subevent == EVT_LE_ADVERTISING_REPORT:
+            if subevent == EVT_LE_ADVERTISING_REPORT:
                 num_reports = struct.unpack('B', pkt[0])[0]
-                offset = 0
+                report_offset = 0
                 for i in range(0, num_reports):
-                    try:
-                        # Requires further testing but this seems to always be part of iBeacon Adv prefix
-                        if return_string_from_packet(pkt[offset + 14: offset + 19]) == 'ff4c000215':
-                            mac = packed_bdaddr_to_string(pkt[offset + 3: offset + 9])
-                            uuid = return_string_from_packet(pkt[offset + 19: offset + 35])
-                            major = return_number_from_packet(pkt[offset + 35: offset + 37])
-                            minor = return_number_from_packet(pkt[offset + 37: offset + 39])
-                            power = struct.unpack('b', pkt[offset + 39])[0]
-                            if (len(pkt) > offset + 41):
-                                battery = struct.unpack('b', pkt[offset + 40])[0]
-                                rssi = struct.unpack('b', pkt[offset + 41])[0]
-                            else:
-                                battery = 0
-                                rssi = struct.unpack('b', pkt[offset + 40])[0]
+                    # print 'Raw: ', return_string_from_packet(pkt)
+                    report_event_type = struct.unpack("B", pkt[report_offset + 1])[0]
+                    mac = packed_bdaddr_to_string(pkt[report_offset + 3: report_offset + 9])
 
-                            now = int(time.time() * 1000)
-                            previous_item = queue.queue[-1] if not queue.empty() else {}  # dict()
-                            if uuid != previous_item.get('beacon_uid', None) or \
-                                    (uuid == previous_item.get('beacon_uid', None) and
-                                             (now-previous_item.get('timestamp')) >= 1000):
-                                logger.debug('Raw: %s', return_string_from_packet(pkt))
-                                logger.info('Parsed: %s,%s,%i,%i,%i,%i,%i' % (mac, uuid, major, minor, power, battery, rssi))
-                                sighting = {}  # dict()
-                                sighting['timestamp'] = now
-                                sighting['beacon_mac'] = mac
-                                sighting['beacon_uid'] = uuid
-                                sighting['beacon_battery'] = battery
-                                sighting['rssi'] = rssi
-                                queue.put(sighting)
-                            # else:
-                                # logger.info('Skipping packet as a similar one happened less than 1 second ago.')
+                    report_data_length = struct.unpack("B", pkt[report_offset + 9])[0]
+
+                    pkt = pkt[report_offset + 10:]
+
+                    if report_event_type == ADV_IND:
+                        # print "\tADV_IND"
+                        adv_scan_rsp[mac] = pkt[:report_data_length]
+                        continue
+                    elif report_event_type == ADV_DIRECT_IND:
+                        # print "\tADV_DIRECT_IND"
+                        adv_scan_rsp[mac] = pkt[:report_data_length]
+                        continue
+                    elif report_event_type == ADV_SCAN_IND:
+                        # print "\tADV_SCAN_IND"
+                        adv_scan_rsp[mac] = pkt[:report_data_length]
+                        continue
+                    # elif report_event_type == ADV_NONCONN_IND:
+                        # print "\tADV_NONCONN_IND"
+                    elif report_event_type == ADV_SCAN_RSP:
+                        # print "\tADV_SCAN_RSP"
+                        previous_pkt = adv_scan_rsp.get(mac, None)
+                        if previous_pkt is not None:
+                            del adv_scan_rsp[mac]
+                            pkt = previous_pkt + pkt[report_offset:]
+                    # else:
+                        # print "\tUnknown or reserved event type"
+
+                    try:
+                        manufacturer = return_string_from_packet(pkt[report_offset + 5: 7])
+                        if manufacturer.lower() == 'c6a0':  # Ignore mac address if Gimbal
+                            mac = ''
+
+                        if report_data_length > report_offset + 25:
+                            uuid = return_string_from_packet(pkt[report_offset + 9: report_offset + 25])
+                            if manufacturer.lower() != '4c00' and '0000' in uuid:
+                                uuid = ''
+                        else:
+                            uuid = ''
+
+                        if uuid == '' and report_data_length > report_offset + 9:
+                            data = return_string_from_packet(pkt[report_offset + 9: -1])
+                        elif report_data_length > report_offset + 25:
+                            data = return_string_from_packet(pkt[report_offset + 25: -1])
+                        else:
+                            data = ''
+                        # major = return_number_from_packet(pkt[report_offset + 25: report_offset + 27])
+                        # minor = return_number_from_packet(pkt[report_offset + 27: report_offset + 29])
+                        # power = struct.unpack('b', pkt[report_offset + 29])[0]
+                        if report_data_length > report_offset + 30:
+                            battery = struct.unpack('b', pkt[report_offset + 30])[0]
+                        else:
+                            battery = 0
+
+                        rssi = struct.unpack('b', pkt[-1])[0]
+
+                        now = int(time.time() * 1000) + server_time_offset
+                        previous_item = queue.queue[-1] if not queue.empty() else {}  # dict()
+                        if uuid != previous_item.get('beacon_uid', None) or \
+                                (uuid == previous_item.get('beacon_uid', None) and
+                                         (now - previous_item.get('timestamp')) >= 1000):
+                            logger.debug('Raw: %s', return_string_from_packet(pkt))
+                            logger.info('Parsed: %s,%s,%s,%s,%i,%i' % (mac, manufacturer, uuid, data, battery, rssi))
+                            print 'Parsed: %s,%s,%s,%s,%i,%i' % (mac, manufacturer, uuid, data, battery, rssi)
+
+                            sighting = {}  # dict()
+                            sighting['timestamp'] = now
+                            sighting['beacon_mac'] = mac.replace(':', '')
+                            sighting['beacon_uid'] = uuid
+                            sighting['beacon_battery'] = battery
+                            sighting['rssi'] = rssi
+                            queue.put(sighting)
+                        # else:
+                            # logger.info('Skipping packet as a similar one happened less than 1 second ago.')
+
                     except Exception as ex:
                         logger.exception('Failed to parse beacon advertisement package:')
+
+                    report_offset = report_offset +  10 + report_data_length + 1
+
 
     sock.setsockopt(bluez.SOL_HCI, bluez.HCI_FILTER, old_filter)
     logger.info('Finished parsing events.')

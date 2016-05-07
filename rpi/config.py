@@ -4,6 +4,7 @@ import os, ConfigParser, logging
 BASE_APP_PATH = '/usr/local/bin/ivigilate/'
 LOG_FILE_PATH = '/var/log/ivigilate.log'
 HCICONFIG_FILE_PATH = '/usr/sbin/hciconfig'
+HCITOOL_FILE_PATH = '/usr/bin/hcitool'
 
 __cfg = None
 __cpuinfo = None
@@ -29,11 +30,13 @@ def get_cpuinfo():
 
     return (hardware, revision, cpuserial)
 
+def get_detector_uid():
+    return 'FFFFFFFFFFFF' + get('DEVICE', 'revision') + get('DEVICE', 'serial')
 
 def init():
     global __cfg
     __cfg = ConfigParser.SafeConfigParser()
-    __cfg.readfp(open(BASE_APP_PATH + 'defaults.conf')) # Load defaults
+    __cfg.readfp(open(BASE_APP_PATH + 'defaults.conf'))  # Load defaults
     __cfg.read(BASE_APP_PATH + 'ivigilate.conf')
 
     global __cpuinfo

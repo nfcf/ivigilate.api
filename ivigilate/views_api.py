@@ -138,6 +138,8 @@ class AddSightingsView(views.APIView):
         data = json.loads(request.body.decode('utf-8'))
         now_timestamp = time.time() * 1000
 
+        ignore_sightings = []
+
         if (data is not None and len(data) > 0):
             logger.info('AddSightingsView.post() Got %s sightings', len(data))
             for sighting in data:
@@ -148,7 +150,11 @@ class AddSightingsView(views.APIView):
                 detector_uid = sighting.get('detector_uid').lower()
                 detector_battery = sighting.get('detector_battery', None)
                 beacon_mac = sighting.get('beacon_mac', None)
-                beacon_uid = sighting.get('beacon_uid', None).lower()
+                if beacon_mac is not None:
+                    beacon_mac = beacon_mac.lower()
+                beacon_uid = sighting.get('beacon_uid', None)
+                if beacon_uid is not None:
+                    beacon_uid = beacon_uid.lower()
                 beacon_battery = sighting.get('beacon_battery', None)
 
                 rssi = sighting.get('rssi', None)
@@ -166,17 +172,13 @@ class AddSightingsView(views.APIView):
                 #                                     status.HTTP_400_BAD_REQUEST)
 
                 try:
-                    detector = Detector.objects.get(uid=detector_uid)
-                    if not detector.is_active:
-                        logger.warning('AddSightingsView.post() Ignoring sighting as the Detector is not active on the system.')
-                        return utils.build_http_response('Ignoring sighting as the Detector is not active on the system.',
-                                                         status.HTTP_400_BAD_REQUEST)
-                    elif location is not None:
+                    detector = Detector.objects.get(is_active=True, uid=detector_uid)
+                    if location is not None:
                         location = json.dumps(location)
                     else:
                         location = detector.location
                 except Detector.DoesNotExist:
-                    logger.warning('AddSightingsView.post() Invalid Detector UID (couldn\'t find corresponding device).')
+                    logger.warning('AddSightingsView.post() Invalid Detector UID (couldn\'t find corresponding active device).')
                     return utils.build_http_response('Invalid Detector UID (couldn\'t find corresponding device).',
                                                      status.HTTP_400_BAD_REQUEST)
 
@@ -195,13 +197,15 @@ class AddSightingsView(views.APIView):
                         else:
                             self.close_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata)
                 else:
-                    logger.warning('AddSightingsView.post() Invalid Beacon MAC / UID (couldn\'t find corresponding device).')
-                    return utils.build_http_response('Invalid Beacon MAC / UID (couldn\'t find corresponding device).',
-                                                     status.HTTP_400_BAD_REQUEST)
+                    logger.warning('AddSightingsView.post() Invalid Beacon MAC / UID (couldn\'t find corresponding active device).')
+                    ignore_sightings.append(beacon_mac + beacon_uid)
 
         # serialized = SightingReadSerializer(new_sighting, context={'request': request})
         # return Response(serialized.data)
-        return utils.build_http_response(None, status.HTTP_200_OK)
+        if len(ignore_sightings) > 0:
+            return utils.build_http_response(ignore_sightings, status.HTTP_206_PARTIAL_CONTENT)
+        else:
+            return utils.build_http_response(None, status.HTTP_200_OK)
 
 
     def open_sighting_async(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type):
