@@ -180,12 +180,12 @@ class AddSightingsView(views.APIView):
                 except Detector.DoesNotExist:
                     logger.warning('AddSightingsView.post() Invalid Detector UID (couldn\'t find corresponding active device).')
                     return utils.build_http_response('Invalid Detector UID (couldn\'t find corresponding device).',
-                                                     status.HTTP_400_BAD_REQUEST)
+                                                     status.HTTP_401_UNAUTHORIZED)
 
                 if detector.account.get_license_in_force() is None:
                     logger.warning('AddSightingsView.post() Ignoring sighting as the associated Account doesn\'t have a valid subscription.')
                     return utils.build_http_response('Ignoring sighting as the associated Account doesn\'t have a valid subscription.',
-                                                     status.HTTP_400_BAD_REQUEST)
+                                                     status.HTTP_402_PAYMENT_REQUIRED)
 
 
                 beacons = Beacon.objects.filter(Q(is_active=True),
