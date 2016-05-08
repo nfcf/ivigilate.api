@@ -55,11 +55,12 @@ def send_sightings(sightings):
 
         if response.status_code >= 400 and response.status_code < 500:
             __invalid_detector_check_timestamp = now + blescan.server_time_offset
+            __logger.warning('Detector is marked as invalid. Ignoring ALL sightings for %i ms', IGNORE_INTERVAL)
         elif response.status_code == 206:
-            if result.data is not None and len(result.data) > 0:
+            if result.get('data', None) is not None and len(result.get('data')) > 0:
                 __ignore_sightings_lock.acquire()
 
-                for ignore_sighting_key in result.data:
+                for ignore_sighting_key in result.get('data'):
                     __ignore_sightings[ignore_sighting_key] = now + blescan.server_time_offset
 
                 __ignore_sightings_lock.release()
@@ -164,7 +165,7 @@ def main():
                     break
                 else:
                     sighting = ble_queue.get()
-                    sighting_key = sighting.beacon_mac + sighting.beacon_uid
+                    sighting_key = sighting['beacon_mac'] + sighting['beacon_uid']
 
                     ignore_sighting = now_timestamp - __invalid_detector_check_timestamp < IGNORE_INTERVAL
                     if not ignore_sighting:
@@ -174,7 +175,7 @@ def main():
                         if ignore_sighting_timestamp > 0 and \
                             now_timestamp - ignore_sighting_timestamp < IGNORE_INTERVAL:
                             ignore_sighting = True
-                        else:
+                        elif sighting_key in __ignore_sightings:
                             del __ignore_sightings[sighting_key]
 
                         __ignore_sightings_lock.release()
@@ -183,11 +184,13 @@ def main():
                         sightings.append(sighting)
                         # TODO Only add this beacon to the list if we have "events" for it
                         ## Probably join all unauthorized lists into one and see if this new exists there or not
-                        if sightings[-1]['beacon_mac'] != '':
-                            locally_seen_macs.add(sightings[-1]['beacon_mac']) # Append the beacon_mac of the latest sighting
-                        if sightings[-1]['beacon_uid'] != '':
-                            locally_seen_uids.add(sightings[-1]['beacon_uid']) # Append the beacon_uid of the latest sighting
+                        if sighting['beacon_mac'] != '':
+                            locally_seen_macs.add(sighting['beacon_mac']) # Append the beacon_mac of the latest sighting
+                        if sighting['beacon_uid'] != '':
+                            locally_seen_uids.add(sighting['beacon_uid']) # Append the beacon_uid of the latest sighting
                         # Launch threading.timer here
+                    else:
+                        print 'sighting ignored: ' + sighting_key
                     
            # print locally_seen
 
