@@ -103,10 +103,11 @@ class ProvisionDeviceView(views.APIView):
             if type[0] == 'B':
                 try:
                     beacon = Beacon.objects.get(account=account, uid=uid)
+                    beacon.type = type[1]
                     beacon.name = name
                     beacon.metadata = metadata
                     beacon.save()
-                    return utils.build_http_response('Beacon already provisioned in the system for this account. Name field updated.',
+                    return utils.build_http_response('Beacon already provisioned for this account. Info updated.',
                                              status.HTTP_409_CONFLICT)
                 except Beacon.DoesNotExist:
                     beacon = Beacon.objects.create(account=account, uid=uid, name=name, type=type[1], metadata=metadata)
@@ -115,10 +116,11 @@ class ProvisionDeviceView(views.APIView):
             elif type[0] == 'D':
                 try:
                     detector = Detector.objects.get(account=account, uid=uid)
+                    detector.type = type[1]
                     detector.name = name
                     detector.metadata = metadata
                     detector.save()
-                    return utils.build_http_response('Detector already provisioned in the system for this account. Name field updated.',
+                    return utils.build_http_response('Detector already provisioned for this account. Info updated.',
                                              status.HTTP_409_CONFLICT)
                 except Detector.DoesNotExist:
                     detector = Detector.objects.create(account=account, uid=uid, name=name, type=type[1], metadata=metadata)
