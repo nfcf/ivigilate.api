@@ -108,7 +108,7 @@ class ProvisionDeviceView(views.APIView):
                     beacon.metadata = metadata
                     beacon.save()
                     return utils.build_http_response('Beacon already provisioned for this account. Info updated.',
-                                             status.HTTP_409_CONFLICT)
+                                             status.HTTP_200_OK)
                 except Beacon.DoesNotExist:
                     beacon = Beacon.objects.create(account=account, uid=uid, name=name, type=type[1], metadata=metadata)
 
@@ -121,13 +121,13 @@ class ProvisionDeviceView(views.APIView):
                     detector.metadata = metadata
                     detector.save()
                     return utils.build_http_response('Detector already provisioned for this account. Info updated.',
-                                             status.HTTP_409_CONFLICT)
+                                             status.HTTP_200_OK)
                 except Detector.DoesNotExist:
                     detector = Detector.objects.create(account=account, uid=uid, name=name, type=type[1], metadata=metadata)
 
                 # serialized = DetectorReadSerializer(detector, context={'request': request})
 
-            return utils.build_http_response({}, status.HTTP_200_OK)
+            return utils.build_http_response('Success!', status.HTTP_200_OK)
         else:
             return utils.build_http_response('The current logged on user is not associated with any account.',
                                              status.HTTP_400_BAD_REQUEST)
