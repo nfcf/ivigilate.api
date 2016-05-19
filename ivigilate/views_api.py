@@ -95,17 +95,24 @@ class ProvisionDeviceView(views.APIView):
             data = json.loads(request.body.decode('utf-8'))
 
             type = data.get('type', None)
-            uid = data.get('uid', None).lower()
+            uid = data.get('uid', None)
             name = data.get('name', None)
             metadata = data.get('metadata', '')
+            is_active = data.get('is_active', True)
             # serialized = None
 
+            if uid is None or len(uid) == 0:
+                return utils.build_http_response('UID field cannot be empty.',
+                                                 status.HTTP_400_BAD_REQUEST)
+
+            uid = uid.lower()
             if type[0] == 'B':
                 try:
                     beacon = Beacon.objects.get(account=account, uid=uid)
                     beacon.type = type[1]
                     beacon.name = name
                     beacon.metadata = metadata
+                    beacon.is_active = is_active
                     beacon.save()
                     return utils.build_http_response('Beacon already provisioned for this account. Info updated.',
                                              status.HTTP_200_OK)
@@ -119,6 +126,7 @@ class ProvisionDeviceView(views.APIView):
                     detector.type = type[1]
                     detector.name = name
                     detector.metadata = metadata
+                    detector.is_active = is_active
                     detector.save()
                     return utils.build_http_response('Detector already provisioned for this account. Info updated.',
                                              status.HTTP_200_OK)
