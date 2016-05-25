@@ -65,6 +65,7 @@ REST_FRAMEWORK = {
 }
 
 CRON_CLASSES = [
+    "ivigilate.cron.ClearCronLogsJob",
     "ivigilate.cron.RecurringLicensesJob",
     "ivigilate.cron.CloseSightingsJob",
 ]

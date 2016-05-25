@@ -167,19 +167,25 @@ def parse_events(sock, queue, loop_count=100):
                         if manufacturer.lower() == 'c6a0':  # Ignore mac address if Gimbal
                             mac = ''
 
-                        if report_data_length > report_offset + 25:
+                        # Get UUID
+                        if report_data_length > report_offset + 25 and \
+                            manufacturer.lower() == '4c00':
                             uuid = return_string_from_packet(pkt[report_offset + 9: report_offset + 25])
-                            if manufacturer.lower() != '4c00' and '0000' in uuid:
-                                uuid = ''
+                        elif report_data_length > report_offset + 31 and \
+                            manufacturer.lower() == 'c6a0':
+                            uuid = return_string_from_packet(pkt[report_offset + 22: report_offset + 31])
                         else:
                             uuid = ''
 
+                        # Get Data
                         if uuid == '' and report_data_length > report_offset + 9:
                             data = return_string_from_packet(pkt[report_offset + 9: -1])
-                        elif report_data_length > report_offset + 25:
+                        elif report_data_length > report_offset + 25 and \
+                            manufacturer.lower() != 'c6a0':
                             data = return_string_from_packet(pkt[report_offset + 25: -1])
                         else:
                             data = ''
+
                         # major = return_number_from_packet(pkt[report_offset + 25: report_offset + 27])
                         # minor = return_number_from_packet(pkt[report_offset + 27: report_offset + 29])
                         # power = struct.unpack('b', pkt[report_offset + 29])[0]
