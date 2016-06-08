@@ -344,7 +344,7 @@ class SightingViewSet(viewsets.ModelViewSet):
                             'AND s.last_seen_at IN (' + \
                             ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY beacon_id' + \
                             ') ORDER BY s.last_seen_at DESC)'
-            showAllQueryParams = [account.id,
+            showAllQueryParams = [account.id, account.id,
                                   str(datetime.strptime(filter_date + ' 00:00:00', '%Y-%m-%d %H:%M:%S') + timedelta(minutes=filter_timezone_offset)),
                                   str(datetime.strptime(filter_date + ' 23:59:59', '%Y-%m-%d %H:%M:%S') + timedelta(minutes=filter_timezone_offset)),
                                   len(filter_beacons) == 0, [int(x) for x in filter_beacons],
