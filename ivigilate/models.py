@@ -269,6 +269,12 @@ class Sighting(models.Model):
     def get_duration(self):
         return (self.last_seen_at - self.first_seen_at).seconds
 
+    def get_beacon_uid(self):
+        return self.beacon.uid if self.beacon.reference_id is None or len(self.beacon.reference_id) == 0 else self.beacon.reference_id
+
+    def get_detector_uid(self):
+        return self.detector.uid if self.detector.reference_id is None or len(self.detector.reference_id) == 0 else self.detector.reference_id
+
     def save(self, *args, **kwargs):
         now = datetime.now(timezone.utc)
         if not self.id:

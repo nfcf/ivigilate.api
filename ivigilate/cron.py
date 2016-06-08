@@ -1,4 +1,6 @@
 from django_cron import CronJobBase, Schedule
+from django_cron.models import CronJobLog
+
 from ivigilate.models import Sighting, Account, License
 from datetime import datetime, timezone, timedelta
 from ivigilate.utils import close_sighting
@@ -7,6 +9,24 @@ import logging, json, threading
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
+
+
+class ClearCronLogsJob(CronJobBase):
+    RUN_EVERY_MINS = 1440  # 1 day
+    RETRY_AFTER_FAILURE_MINS = 720  # 1/2 day
+
+    NUMBER_OF_DAYS_TO_BE_CONSIDERED_OLD = 7
+
+    schedule = Schedule(run_every_mins=RUN_EVERY_MINS, retry_after_failure_mins=RETRY_AFTER_FAILURE_MINS)
+    code = 'ivigilate.clear_cron_logs_job'  # a unique code
+
+    def do(self):
+        logger.debug('ClearCronLogsJob.do() Starting...')
+        now = datetime.now(timezone.utc)
+        filter_datetime = now - timedelta(days=ClearCronLogsJob.NUMBER_OF_DAYS_TO_BE_CONSIDERED_OLD)
+        CronJobLog.filter(end_time__lt=filter_datetime).delete()
+        logger.debug('RecurringLicensesJob.do() Finished...')
+
 
 class RecurringLicensesJob(CronJobBase):
     RUN_EVERY_MINS = 1440  # 1 day

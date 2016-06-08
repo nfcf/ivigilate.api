@@ -196,7 +196,7 @@ class BeaconWriteSerializer(serializers.ModelSerializer):
 
 
 class SightingBeaconHistorySerializer(gis_serializers.GeoModelSerializer):
-    beacon = serializers.CharField(source='beacon__uid', read_only=True)
+    beacon = serializers.CharField(source='get_beacon_uid', read_only=True)
     detector = DetectorBeaconHistorySerializer()
     duration_in_seconds = serializers.IntegerField(source='get_duration', read_only=True)
 
@@ -208,7 +208,7 @@ class SightingBeaconHistorySerializer(gis_serializers.GeoModelSerializer):
 
 
 class SightingDetectorHistorySerializer(gis_serializers.GeoModelSerializer):
-    detector = serializers.CharField(source='detector__uid', read_only=True)
+    detector = serializers.CharField(source='get_detector_uid', read_only=True)
     beacon = BeaconDetectorHistorySerializer()
     duration_in_seconds = serializers.IntegerField(source='get_duration', read_only=True)
 

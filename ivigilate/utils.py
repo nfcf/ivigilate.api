@@ -28,7 +28,8 @@ def view_list(request, account, queryset, serializer, wrap=False):
         else:
             return Response(serializer_response.data, status=status.HTTP_200_OK)
     else:
-        return build_http_response('view_list() Your license has expired. Please ask the account administrator to renew the subscription.',
+        logger.warning('view_list() License for account \'%s\' has expired.', account)
+        return build_http_response('Your license has expired. Please ask the account administrator to renew the subscription.',
                         status.HTTP_401_UNAUTHORIZED)
 
 

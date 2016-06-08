@@ -95,19 +95,27 @@ class ProvisionDeviceView(views.APIView):
             data = json.loads(request.body.decode('utf-8'))
 
             type = data.get('type', None)
-            uid = data.get('uid', None).lower()
+            uid = data.get('uid', None)
             name = data.get('name', None)
             metadata = data.get('metadata', '')
+            is_active = data.get('is_active', True)
             # serialized = None
 
+            if uid is None or len(uid) == 0:
+                return utils.build_http_response('UID field cannot be empty.',
+                                                 status.HTTP_400_BAD_REQUEST)
+
+            uid = uid.lower()
             if type[0] == 'B':
                 try:
                     beacon = Beacon.objects.get(account=account, uid=uid)
+                    beacon.type = type[1]
                     beacon.name = name
                     beacon.metadata = metadata
+                    beacon.is_active = is_active
                     beacon.save()
-                    return utils.build_http_response('Beacon already provisioned in the system for this account. Name field updated.',
-                                             status.HTTP_409_CONFLICT)
+                    return utils.build_http_response('Beacon already provisioned for this account. Info updated.',
+                                             status.HTTP_200_OK)
                 except Beacon.DoesNotExist:
                     beacon = Beacon.objects.create(account=account, uid=uid, name=name, type=type[1], metadata=metadata)
 
@@ -115,17 +123,19 @@ class ProvisionDeviceView(views.APIView):
             elif type[0] == 'D':
                 try:
                     detector = Detector.objects.get(account=account, uid=uid)
+                    detector.type = type[1]
                     detector.name = name
                     detector.metadata = metadata
+                    detector.is_active = is_active
                     detector.save()
-                    return utils.build_http_response('Detector already provisioned in the system for this account. Name field updated.',
-                                             status.HTTP_409_CONFLICT)
+                    return utils.build_http_response('Detector already provisioned for this account. Info updated.',
+                                             status.HTTP_200_OK)
                 except Detector.DoesNotExist:
                     detector = Detector.objects.create(account=account, uid=uid, name=name, type=type[1], metadata=metadata)
 
                 # serialized = DetectorReadSerializer(detector, context={'request': request})
 
-            return utils.build_http_response({}, status.HTTP_200_OK)
+            return utils.build_http_response('Success!', status.HTTP_200_OK)
         else:
             return utils.build_http_response('The current logged on user is not associated with any account.',
                                              status.HTTP_400_BAD_REQUEST)
@@ -444,7 +454,7 @@ class BeaconHistoryView(views.APIView):
     def get(self, request, format=None):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         if account:
-            filter_beacon_id = request.query_params.get('beaconId', '')
+            filter_beacon_id = request.query_params.get('beaconId', None)
             filter_timezone_offset = int(request.query_params.get('timezoneOffset', 0))
             filter_start_date = request.query_params.get('startDate', str(datetime.now(timezone.utc).date()) + 'T00:00:00')
             filter_start_date = str(
@@ -453,9 +463,13 @@ class BeaconHistoryView(views.APIView):
             filter_end_date = str(
                 datetime.strptime(filter_end_date, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=filter_timezone_offset)) + '+00'
 
-            queryset = self.queryset.filter(Q(beacon__uid=filter_beacon_id) | Q(beacon__reference_id=filter_beacon_id),
-                                            Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
-                .order_by('-id')
+            if filter_beacon_id is None:
+                queryset = self.queryset.filter(Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
+                    .order_by('-id')
+            else:
+                queryset = self.queryset.filter(Q(beacon__uid=filter_beacon_id) | Q(beacon__reference_id=filter_beacon_id),
+                                                Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
+                    .order_by('-id')
 
             return utils.view_list(request, account, queryset, SightingBeaconHistorySerializer)
         else:
@@ -471,7 +485,7 @@ class DetectorHistoryView(views.APIView):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         if account:
             todayString = str(datetime.now(timezone.utc).date())
-            filter_detector_id = request.query_params.get('detectorId', '')
+            filter_detector_id = request.query_params.get('detectorId', None)
             filter_timezone_offset = int(request.query_params.get('timezoneOffset', 0))
             filter_start_date = request.query_params.get('startDate', todayString + 'T00:00:00')
             filter_start_date = str(
@@ -480,9 +494,13 @@ class DetectorHistoryView(views.APIView):
             filter_end_date = str(
                 datetime.strptime(filter_end_date, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=filter_timezone_offset)) + '+00'
 
-            queryset = self.queryset.filter(Q(detector__uid=filter_detector_id) | Q(detector__reference_id=filter_detector_id),
-                                            Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
-                .order_by('-id')
+            if filter_detector_id is None:
+                queryset = self.queryset.filter(Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
+                    .order_by('-id')
+            else:
+                queryset = self.queryset.filter(Q(detector__uid=filter_detector_id) | Q(detector__reference_id=filter_detector_id),
+                                                Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
+                    .order_by('-id')
 
             return utils.view_list(request, account, queryset, SightingDetectorHistorySerializer)
         else:
