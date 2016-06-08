@@ -187,9 +187,9 @@ class AddSightingsView(views.APIView):
                                                     Q(uid=beacon_mac)|Q(uid=beacon_uid))  # this can yield more than one beacon...
                     for detector in detectors:
                         if location is not None:
-                            location = json.dumps(location)
+                            location_parsed = json.dumps(location)
                         else:
-                            location = detector.location
+                            location_parsed = detector.location
 
                         if detector.account.get_license_in_force() is None:
                             logger.warning('AddSightingsView.post() Ignoring sighting as the associated Account doesn\'t have a valid subscription.')
@@ -201,9 +201,9 @@ class AddSightingsView(views.APIView):
                             for beacon in beacons:
                                 logger.info('AddSightingsView.post() detector_id: %s, beacon_id: %s', detector.id, beacon.id)
                                 if is_active:
-                                    self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type)
+                                    self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location_parsed, metadata, type)
                                 else:
-                                    self.close_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata)
+                                    self.close_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location_parsed, metadata)
                         else:
                             logger.warning('AddSightingsView.post() Invalid Beacon MAC / UID (couldn\'t find corresponding active device).')
                             ignore_sightings.append(beacon_mac + beacon_uid)
@@ -230,78 +230,75 @@ class AddSightingsView(views.APIView):
     def open_sighting(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type):
         REPORTED_MISSING_NOTIFICATION_EVERY_MINS = 1
         logger.debug('open_sighting() Started...')
-        try:
 
-            now = datetime.now(timezone.utc)
-            previous_sightings = Sighting.objects.filter(is_active=True, beacon=beacon, detector__account=detector.account). \
-                                     order_by('-last_seen_at')[:1]
-            previous_sighting_occurred_at = None
-            new_sighting = None
-            if len(previous_sightings) > 0:
-                previous_sighting = previous_sightings[0]
-                # if the abs_diff between the 2 rssi values is bigger than X, "ignore" most recent value
-                step_change = 1 if rssi - previous_sighting.rssi > 0 else - 1
-                avg_rssi = previous_sighting.rssi + step_change if abs(
-                    previous_sighting.rssi - rssi) > 15 else 0.6 * previous_sighting.rssi + 0.4 * rssi
+        now = datetime.now(timezone.utc)
+        previous_sightings = Sighting.objects.filter(is_active=True, beacon=beacon, detector__account=detector.account). \
+                                 order_by('-last_seen_at')[:1]
+        previous_sighting_occurred_at = None
+        new_sighting = None
+        if len(previous_sightings) > 0:
+            previous_sighting = previous_sightings[0]
+            # if the abs_diff between the 2 rssi values is bigger than X, "ignore" most recent value
+            step_change = 1 if rssi - previous_sighting.rssi > 0 else - 1
+            avg_rssi = previous_sighting.rssi + step_change if abs(
+                previous_sighting.rssi - rssi) > 15 else 0.6 * previous_sighting.rssi + 0.4 * rssi
 
-                if previous_sighting.detector == detector and avg_rssi < detector.departure_rssi:
-                    logger.info('open_sighting() Closing previous related sighting \'%s\' as the rssi dropped below the ' + \
-                                'departure_rssi configured for this detector (%s < %s).',
-                                previous_sighting, avg_rssi, detector.departure_rssi)
-                    utils.close_sighting(previous_sighting, detector)
-                    # TODO: instead of having the 5% margin, force that at least 2 or 3 new sightings are > than the current one...
-                elif previous_sighting.detector != detector and rssi * 1.05 > (
-                previous_sighting.rssi if previous_sighting.rssi is not None else 0):
-                    logger.info('open_sighting() Closing previous related sighting \'%s\' as the beacon moved to another location.',
-                                previous_sighting)
-                    utils.close_sighting(previous_sighting, detector)
+            if previous_sighting.detector == detector and avg_rssi < detector.departure_rssi:
+                logger.info('open_sighting() Closing previous related sighting \'%s\' as the rssi dropped below the ' + \
+                            'departure_rssi configured for this detector (%s < %s).',
+                            previous_sighting, avg_rssi, detector.departure_rssi)
+                utils.close_sighting(previous_sighting, detector)
+                # TODO: instead of having the 5% margin, force that at least 2 or 3 new sightings are > than the current one...
+            elif previous_sighting.detector != detector and rssi * 1.05 > (
+            previous_sighting.rssi if previous_sighting.rssi is not None else 0):
+                logger.info('open_sighting() Closing previous related sighting \'%s\' as the beacon moved to another location.',
+                            previous_sighting)
+                utils.close_sighting(previous_sighting, detector)
+            else:
+                logger.debug('open_sighting() Updating previous related sighting \'%s\'.', previous_sighting)
+                new_sighting = previous_sighting
+                previous_sighting_occurred_at = previous_sighting.last_seen_at
+                if not beacon.reported_missing or \
+                                (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60:
+                    new_sighting.last_seen_at = None  # this forces the datetime update on the model save()
+                new_sighting.rssi = avg_rssi
+                new_sighting.detector_battery = detector_battery
+                new_sighting.beacon_battery = beacon_battery
+                new_sighting.location = location
+                new_sighting.save()
+
+        if beacon.account_id != detector.account.id:
+            if beacon.reported_missing:
+                if (previous_sighting_occurred_at is None or
+                            (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60):
+                    logger.info('open_sighting() Reported missing beacon was seen at / by \'%s\'. ' +
+                                'Notifying corresponding account owners...', detector)
+                    try:
+                        send_mail('Reported missing: {0}'.format(beacon.name),
+                                  '{0} was seen near the following coordinates: {1}'.format(beacon.name, detector.location),
+                                  settings.DEFAULT_FROM_EMAIL,
+                                  [u.email for u in beacon.account.get_account_admins()])
+                    except Exception as ex:
+                        logger.exception('open_sighting() Failed to send reported missing email to account admins!')
                 else:
-                    logger.debug('open_sighting() Updating previous related sighting \'%s\'.', previous_sighting)
-                    new_sighting = previous_sighting
-                    previous_sighting_occurred_at = previous_sighting.last_seen_at
-                    if not beacon.reported_missing or \
-                                    (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60:
-                        new_sighting.last_seen_at = None  # this forces the datetime update on the model save()
-                    new_sighting.rssi = avg_rssi
-                    new_sighting.detector_battery = detector_battery
-                    new_sighting.beacon_battery = beacon_battery
-                    new_sighting.location = location
-                    new_sighting.save()
+                    logger.info('open_sighting() Reported missing beacon was seen at / by \'%s\'. ' + \
+                                'Skipping notification as the last one was triggered less than 1 minute ago...', detector)
+            else:
+                logger.info('open_sighting() Ignoring current sighting as the beacon \'%s\' was seen at / by another account\'s ' +
+                            'detector / user \'%s\' but has not been reported missing.', beacon, detector)
+                return
 
-            if beacon.account_id != detector.account.id:
-                if beacon.reported_missing:
-                    if (previous_sighting_occurred_at is None or
-                                (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60):
-                        logger.info('open_sighting() Reported missing beacon was seen at / by \'%s\'. ' +
-                                    'Notifying corresponding account owners...', detector)
-                        try:
-                            send_mail('Reported missing: {0}'.format(beacon.name),
-                                      '{0} was seen near the following coordinates: {1}'.format(beacon.name, detector.location),
-                                      settings.DEFAULT_FROM_EMAIL,
-                                      [u.email for u in beacon.account.get_account_admins()])
-                        except Exception as ex:
-                            logger.exception('open_sighting() Failed to send reported missing email to account admins!')
-                    else:
-                        logger.info('open_sighting() Reported missing beacon was seen at / by \'%s\'. ' + \
-                                    'Skipping notification as the last one was triggered less than 1 minute ago...', detector)
-                else:
-                    logger.info('open_sighting() Ignoring current sighting as the beacon \'%s\' was seen at / by another account\'s ' +
-                                'detector / user \'%s\' but has not been reported missing.', beacon, detector)
-                    return
+        if new_sighting is None:
+            if detector is not None and rssi < detector.arrival_rssi and \
+                    (beacon.account_id == detector.account.id or not beacon.reported_missing):
+                logger.info('open_sighting() Ignoring sighting of beacon \'%s\' at / by \'%s\' as the rssi is lower than the ' +
+                            'arrival_rssi configured for this detector / user (%s < %s).', beacon, detector, rssi, detector.arrival_rssi)
+            else:
+                new_sighting = Sighting.objects.create(beacon=beacon, beacon_battery=beacon_battery, detector=detector, detector_battery=detector_battery,
+                                                       location=location, rssi=rssi, metadata=metadata,type=type)
+                logger.debug('open_sighting() Created new sighting \'%s\'.', new_sighting)
 
-            if new_sighting is None:
-                if detector is not None and rssi < detector.arrival_rssi and \
-                        (beacon.account_id == detector.account.id or not beacon.reported_missing):
-                    logger.info('open_sighting() Ignoring sighting of beacon \'%s\' at / by \'%s\' as the rssi is lower than the ' +
-                                'arrival_rssi configured for this detector / user (%s < %s).', beacon, detector, rssi, detector.arrival_rssi)
-                else:
-                    new_sighting = Sighting.objects.create(beacon=beacon, beacon_battery=beacon_battery, detector=detector, detector_battery=detector_battery,
-                                                           location=location, rssi=rssi, metadata=metadata,type=type)
-                    logger.debug('open_sighting() Created new sighting \'%s\'.', new_sighting)
-
-            utils.check_for_events_async(new_sighting, )
-        except Exception as ex:
-            logger.exception('open_sighting() Failed!!!')
+        utils.check_for_events_async(new_sighting, )
 
 
     def close_sighting_async(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata):
