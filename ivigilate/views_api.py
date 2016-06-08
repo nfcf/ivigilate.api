@@ -199,6 +199,7 @@ class AddSightingsView(views.APIView):
 
                         if len(beacons) > 0:
                             for beacon in beacons:
+                                logger.info('AddSightingsView.post() detector_id: %s, beacon_id: %s', detector.id, beacon.id)
                                 if is_active:
                                     self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type)
                                 else:
