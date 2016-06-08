@@ -167,9 +167,11 @@ def parse_events(sock, queue, loop_count=100):
                         if manufacturer.lower() == 'c6a0':  # Ignore mac address if Gimbal
                             mac = ''
 
+                        ble_type = return_string_from_packet(pkt[report_offset + 7: 9])
+
                         # Get UUID
                         if report_data_length > report_offset + 25 and \
-                            manufacturer.lower() == '4c00':
+                            manufacturer.lower() == '4c00' and ble_type.lower() == '0215':
                             uuid = return_string_from_packet(pkt[report_offset + 9: report_offset + 25])
                         elif report_data_length > report_offset + 31 and \
                             manufacturer.lower() == 'c6a0':
