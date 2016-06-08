@@ -181,34 +181,36 @@ class AddSightingsView(views.APIView):
                 #    return utils.build_http_response('Ignoring sighting with outdated timestamp.',
                 #                                     status.HTTP_400_BAD_REQUEST)
 
-                try:
-                    detector = Detector.objects.get(is_active=True, uid=detector_uid)
-                    if location is not None:
-                        location = json.dumps(location)
-                    else:
-                        location = detector.location
-                except Detector.DoesNotExist:
+                detectors = Detector.objects.filter(is_active=True, uid=detector_uid)
+                if len(detectors) > 0:
+                    for detector in detectors:
+                        if location is not None:
+                            location = json.dumps(location)
+                        else:
+                            location = detector.location
+
+                        if detector.account.get_license_in_force() is None:
+                            logger.warning('AddSightingsView.post() Ignoring sighting as the associated Account doesn\'t have a valid subscription.')
+                            return utils.build_http_response('Ignoring sighting as the associated Account doesn\'t have a valid subscription.',
+                                                             status.HTTP_402_PAYMENT_REQUIRED)
+
+
+                        beacons = Beacon.objects.filter(Q(is_active=True),
+                                                        Q(uid=beacon_mac)|Q(uid=beacon_uid))  # this can yield more than one beacon...
+                        if len(beacons) > 0:
+                            for beacon in beacons:
+                                if is_active:
+                                    self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type)
+                                else:
+                                    self.close_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata)
+                        else:
+                            logger.warning('AddSightingsView.post() Invalid Beacon MAC / UID (couldn\'t find corresponding active device).')
+                            ignore_sightings.append(beacon_mac + beacon_uid)
+
+                else:
                     logger.warning('AddSightingsView.post() Invalid Detector UID (couldn\'t find corresponding active device).')
                     return utils.build_http_response('Invalid Detector UID (couldn\'t find corresponding device).',
                                                      status.HTTP_401_UNAUTHORIZED)
-
-                if detector.account.get_license_in_force() is None:
-                    logger.warning('AddSightingsView.post() Ignoring sighting as the associated Account doesn\'t have a valid subscription.')
-                    return utils.build_http_response('Ignoring sighting as the associated Account doesn\'t have a valid subscription.',
-                                                     status.HTTP_402_PAYMENT_REQUIRED)
-
-
-                beacons = Beacon.objects.filter(Q(is_active=True),
-                                                Q(uid=beacon_mac)|Q(uid=beacon_uid))  # this can yield more than one beacon...
-                if len(beacons) > 0:
-                    for beacon in beacons:
-                        if is_active:
-                            self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type)
-                        else:
-                            self.close_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata)
-                else:
-                    logger.warning('AddSightingsView.post() Invalid Beacon MAC / UID (couldn\'t find corresponding active device).')
-                    ignore_sightings.append(beacon_mac + beacon_uid)
 
         # serialized = SightingReadSerializer(new_sighting, context={'request': request})
         # return Response(serialized.data)
