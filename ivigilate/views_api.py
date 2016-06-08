@@ -454,7 +454,7 @@ class BeaconHistoryView(views.APIView):
     def get(self, request, format=None):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         if account:
-            filter_beacon_id = request.query_params.get('beaconId', '')
+            filter_beacon_id = request.query_params.get('beaconId', None)
             filter_timezone_offset = int(request.query_params.get('timezoneOffset', 0))
             filter_start_date = request.query_params.get('startDate', str(datetime.now(timezone.utc).date()) + 'T00:00:00')
             filter_start_date = str(
@@ -463,9 +463,13 @@ class BeaconHistoryView(views.APIView):
             filter_end_date = str(
                 datetime.strptime(filter_end_date, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=filter_timezone_offset)) + '+00'
 
-            queryset = self.queryset.filter(Q(beacon__uid=filter_beacon_id) | Q(beacon__reference_id=filter_beacon_id),
-                                            Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
-                .order_by('-id')
+            if filter_beacon_id is None:
+                queryset = self.queryset.filter(Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
+                    .order_by('-id')
+            else:
+                queryset = self.queryset.filter(Q(beacon__uid=filter_beacon_id) | Q(beacon__reference_id=filter_beacon_id),
+                                                Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
+                    .order_by('-id')
 
             return utils.view_list(request, account, queryset, SightingBeaconHistorySerializer)
         else:
@@ -481,7 +485,7 @@ class DetectorHistoryView(views.APIView):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         if account:
             todayString = str(datetime.now(timezone.utc).date())
-            filter_detector_id = request.query_params.get('detectorId', '')
+            filter_detector_id = request.query_params.get('detectorId', None)
             filter_timezone_offset = int(request.query_params.get('timezoneOffset', 0))
             filter_start_date = request.query_params.get('startDate', todayString + 'T00:00:00')
             filter_start_date = str(
@@ -490,9 +494,13 @@ class DetectorHistoryView(views.APIView):
             filter_end_date = str(
                 datetime.strptime(filter_end_date, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=filter_timezone_offset)) + '+00'
 
-            queryset = self.queryset.filter(Q(detector__uid=filter_detector_id) | Q(detector__reference_id=filter_detector_id),
-                                            Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
-                .order_by('-id')
+            if filter_detector_id is None:
+                queryset = self.queryset.filter(Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
+                    .order_by('-id')
+            else:
+                queryset = self.queryset.filter(Q(detector__uid=filter_detector_id) | Q(detector__reference_id=filter_detector_id),
+                                                Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
+                    .order_by('-id')
 
             return utils.view_list(request, account, queryset, SightingDetectorHistorySerializer)
         else:
