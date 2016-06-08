@@ -181,8 +181,10 @@ class AddSightingsView(views.APIView):
                 #    return utils.build_http_response('Ignoring sighting with outdated timestamp.',
                 #                                     status.HTTP_400_BAD_REQUEST)
 
-                detectors = Detector.objects.filter(is_active=True, uid=detector_uid)
+                detectors = Detector.objects.filter(is_active=True, uid=detector_uid)  # this can yield more than one detector...
                 if len(detectors) > 0:
+                    beacons = Beacon.objects.filter(Q(is_active=True),
+                                                    Q(uid=beacon_mac)|Q(uid=beacon_uid))  # this can yield more than one beacon...
                     for detector in detectors:
                         if location is not None:
                             location = json.dumps(location)
@@ -191,12 +193,10 @@ class AddSightingsView(views.APIView):
 
                         if detector.account.get_license_in_force() is None:
                             logger.warning('AddSightingsView.post() Ignoring sighting as the associated Account doesn\'t have a valid subscription.')
-                            return utils.build_http_response('Ignoring sighting as the associated Account doesn\'t have a valid subscription.',
-                                                             status.HTTP_402_PAYMENT_REQUIRED)
+                            # TODO: Need to move this somewhere else as there can be more than one detector
+                            # return utils.build_http_response('Ignoring sighting as the associated Account doesn\'t have a valid subscription.',
+                            #                                  status.HTTP_402_PAYMENT_REQUIRED)
 
-
-                        beacons = Beacon.objects.filter(Q(is_active=True),
-                                                        Q(uid=beacon_mac)|Q(uid=beacon_uid))  # this can yield more than one beacon...
                         if len(beacons) > 0:
                             for beacon in beacons:
                                 if is_active:
@@ -231,10 +231,11 @@ class AddSightingsView(views.APIView):
         logger.debug('open_sighting() Started...')
 
         now = datetime.now(timezone.utc)
-        previous_sightings = Sighting.objects.filter(is_active=True, beacon=beacon).order_by('-last_seen_at')[:1]
+        previous_sightings = Sighting.objects.filter(is_active=True, beacon=beacon, detector__account=detector.account). \
+                                 order_by('-last_seen_at')[:1]
         previous_sighting_occurred_at = None
         new_sighting = None
-        if previous_sightings:
+        if len(previous_sightings) > 0:
             previous_sighting = previous_sightings[0]
             # if the abs_diff between the 2 rssi values is bigger than X, "ignore" most recent value
             step_change = 1 if rssi - previous_sighting.rssi > 0 else - 1
@@ -284,6 +285,7 @@ class AddSightingsView(views.APIView):
             else:
                 logger.info('open_sighting() Ignoring current sighting as the beacon \'%s\' was seen at / by another account\'s ' +
                             'detector / user \'%s\' but has not been reported missing.', beacon, detector)
+                return
 
         if new_sighting is None:
             if detector is not None and rssi < detector.arrival_rssi and \
