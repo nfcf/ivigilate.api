@@ -199,7 +199,6 @@ class AddSightingsView(views.APIView):
 
                         if len(beacons) > 0:
                             for beacon in beacons:
-                                logger.info('AddSightingsView.post() detector_id: %s, beacon_id: %s', detector.id, beacon.id)
                                 if is_active:
                                     self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location_parsed, metadata, type)
                                 else:
@@ -210,7 +209,7 @@ class AddSightingsView(views.APIView):
 
                 else:
                     logger.warning('AddSightingsView.post() Invalid Detector UID (couldn\'t find corresponding active device).')
-                    return utils.build_http_response('Invalid Detector UID (couldn\'t find corresponding device).',
+                    return utils.build_http_response('Invalid Detector UID (couldn\'t find corresponding active device).',
                                                      status.HTTP_401_UNAUTHORIZED)
 
         # serialized = SightingReadSerializer(new_sighting, context={'request': request})
