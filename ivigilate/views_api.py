@@ -45,8 +45,7 @@ class LoginView(views.APIView):
             if user.is_active:
                 login(request, user)
 
-                user.token = Token.objects.get_or_create(user=user)
-                user.token = user.token[0]  # take first part of tuple
+                Token.objects.get_or_create(user=user) # creates token if necessary...will fetch it in the AuthUser model (get_token())
 
                 if metadata is not None and len(metadata.strip()) > 0:
                     now = datetime.now(timezone.utc)

@@ -5,6 +5,7 @@ from datetime import datetime, timezone, timedelta
 from django.utils.translation import ugettext_lazy as _
 from django.core.mail import send_mail
 from django.db.models import Lookup
+from rest_framework.authtoken.models import Token
 
 
 class BitwiseAnd(Lookup):
@@ -147,6 +148,13 @@ class AuthUser(AbstractBaseUser, PermissionsMixin):
 
     def get_short_name(self):
         return self.first_name
+
+    def get_token(self):
+        try:
+            token = Token.objects.get(user=self)
+        except Token.DoesNotExist:
+            token = ''
+        return str(token)
 
     def email_user(self, subject, message, from_email=None, **kwargs):
         send_mail(subject, message, from_email, [self.email], **kwargs)
