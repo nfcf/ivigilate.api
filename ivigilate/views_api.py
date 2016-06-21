@@ -147,7 +147,8 @@ class AddSightingsView(views.APIView):
         data = json.loads(request.body.decode('utf-8'))
         now_timestamp = time.time() * 1000
 
-        ignore_sightings = []
+        ignored_beacons = []
+        invalid_beacons = []
 
         if (data is not None and len(data) > 0):
             logger.info('AddSightingsView.post() Got %s sightings', len(data))
@@ -199,12 +200,16 @@ class AddSightingsView(views.APIView):
                         if len(beacons) > 0:
                             for beacon in beacons:
                                 if is_active:
-                                    self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location_parsed, metadata, type)
+                                    # Only open the sighting if 'AutoClosing' or if RSSI is greater than the configured value for the detector
+                                    if type == 'A' or rssi >= detector.arrival_rssi:
+                                        self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location_parsed, metadata, type)
+                                    else:
+                                        ignored_beacons.append(beacon_mac + beacon_uid)
                                 else:
                                     self.close_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location_parsed, metadata)
                         else:
                             logger.warning('AddSightingsView.post() Invalid Beacon MAC / UID (couldn\'t find corresponding active device).')
-                            ignore_sightings.append(beacon_mac + beacon_uid)
+                            invalid_beacons.append(beacon_mac + beacon_uid)
 
                 else:
                     logger.warning('AddSightingsView.post() Invalid Detector UID (couldn\'t find corresponding active device).')
@@ -213,8 +218,11 @@ class AddSightingsView(views.APIView):
 
         # serialized = SightingReadSerializer(new_sighting, context={'request': request})
         # return Response(serialized.data)
-        if len(ignore_sightings) > 0:
-            return utils.build_http_response(ignore_sightings, status.HTTP_206_PARTIAL_CONTENT)
+        if len(ignored_beacons) > 0 or len(invalid_beacons) > 0:
+            response = {}
+            response["ignored_beacons"] = ignored_beacons
+            response["invalid_beacons"] = invalid_beacons
+            return utils.build_http_response(response, status.HTTP_206_PARTIAL_CONTENT)
         else:
             return utils.build_http_response(None, status.HTTP_200_OK)
 
@@ -293,7 +301,7 @@ class AddSightingsView(views.APIView):
                             'arrival_rssi configured for this detector / user (%s < %s).', beacon, detector, rssi, detector.arrival_rssi)
             else:
                 new_sighting = Sighting.objects.create(beacon=beacon, beacon_battery=beacon_battery, detector=detector, detector_battery=detector_battery,
-                                                       location=location, rssi=rssi, metadata=metadata,type=type)
+                                                       location=location, rssi=rssi, metadata=metadata, type=type)
                 logger.debug('open_sighting() Created new sighting \'%s\'.', new_sighting)
 
         utils.check_for_events_async(new_sighting, )
