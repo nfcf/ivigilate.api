@@ -204,6 +204,8 @@ class AddSightingsView(views.APIView):
                                     if type == 'A' or rssi >= detector.arrival_rssi:
                                         self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location_parsed, metadata, type)
                                     else:
+                                        logger.info('AddSightingsView.post() Ignored Beacon MAC / UID as the rssi is lower than the ' +
+                                                        'arrival_rssi configured for this detector / user (%s < %s)', rssi, detector.arrival_rssi)
                                         ignored_beacons.append(beacon_mac + beacon_uid)
                                 else:
                                     self.close_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location_parsed, metadata)
