@@ -1,12 +1,12 @@
 <div class="row">
     <div class="col-md-10 col-md-offset-1">
-        <h1>Latest Sightings</h1>
+        <h1>Sightings</h1>
 
         <div class="well">
             <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
             <div class="row">
                 <div class="col-md-3">
-                    <label for="filterDate">Date</label>
+                    <label for="filterDate">Start Date</label>
 
                     <div class="input-group">
                         <input type="text" name="filterDate" class="form-control" uib-datepicker-popup="yyyy-MM-dd"
@@ -21,31 +21,41 @@
                         </span>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <label for="filterFixedBeaconsAndDetectors">Seen at / by</label>
+                 <div class="col-md-3">
+                    <label for="filterDate">End Date</label>
 
+                    <div class="input-group">
+                        <input type="text" name="filterEndDate" class="form-control" uib-datepicker-popup="yyyy-MM-dd"
+                               datepicker-options="vm.datepickerOptions" max-date="vm.filterDateMax"
+                               show-button-bar="false"n
+                               is-open="vm.filterEndDateIsOpen" ng-model="vm.filterEndDate" placeholder="YYYY-MM-DD"
+                               readonly/>
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default"
+                                    ng-click="vm.openDatePicker($event, 'filterEndDateIsOpen')">
+                                <i class="glyphicon glyphicon-calendar"></i></button>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-6">
                     <div class="form-group">
-                        <ui-select multiple ng-model="vm.filterFixedBeaconsAndDetectors" theme="select2" ng-disabled="disabled" style="width: 100%">
-                            <ui-select-match placeholder="Select fixed beacon(s) or detector(s)...">
-                                {{ $item.name || $item.reference_id || $item.id }}
+                        <label>Beacon or Detector</label>
+                        <ui-select ng-model="vm.filterBeaconOrDetector" theme="selectize" ng-disabled="disabled" required>
+                            <ui-select-match placeholder="Select a device from the list...">
+                                {{ $select.selected.name }}
                             </ui-select-match>
-                            <ui-select-choices
-                                    repeat="fixedBeaconOrDetector in vm.fixedBeaconsAndDetectors | propsFilter: {name: $select.search, reference_id: $select.search}">
-                                <div ng-bind-html="(fixedBeaconOrDetector.name || fixedBeaconOrDetector.reference_id || fixedBeaconOrDetector.id) | highlight: $select.search"></div>
+                           <ui-select-choices
+                                    repeat="beaconOrDetector in vm.beaconsOrDetectors | propsFilter: {name: $select.search, reference_id: $select.search}">
+                                <div ng-bind-html="beaconOrDetector.name  | highlight: $select.search"></div>
                                 <small>
-                                    {{ fixedBeaconOrDetector.kind }} with ID: <span ng-bind-html="fixedBeaconOrDetector.reference_id"></span>
+                                    {{ beaconOrDetector.kind  }} with ID: <span ng-bind-html="beaconOrDetector.reference_id"></span>
                                 </small>
                             </ui-select-choices>
                         </ui-select>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <label for="filterShowAll">Show All</label>
 
-                    <div class="form-group">
-                        <toggle-switch id="filterShowAll" ng-model="vm.filterShowAll" class="bootstrap-switch-small"></toggle-switch>
-                    </div>
                 </div>
+
             </div>
 
             <div class="table-responsive">

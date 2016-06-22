@@ -219,6 +219,21 @@ class SightingDetectorHistorySerializer(gis_serializers.GeoModelSerializer):
                   'location', 'beacon_battery', 'metadata', 'is_active')
 
 
+#version 2 Sighting beacon and detector history serializer
+
+class SightingBeaconOrDetectorHistorySerializerV2(gis_serializers.GeoModelSerializer):
+    beacon = BeaconDetectorHistorySerializer()
+    detector = DetectorBeaconHistorySerializer()
+    duration_in_seconds = serializers.IntegerField(source='get_duration', read_only=True)
+
+    class Meta:
+        model = Sighting
+        geo_field = 'location'
+        fields = ('id', 'beacon', 'detector', 'first_seen_at', 'last_seen_at', 'duration_in_seconds',
+                  'location', 'beacon_battery', 'metadata', 'is_active')
+
+
+
 class SightingReadSerializer(gis_serializers.GeoModelSerializer):
     beacon = BeaconReadSerializer()
     detector = DetectorReadSerializer()

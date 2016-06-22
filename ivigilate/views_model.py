@@ -293,6 +293,7 @@ class SightingViewSet(viewsets.ModelViewSet):
         if account:
             filter_timezone_offset = 0
             filter_date = str(datetime.now(timezone.utc).date())
+            filter_enddate = str(datetime.now(timezone.utc).date())
             filter_beacons = []
             filter_detectors = []
             filter_users = []
@@ -302,6 +303,8 @@ class SightingViewSet(viewsets.ModelViewSet):
                     filter_timezone_offset = int(request.query_params.get('filterTimezoneOffset'))
                 if request.query_params.get('filterDate') is not None:
                     filter_date = request.query_params.get('filterDate')
+                if request.query_params.get('filterEndDate') is not None:
+                    filter_end_date = request.query_params.get('filterEndDate')
                 if request.query_params.get('filterBeacons') is not None:
                     filter_beacons = request.query_params.getlist('filterBeacons')
                 if request.query_params.get('filterDetectors') is not None:
@@ -352,7 +355,8 @@ class SightingViewSet(viewsets.ModelViewSet):
                                   account.id,
                                   str(datetime.strptime(filter_date + ' 23:59:59', '%Y-%m-%d %H:%M:%S') + timedelta(minutes=filter_timezone_offset))]
 
-            queryset = self.queryset.raw(showAllQuery if filter_show_all else filteredQuery,
+
+            queryset =  self.queryset.raw(showAllQuery if filter_show_all else filteredQuery,
                                          showAllQueryParams if filter_show_all else filteredQueryParams)
             # print(queryset.query)
             return utils.view_list(request, account, queryset, self.get_serializer_class(), True)

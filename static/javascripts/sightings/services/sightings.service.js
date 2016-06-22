@@ -28,26 +28,47 @@
             return $http.get('/api/v1/sightings/' + id + '/');
         }
 
-        function list(filterDate, filterFixedBeaconsAndDetectors, filterShowAll) {
+        function list(filterDate, filterEndDate, filterBeaconOrDetector, filterShowAll) {
             var filterTimezoneOffset = new Date().getTimezoneOffset();
             var filterBeaconsIds = [];
             var filterDetectorsIds = [];
-            if (filterFixedBeaconsAndDetectors != null && filterFixedBeaconsAndDetectors.length > 0) {
-                filterFixedBeaconsAndDetectors.forEach(function(fixedBeaconOrDetector) {
-                    if (fixedBeaconOrDetector.kind.indexOf('Beacon') >= 0) filterBeaconsIds.push(fixedBeaconOrDetector.id);
-                    else if (fixedBeaconOrDetector.kind.indexOf('Detector') >= 0) filterDetectorsIds.push(fixedBeaconOrDetector.id);
-                })
+            
+            var request;
+
+            if (filterBeaconOrDetector == null || filterBeaconOrDetector.kind.indexOf('Beacon') >= 0) {
+                var params = !filterBeaconOrDetector ? {
+                        params: {
+                            filterTimezoneOffset: filterTimezoneOffset,
+                            filterDate: filterDate,
+                            filterEndDate: filterEndDate,
+                            filterBeacons: undefined,
+                            filterDetectors: undefined,
+                            filterShowAll: filterShowAll
+                        }
+                    } : {
+                        params: {
+                            beaconId: filterBeaconOrDetector.uid,
+                            filterDate: filterDate,
+                            filterEndDate: filterEndDate
+                        }
+                    }
+
+
+                request = $http.get('/api/v1/beaconhistory/', params);
+
+            } else if (filterBeaconOrDetector.kind.indexOf('Detector') >= 0) {
+                request = $http.get('/api/v1/detectorhistory/',
+                    {
+                        params: {
+                            detectorId: filterBeaconOrDetector.uid,
+                            filterDate: filterDate,
+                            filterEndDate: filterEndDate
+                        }
+                    }
+                )
             }
-            return $http.get('/api/v1/sightings/',
-                {
-                    params: {
-                        filterTimezoneOffset: filterTimezoneOffset,
-                        filterDate: filterDate,
-                        filterBeacons: filterBeaconsIds.length > 0 ? filterBeaconsIds : undefined,
-                        filterDetectors: filterDetectorsIds.length > 0 ? filterDetectorsIds : undefined,
-                        filterShowAll: filterShowAll}
-                }
-            );
+
+            return request;
         }
 
         function add(sighting) {
