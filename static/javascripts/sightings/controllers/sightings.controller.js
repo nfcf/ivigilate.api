@@ -20,23 +20,26 @@
         vm.openDatePicker = openDatePicker;
 
         vm.sightings = undefined;
-        vm.filterDate = vm.filterDateMax = $filter('date')(new Date(), 'yyyy-MM-dd');
+        vm.filterStartDate = vm.filterDateMax = $filter('date')(new Date(), 'yyyy-MM-dd');
         vm.filterDateIsOpen = false;
 
         vm.filterEndDate = vm.filterDateMax = $filter('date')(new Date(), 'yyyy-MM-dd');
         vm.filterEndDateIsOpen = false;
 
         vm.fixedBeaconsAndDetectors = [];
-        
+
 
         vm.beaconsOrDetectors = [];
         vm.filterBeaconOrDetector = undefined;
 
-        vm.filterShowAll = false;
-
         vm.datepickerOptions = {
             showWeeks: false,
             startingDay: 1
+        };
+
+        vm.resetValue = function ($event) {
+            vm.filterBeaconOrDetector = null;
+            $event.stopPropagation();
         };
 
         activate();
@@ -57,22 +60,18 @@
             Beacons.list().then(beaconsSuccessFn, errorFn);
             Detectors.list().then(detectorsSuccessFn, errorFn);
 
-            $scope.$watch('vm.filterDate', function () {
-                vm.filterDate = $filter('date')(vm.filterDate, 'yyyy-MM-dd');
+            $scope.$watch('vm.filterStartDate', function () {
+                vm.filterStartDate = $filter('date')(vm.filterStartDate, 'yyyy-MM-dd');
                 refresh();
             });
-            
+
             $scope.$watch('vm.filterEndDate', function () {
                 vm.filterEndDate = $filter('date')(vm.filterEndDate, 'yyyy-MM-dd');
                 refresh();
             });
-            
+
 
             $scope.$watch('vm.filterBeaconOrDetector', function () {
-                refresh();
-            });
-
-            $scope.$watch('vm.filterShowAll', function () {
                 refresh();
             });
 
@@ -104,8 +103,8 @@
         }
 
         function refresh() {
-            if (vm.filterDate) {
-                Sightings.list(vm.filterDate, vm.filterEndDate, vm.filterBeaconOrDetector, vm.filterShowAll).then(successFn, errorFn);
+            if (vm.filterStartDate) {
+                Sightings.list(vm.filterStartDate, vm.filterEndDate, vm.filterBeaconOrDetector, vm.filterShowAll).then(successFn, errorFn);
                 Notifications.checkForNotifications();
             }
 
@@ -185,13 +184,6 @@
                     if (new Date(vm.sightings[i].last_seen_at) > now) {
                         vm.sightings[i].last_seen_at = now;
                     }
-
-                    vm.sightings[i].satisfyFilter = new Date(vm.sightings[i].last_seen_at) >= new Date(vm.filterDate + ' 00:00:00') &&
-                        (filterBeaconOrDetectorIds === undefined ||
-                        (!!vm.sightings[i].beacon && filterBeaconOrDetectorIds.indexOf('Beacon' + vm.sightings[i].beacon.id) >= 0) ||
-                        (!!vm.sightings[i].detector &&
-                        (filterBeaconOrDetectorIds.indexOf('Detector' + vm.sightings[i].detector.id) >= 0 ||
-                        filterBeaconOrDetectorIds.indexOf('UserDetector' + vm.sightings[i].detector.id) >= 0))); //todo: userdetector?
                 }
             }
         }

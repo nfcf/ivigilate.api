@@ -301,8 +301,8 @@ class SightingViewSet(viewsets.ModelViewSet):
             if request.query_params is not None:
                 if request.query_params.get('filterTimezoneOffset') is not None:
                     filter_timezone_offset = int(request.query_params.get('filterTimezoneOffset'))
-                if request.query_params.get('filterDate') is not None:
-                    filter_date = request.query_params.get('filterDate')
+                if request.query_params.get('filterStartDate') is not None:
+                    filter_date = request.query_params.get('filterStartDate')
                 if request.query_params.get('filterEndDate') is not None:
                     filter_end_date = request.query_params.get('filterEndDate')
                 if request.query_params.get('filterBeacons') is not None:

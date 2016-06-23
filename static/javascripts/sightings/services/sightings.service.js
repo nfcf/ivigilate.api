@@ -28,41 +28,32 @@
             return $http.get('/api/v1/sightings/' + id + '/');
         }
 
-        function list(filterDate, filterEndDate, filterBeaconOrDetector, filterShowAll) {
+        function list(filterStartDate, filterEndDate, filterBeaconOrDetector, filterShowAll) {
             var filterTimezoneOffset = new Date().getTimezoneOffset();
-            var filterBeaconsIds = [];
-            var filterDetectorsIds = [];
-            
+            filterStartDate = filterStartDate + "T00:00:00";
+            filterEndDate = filterEndDate + "T23:59:59";
+
             var request;
 
             if (filterBeaconOrDetector == null || filterBeaconOrDetector.kind.indexOf('Beacon') >= 0) {
-                var params = !filterBeaconOrDetector ? {
+                request = $http.get('/api/v1/beaconhistory/',
+                    {
                         params: {
-                            filterTimezoneOffset: filterTimezoneOffset,
-                            filterDate: filterDate,
-                            filterEndDate: filterEndDate,
-                            filterBeacons: undefined,
-                            filterDetectors: undefined,
-                            filterShowAll: filterShowAll
+                            timezoneOffset: filterTimezoneOffset,
+                            beaconId: !filterBeaconOrDetector ? undefined : filterBeaconOrDetector.uid,
+                            startDate: filterStartDate,
+                            endDate: filterEndDate
                         }
-                    } : {
-                        params: {
-                            beaconId: filterBeaconOrDetector.uid,
-                            filterDate: filterDate,
-                            filterEndDate: filterEndDate
-                        }
-                    }
-
-
-                request = $http.get('/api/v1/beaconhistory/', params);
+                    });
 
             } else if (filterBeaconOrDetector.kind.indexOf('Detector') >= 0) {
                 request = $http.get('/api/v1/detectorhistory/',
                     {
                         params: {
+                            timezoneOffset: filterTimezoneOffset,
                             detectorId: filterBeaconOrDetector.uid,
-                            filterDate: filterDate,
-                            filterEndDate: filterEndDate
+                            startDate: filterStartDate,
+                            endDate: filterEndDate
                         }
                     }
                 )
