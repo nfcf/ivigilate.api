@@ -319,7 +319,7 @@ class AddSightingsView(views.APIView):
 
     def close_sighting(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata):
         logger.debug('close_sighting() Started...')
-        existing_sightings = Sighting.objects.filter(type='M', is_active=True, beacon=beacon, detector=detector).order_by('-last_seen_at')[:1]
+        existing_sightings = Sighting.objects.filter(type='MC', is_active=True, beacon=beacon, detector=detector).order_by('-last_seen_at')[:1]
         if existing_sightings:
             existing_sighting = existing_sightings[0]
             existing_sighting.last_seen_at = None  # this forces the datetime update on the model save()
