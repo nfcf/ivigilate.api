@@ -166,6 +166,8 @@
         function applyClientServerTimeOffset(serverTimestamp) {
             var offset = new Date(serverTimestamp).getTime() - (new Date()).getTime();
             for (var i = 0; i < vm.sightings.length; i++) {
+                vm.sightings[i].first_seen_at = new Date(vm.sightings[i].first_seen_at).getTime() - offset;
+                vm.sightings[i].first_seen_at = new Date(vm.sightings[i].first_seen_at).toISOString();
                 vm.sightings[i].last_seen_at = new Date(vm.sightings[i].last_seen_at).getTime() - offset;
                 vm.sightings[i].last_seen_at = new Date(vm.sightings[i].last_seen_at).toISOString();
             }
