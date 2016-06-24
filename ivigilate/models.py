@@ -252,12 +252,12 @@ class Beacon(models.Model):
 
 class Sighting(models.Model):
     TYPE = (
-        ('A', 'AutoClosing'),
-        ('M', 'ManualClosing'),
+        ('AC', 'AutoClosing'),
+        ('MC', 'ManualClosing'),
     )
     beacon = models.ForeignKey(Beacon)
     detector = models.ForeignKey(Detector, null=True)
-    type = models.CharField(max_length=1, choices=TYPE, default='A')
+    type = models.CharField(max_length=2, choices=TYPE, default='AC')
     first_seen_at = models.DateTimeField()
     last_seen_at = models.DateTimeField()
     location = models.PointField(null=True, blank=True)

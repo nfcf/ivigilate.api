@@ -155,7 +155,7 @@ class AddSightingsView(views.APIView):
             for sighting in data:
 
                 timestamp = sighting.get('timestamp', None)
-                type = sighting.get('type', 'A')
+                type = sighting.get('type', 'AC')
 
                 detector_uid = sighting.get('detector_uid').lower()
                 detector_battery = sighting.get('detector_battery', None)
@@ -201,7 +201,7 @@ class AddSightingsView(views.APIView):
                             for beacon in beacons:
                                 if is_active:
                                     # Only open the sighting if 'AutoClosing' or if RSSI is greater than the configured value for the detector
-                                    if type == 'A' or rssi >= detector.arrival_rssi:
+                                    if type == 'AC' or rssi >= detector.arrival_rssi:
                                         self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location_parsed, metadata, type)
                                     else:
                                         logger.info('AddSightingsView.post() Ignored Beacon MAC / UID as the rssi is lower than the ' +
