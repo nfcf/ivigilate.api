@@ -156,6 +156,8 @@ class AddSightingsView(views.APIView):
 
                 timestamp = sighting.get('timestamp', None)
                 type = sighting.get('type', 'AC')
+                if type != 'AC' and type != 'MC':
+                    type = 'AC'
 
                 detector_uid = sighting.get('detector_uid').lower()
                 detector_battery = sighting.get('detector_battery', None)
