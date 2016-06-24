@@ -219,8 +219,7 @@ class SightingDetectorHistorySerializer(gis_serializers.GeoModelSerializer):
                   'location', 'beacon_battery', 'metadata', 'is_active')
 
 
-# version 2 replaces SightingReadSerializer and merges SightingBeaconHistorySerializer & SightingDetectorHistorySerializer
-
+# version 2 replaces SightingReadSerializer
 class SightingHistorySerializer(gis_serializers.GeoModelSerializer):
     beacon = BeaconDetectorHistorySerializer()
     detector = DetectorBeaconHistorySerializer()
@@ -229,21 +228,21 @@ class SightingHistorySerializer(gis_serializers.GeoModelSerializer):
     class Meta:
         model = Sighting
         geo_field = 'location'
-        fields = ('id','beacon', 'detector', 'first_seen_at', 'last_seen_at', 'duration_in_seconds',
-                  'location', 'beacon_battery', 'metadata', 'is_active', 'comment', 'confirmed')
+        fields = ('id','beacon', 'beacon_battery', 'detector', 'detector_battery',
+                  'first_seen_at', 'last_seen_at', 'duration_in_seconds',
+                  'location', 'rssi', 'metadata', 'is_active', 'comment', 'confirmed')
 
-
-
-class SightingReadSerializer(gis_serializers.GeoModelSerializer):
-    beacon = BeaconReadSerializer()
-    detector = DetectorReadSerializer()
-
-    class Meta:
-        model = Sighting
-        geo_field = 'location'
-        fields = ('id', 'detector', 'detector_battery', 'beacon', 'beacon_battery', 'first_seen_at', 'last_seen_at',
-                  'location', 'rssi', 'metadata', 'confirmed',
-                  'confirmed_by', 'confirmed_at', 'comment', 'commented_by', 'commented_at', 'is_active')
+### TO BE DELETED...
+# class SightingReadSerializer(gis_serializers.GeoModelSerializer):
+#     beacon = BeaconReadSerializer()
+#     detector = DetectorReadSerializer()
+#
+#     class Meta:
+#         model = Sighting
+#         geo_field = 'location'
+#         fields = ('id', 'detector', 'detector_battery', 'beacon', 'beacon_battery', 'first_seen_at', 'last_seen_at',
+#                   'location', 'rssi', 'metadata', 'confirmed',
+#                   'confirmed_by', 'confirmed_at', 'comment', 'commented_by', 'commented_at', 'is_active')
 
 
 class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
