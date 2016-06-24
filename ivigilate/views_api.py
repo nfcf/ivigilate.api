@@ -484,7 +484,7 @@ class BeaconHistoryView(views.APIView):
                                                 Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
                     .order_by('-id')
 
-            return utils.view_list(request, account, queryset, SightingHistorySerializer, True)
+            return utils.view_list(request, account, queryset, BeaconDetectorHistorySerializer, True)
         else:
             return utils.build_http_response('The current logged on user is not associated with any account.',
                                              status.HTTP_400_BAD_REQUEST)
@@ -515,7 +515,7 @@ class DetectorHistoryView(views.APIView):
                                                 Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
                     .order_by('-id')
 
-            return utils.view_list(request, account, queryset, SightingHistorySerializer, True)
+            return utils.view_list(request, account, queryset, DetectorBeaconHistorySerializer, True)
         else:
             return utils.build_http_response('The current logged on user is not associated with any account.',
                                              status.HTTP_400_BAD_REQUEST)

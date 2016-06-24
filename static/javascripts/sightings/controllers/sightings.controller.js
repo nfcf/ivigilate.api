@@ -114,7 +114,7 @@
 
                 applyClientServerTimeOffset(response.data.timestamp);
 
-                applyFilterAndPreventTimesInTheFutureToSightings();
+                preventTimesInTheFutureToSightings();
             }
 
             function errorFn(response, status, headers, config) {
@@ -171,14 +171,8 @@
             }
         }
 
-        function applyFilterAndPreventTimesInTheFutureToSightings() {
+        function preventTimesInTheFutureToSightings() {
             if (vm.sightings) {
-                var filterBeaconOrDetectorIds = undefined;
-                if (vm.filterBeaconOrDetector != null && vm.filterBeaconOrDetector.length > 0) {
-                    filterBeaconOrDetectorIds = [];
-                    filterBeaconOrDetectorIds.push(vm.filterBeaconOrDetector.kind.replace(' ', '') + vm.filterBeaconOrDetector.id)
-                }
-
                 var now = new Date();
                 for (var i = 0; i < vm.sightings.length; i++) {
                     if (new Date(vm.sightings[i].last_seen_at) > now) {

@@ -17,17 +17,19 @@ class AccountViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.request.method in ['HEAD', 'OPTIONS']:
-            return (permissions.AllowAny(), )
-        return (permissions.IsAuthenticated(), )
+            return (permissions.AllowAny(),)
+        return (permissions.IsAuthenticated(),)
 
     def list(self, request):
         if request.user and request.user.is_staff:
             # return only the list of active accounts
-            queryset = self.queryset.filter(Q(licenses__valid_until=None) | Q(licenses__valid_until__gt=datetime.now(timezone.utc))).distinct()
+            queryset = self.queryset.filter(
+                Q(licenses__valid_until=None) | Q(licenses__valid_until__gt=datetime.now(timezone.utc))).distinct()
             return utils.view_list(request, None, queryset, self.get_serializer_class())
         else:
-            logger.critical('AccountViewSet.list() The user \'%s\' tried to access the accounts list without admin permissions.',
-                            request.user)
+            logger.critical(
+                'AccountViewSet.list() The user \'%s\' tried to access the accounts list without admin permissions.',
+                request.user)
             return Response('You do not have permissions to access this list.',
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -57,8 +59,8 @@ class AuthUserViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.request.method in ['HEAD', 'OPTIONS', 'POST']:
-            return (permissions.AllowAny(), )
-        return (permissions.IsAuthenticated(), )
+            return (permissions.AllowAny(),)
+        return (permissions.IsAuthenticated(),)
 
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
@@ -120,8 +122,9 @@ class AuthUserViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class DetectorViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
-                   mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+                      mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = Detector.objects.all()
 
     def get_serializer_class(self):
@@ -131,8 +134,8 @@ class DetectorViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
 
     def get_permissions(self):
         if self.request.method in ['HEAD', 'OPTIONS']:
-            return (permissions.AllowAny(), )
-        return (permissions.IsAuthenticated(), )
+            return (permissions.AllowAny(),)
+        return (permissions.IsAuthenticated(),)
 
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
@@ -192,7 +195,7 @@ class DetectorViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
 
 
 class BeaconViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
-                     mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+                    mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = Beacon.objects.all()
 
     def get_serializer_class(self):
@@ -202,8 +205,8 @@ class BeaconViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
 
     def get_permissions(self):
         if self.request.method in ['HEAD', 'OPTIONS']:
-            return (permissions.AllowAny(), )
-        return (permissions.IsAuthenticated(), )
+            return (permissions.AllowAny(),)
+        return (permissions.IsAuthenticated(),)
 
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
@@ -285,84 +288,44 @@ class SightingViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.request.method in ['HEAD', 'OPTIONS']:
-            return (permissions.AllowAny(), )
-        return (permissions.IsAuthenticated(), )
+            return (permissions.AllowAny(),)
+        return (permissions.IsAuthenticated(),)
 
     def list(self, request):
+
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         if account:
-            filter_timezone_offset = 0
-            filter_date = str(datetime.now(timezone.utc).date())
-            filter_enddate = str(datetime.now(timezone.utc).date())
-            filter_beacons = []
-            filter_detectors = []
-            filter_users = []
-            filter_show_all = False
-            if request.query_params is not None:
-                if request.query_params.get('filterTimezoneOffset') is not None:
-                    filter_timezone_offset = int(request.query_params.get('filterTimezoneOffset'))
-                if request.query_params.get('filterStartDate') is not None:
-                    filter_date = request.query_params.get('filterStartDate')
-                if request.query_params.get('filterEndDate') is not None:
-                    filter_end_date = request.query_params.get('filterEndDate')
-                if request.query_params.get('filterBeacons') is not None:
-                    filter_beacons = request.query_params.getlist('filterBeacons')
-                if request.query_params.get('filterDetectors') is not None:
-                    filter_detectors = request.query_params.getlist('filterDetectors')
-                if request.query_params.get('filterShowAll') is not None:
-                    filter_show_all = request.query_params.get('filterShowAll') in ['True', 'true', '1']
 
-            filteredQuery = 'SELECT s.* ' + \
-                             'FROM ivigilate_sighting s JOIN ivigilate_beacon b ON s.beacon_id = b.id ' + \
-                             'JOIN ivigilate_detector d ON s.detector_id = d.id ' + \
-                             'WHERE b.account_id = %s AND b.is_active = True ' + \
-                             'AND d.account_id = %s AND d.is_active = True ' + \
-                             'AND s.last_seen_at BETWEEN %s AND %s ' + \
-                             'AND (%s OR s.beacon_id = ANY(%s::integer[])) ' + \
-                             'AND (%s OR s.detector_id = ANY(%s::integer[])) ' + \
-                             'AND s.last_seen_at IN (' + \
-                             ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY beacon_id' + \
-                             ') ORDER BY s.last_seen_at DESC'
-            filteredQueryParams = [account.id, account.id,
-                                   str(datetime.strptime(filter_date + ' 00:00:00', '%Y-%m-%d %H:%M:%S') + timedelta(minutes=filter_timezone_offset)),
-                                   str(datetime.strptime(filter_date + ' 23:59:59', '%Y-%m-%d %H:%M:%S') + timedelta(minutes=filter_timezone_offset)),
-                                   len(filter_beacons) == 0, [int(x) for x in filter_beacons],
-                                   len(filter_detectors) == 0, [int(x) for x in filter_detectors]]
+            filter_beacon_id = request.query_params.get('beaconId', None)
+            filter_detector_id = request.query_params.get('detectorId', None)
+            filter_timezone_offset = int(request.query_params.get('timezoneOffset', 0))
+            filter_start_date = request.query_params.get('startDate',
+                                                         str(datetime.now(timezone.utc).date()) + 'T00:00:00')
+            filter_start_date = str(
+                datetime.strptime(filter_start_date, '%Y-%m-%dT%H:%M:%S') + timedelta(
+                    minutes=filter_timezone_offset)) + '+00'
+            filter_end_date = request.query_params.get('endDate',
+                                                       str(datetime.now(timezone.utc).date()) + 'T23:59:59')
+            filter_end_date = str(
+                datetime.strptime(filter_end_date, '%Y-%m-%dT%H:%M:%S') + timedelta(
+                    minutes=filter_timezone_offset)) + '+00'
 
-            showAllQuery = '(SELECT s.* ' + \
-                            'FROM ivigilate_sighting s JOIN ivigilate_beacon b ON s.beacon_id = b.id ' + \
-                            'JOIN ivigilate_detector d ON s.detector_id = d.id ' + \
-                            'WHERE b.account_id = %s AND b.is_active = True ' + \
-                            'AND d.account_id = %s AND d.is_active = True ' + \
-                            'AND s.last_seen_at BETWEEN %s AND %s ' + \
-                            'AND (%s OR s.beacon_id = ANY(%s::integer[])) ' + \
-                            'AND (%s OR s.detector_id = ANY(%s::integer[])) ' + \
-                            'AND s.last_seen_at IN (' + \
-                            ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY beacon_id' + \
-                            ') ORDER BY s.last_seen_at DESC)' + \
-                            ' UNION ' + \
-                            '(SELECT s.* ' + \
-                            'FROM ivigilate_sighting s JOIN ivigilate_beacon b ON s.beacon_id = b.id ' + \
-                            'WHERE b.account_id = %s AND b.is_active = True AND s.last_seen_at <= %s ' + \
-                            'AND s.last_seen_at IN (' + \
-                            ' SELECT MAX(last_seen_at) FROM ivigilate_sighting GROUP BY beacon_id' + \
-                            ') ORDER BY s.last_seen_at DESC)'
-            showAllQueryParams = [account.id, account.id,
-                                  str(datetime.strptime(filter_date + ' 00:00:00', '%Y-%m-%d %H:%M:%S') + timedelta(minutes=filter_timezone_offset)),
-                                  str(datetime.strptime(filter_date + ' 23:59:59', '%Y-%m-%d %H:%M:%S') + timedelta(minutes=filter_timezone_offset)),
-                                  len(filter_beacons) == 0, [int(x) for x in filter_beacons],
-                                  len(filter_detectors) == 0, [int(x) for x in filter_detectors],
-                                  account.id,
-                                  str(datetime.strptime(filter_date + ' 23:59:59', '%Y-%m-%d %H:%M:%S') + timedelta(minutes=filter_timezone_offset))]
+            if filter_beacon_id is None and filter_detector_id is None:
+                queryset = self.queryset.filter(Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
+                    .order_by('-id')
+            else:
+                queryset = self.queryset.filter(
+                    Q(beacon__uid=filter_beacon_id) | Q(beacon__reference_id=filter_beacon_id),
+                    Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
+                    .order_by('-id') if filter_beacon_id else self.queryset.filter(
+                    Q(detector__uid=filter_detector_id) | Q(detector__reference_id=filter_detector_id),
+                    Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
+                    .order_by('-id')
 
-
-            queryset =  self.queryset.raw(showAllQuery if filter_show_all else filteredQuery,
-                                         showAllQueryParams if filter_show_all else filteredQueryParams)
-            # print(queryset.query)
-            return utils.view_list(request, account, queryset, self.get_serializer_class(), True)
+            return utils.view_list(request, account, queryset, SightingHistorySerializer, True)
         else:
-            return Response('The current logged on user is not associated with any account.',
-                            status=status.HTTP_400_BAD_REQUEST)
+            return utils.build_http_response('The current logged on user is not associated with any account.',
+                                             status.HTTP_400_BAD_REQUEST)
 
     def retrieve(self, request, pk=None):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
@@ -427,8 +390,8 @@ class EventViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.request.method in ['HEAD', 'OPTIONS']:
-            return (permissions.AllowAny(), )
-        return (permissions.IsAuthenticated(), )
+            return (permissions.AllowAny(),)
+        return (permissions.IsAuthenticated(),)
 
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
@@ -531,8 +494,8 @@ class LimitViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.request.method in ['HEAD', 'OPTIONS']:
-            return (permissions.AllowAny(), )
-        return (permissions.IsAuthenticated(), )
+            return (permissions.AllowAny(),)
+        return (permissions.IsAuthenticated(),)
 
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
@@ -617,8 +580,8 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.request.method in ['HEAD', 'OPTIONS']:
-            return (permissions.AllowAny(), )
-        return (permissions.IsAuthenticated(), )
+            return (permissions.AllowAny(),)
+        return (permissions.IsAuthenticated(),)
 
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None

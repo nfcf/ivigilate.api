@@ -33,33 +33,18 @@
             filterStartDate = filterStartDate + "T00:00:00";
             filterEndDate = filterEndDate + "T23:59:59";
 
-            var request;
 
-            if (filterBeaconOrDetector == null || filterBeaconOrDetector.kind.indexOf('Beacon') >= 0) {
-                request = $http.get('/api/v1/beaconhistory/',
-                    {
-                        params: {
-                            timezoneOffset: filterTimezoneOffset,
-                            beaconId: !filterBeaconOrDetector ? undefined : filterBeaconOrDetector.uid,
-                            startDate: filterStartDate,
-                            endDate: filterEndDate
-                        }
-                    });
-
-            } else if (filterBeaconOrDetector.kind.indexOf('Detector') >= 0) {
-                request = $http.get('/api/v1/detectorhistory/',
-                    {
-                        params: {
-                            timezoneOffset: filterTimezoneOffset,
-                            detectorId: filterBeaconOrDetector.uid,
-                            startDate: filterStartDate,
-                            endDate: filterEndDate
-                        }
+            return $http.get('/api/v1/sightings/',
+                {
+                    params: {
+                        timezoneOffset: filterTimezoneOffset,
+                        beaconId: filterBeaconOrDetector && filterBeaconOrDetector.kind.indexOf('Beacon') >= 0 ? filterBeaconOrDetector.uid : undefined,
+                        detectorId: filterBeaconOrDetector && filterBeaconOrDetector.kind.indexOf('Detector') >= 0 ? filterBeaconOrDetector.uid : undefined,
+                        startDate: filterStartDate,
+                        endDate: filterEndDate
                     }
-                )
-            }
-
-            return request;
+                });
+            
         }
 
         function add(sighting) {
