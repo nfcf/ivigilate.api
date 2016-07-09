@@ -15,22 +15,31 @@
         vm.addSighting = addSighting;
         vm.editSighting = editSighting;
         vm.editBeacon = editBeacon;
-        vm.editDetector= editDetector;
+        vm.editDetector = editDetector;
         vm.confirmSighting = confirmSighting;
         vm.openDatePicker = openDatePicker;
 
         vm.sightings = undefined;
-        vm.filterDate = vm.filterDateMax = $filter('date')(new Date(), 'yyyy-MM-dd');
+        vm.filterStartDate = vm.filterDateMax = $filter('date')(new Date(), 'yyyy-MM-dd');
         vm.filterDateIsOpen = false;
 
-        vm.fixedBeaconsAndDetectors = [];
-        vm.filterFixedBeaconsAndDetectors = [];
+        vm.filterEndDate = vm.filterDateMax = $filter('date')(new Date(), 'yyyy-MM-dd');
+        vm.filterEndDateIsOpen = false;
 
-        vm.filterShowAll = false;
+        vm.fixedBeaconsAndDetectors = [];
+
+
+        vm.beaconsOrDetectors = [];
+        vm.filterBeaconOrDetector = undefined;
 
         vm.datepickerOptions = {
             showWeeks: false,
             startingDay: 1
+        };
+
+        vm.resetValue = function ($event) {
+            vm.filterBeaconOrDetector = null;
+            $event.stopPropagation();
         };
 
         activate();
@@ -51,16 +60,18 @@
             Beacons.list().then(beaconsSuccessFn, errorFn);
             Detectors.list().then(detectorsSuccessFn, errorFn);
 
-            $scope.$watch('vm.filterDate', function () {
-                vm.filterDate = $filter('date')(vm.filterDate, 'yyyy-MM-dd');
+            $scope.$watch('vm.filterStartDate', function () {
+                vm.filterStartDate = $filter('date')(vm.filterStartDate, 'yyyy-MM-dd');
                 refresh();
             });
 
-            $scope.$watch('vm.filterFixedBeaconsAndDetectors', function () {
+            $scope.$watch('vm.filterEndDate', function () {
+                vm.filterEndDate = $filter('date')(vm.filterEndDate, 'yyyy-MM-dd');
                 refresh();
             });
 
-            $scope.$watch('vm.filterShowAll', function () {
+
+            $scope.$watch('vm.filterBeaconOrDetector', function () {
                 refresh();
             });
 
@@ -70,21 +81,19 @@
             });
 
             function beaconsSuccessFn(data, status, headers, config) {
-                var fixedBeacons = data.data;
-                for (var i = 0; i < fixedBeacons.length; i++) {
-                    if (fixedBeacons[i].type == 'M') fixedBeacons.splice(i--, 1);
-                    else fixedBeacons[i].kind = fixedBeacons[i].type_display + ' Beacon';
+                var beacons = data.data;
+                for (var i = 0; i < beacons.length; i++) {
+                    beacons[i].kind = beacons[i].type_display + ' Beacon';
                 }
-                vm.fixedBeaconsAndDetectors.extend(fixedBeacons);
+                vm.beaconsOrDetectors.extend(beacons);
             }
 
             function detectorsSuccessFn(data, status, headers, config) {
-                var fixedDetectors = data.data;
-                for (var i = 0; i < fixedDetectors.length; i++) {
-                    if (fixedDetectors[i].type == 'M') fixedDetectors.splice(i--, 1);
-                    else fixedDetectors[i].kind = fixedDetectors[i].type_display + ' Detector';
+                var detectors = data.data;
+                for (var i = 0; i < detectors.length; i++) {
+                    detectors[i].kind = detectors[i].type_display + ' Detector';
                 }
-                vm.fixedBeaconsAndDetectors.extend(fixedDetectors);
+                vm.beaconsOrDetectors.extend(detectors);
             }
 
             function errorFn(data, status, headers, config) {
@@ -94,8 +103,8 @@
         }
 
         function refresh() {
-            if (vm.filterDate) {
-                Sightings.list(vm.filterDate, vm.filterFixedBeaconsAndDetectors, vm.filterShowAll).then(successFn, errorFn);
+            if (vm.filterStartDate) {
+                Sightings.list(vm.filterStartDate, vm.filterEndDate, vm.filterBeaconOrDetector, vm.filterShowAll).then(successFn, errorFn);
                 Notifications.checkForNotifications();
             }
 
@@ -105,7 +114,7 @@
 
                 applyClientServerTimeOffset(response.data.timestamp);
 
-                applyFilterAndPreventTimesInTheFutureToSightings();
+                preventTimesInTheFutureToSightings();
             }
 
             function errorFn(response, status, headers, config) {
@@ -157,33 +166,20 @@
         function applyClientServerTimeOffset(serverTimestamp) {
             var offset = new Date(serverTimestamp).getTime() - (new Date()).getTime();
             for (var i = 0; i < vm.sightings.length; i++) {
+                vm.sightings[i].first_seen_at = new Date(vm.sightings[i].first_seen_at).getTime() - offset;
+                vm.sightings[i].first_seen_at = new Date(vm.sightings[i].first_seen_at).toISOString();
                 vm.sightings[i].last_seen_at = new Date(vm.sightings[i].last_seen_at).getTime() - offset;
                 vm.sightings[i].last_seen_at = new Date(vm.sightings[i].last_seen_at).toISOString();
             }
         }
 
-        function applyFilterAndPreventTimesInTheFutureToSightings() {
+        function preventTimesInTheFutureToSightings() {
             if (vm.sightings) {
-                var filterFixedBeaconsAndDetectorsIds = undefined;
-                if (vm.filterFixedBeaconsAndDetectors != null && vm.filterFixedBeaconsAndDetectors.length > 0) {
-                    filterFixedBeaconsAndDetectorsIds = [];
-                    vm.filterFixedBeaconsAndDetectors.forEach(function (fixedBeaconOrDetector) {
-                        filterFixedBeaconsAndDetectorsIds.push(fixedBeaconOrDetector.kind.replace(' ', '') + fixedBeaconOrDetector.id);
-                    })
-                }
-
                 var now = new Date();
                 for (var i = 0; i < vm.sightings.length; i++) {
                     if (new Date(vm.sightings[i].last_seen_at) > now) {
                         vm.sightings[i].last_seen_at = now;
                     }
-
-                    vm.sightings[i].satisfyFilter = new Date(vm.sightings[i].last_seen_at) >= new Date(vm.filterDate + ' 00:00:00') &&
-                    (filterFixedBeaconsAndDetectorsIds === undefined ||
-                    (!!vm.sightings[i].beacon && filterFixedBeaconsAndDetectorsIds.indexOf('FixedBeacon' + vm.sightings[i].beacon.id) >= 0) ||
-                    (!!vm.sightings[i].detector &&
-                        (filterFixedBeaconsAndDetectorsIds.indexOf('FixedDetector' + vm.sightings[i].detector.id) >= 0 ||
-                         filterFixedBeaconsAndDetectorsIds.indexOf('UserDetector' + vm.sightings[i].detector.id) >= 0)));
                 }
             }
         }
@@ -195,12 +191,11 @@
         }
 
         function sortByKey(array, key) {
-            return array.sort(function(a, b) {
+            return array.sort(function (a, b) {
                 var x = a[key];
                 var y = b[key];
 
-                if (typeof x == "string")
-                {
+                if (typeof x == "string") {
                     x = x.toLowerCase();
                     y = y.toLowerCase();
                 }

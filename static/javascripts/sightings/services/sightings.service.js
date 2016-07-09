@@ -28,26 +28,23 @@
             return $http.get('/api/v1/sightings/' + id + '/');
         }
 
-        function list(filterDate, filterFixedBeaconsAndDetectors, filterShowAll) {
+        function list(filterStartDate, filterEndDate, filterBeaconOrDetector, filterShowAll) {
             var filterTimezoneOffset = new Date().getTimezoneOffset();
-            var filterBeaconsIds = [];
-            var filterDetectorsIds = [];
-            if (filterFixedBeaconsAndDetectors != null && filterFixedBeaconsAndDetectors.length > 0) {
-                filterFixedBeaconsAndDetectors.forEach(function(fixedBeaconOrDetector) {
-                    if (fixedBeaconOrDetector.kind.indexOf('Beacon') >= 0) filterBeaconsIds.push(fixedBeaconOrDetector.id);
-                    else if (fixedBeaconOrDetector.kind.indexOf('Detector') >= 0) filterDetectorsIds.push(fixedBeaconOrDetector.id);
-                })
-            }
+            filterStartDate = filterStartDate + "T00:00:00";
+            filterEndDate = filterEndDate + "T23:59:59";
+
+
             return $http.get('/api/v1/sightings/',
                 {
                     params: {
-                        filterTimezoneOffset: filterTimezoneOffset,
-                        filterDate: filterDate,
-                        filterBeacons: filterBeaconsIds.length > 0 ? filterBeaconsIds : undefined,
-                        filterDetectors: filterDetectorsIds.length > 0 ? filterDetectorsIds : undefined,
-                        filterShowAll: filterShowAll}
-                }
-            );
+                        timezoneOffset: filterTimezoneOffset,
+                        beaconId: filterBeaconOrDetector && filterBeaconOrDetector.kind.indexOf('Beacon') >= 0 ? filterBeaconOrDetector.uid : undefined,
+                        detectorId: filterBeaconOrDetector && filterBeaconOrDetector.kind.indexOf('Detector') >= 0 ? filterBeaconOrDetector.uid : undefined,
+                        startDate: filterStartDate,
+                        endDate: filterEndDate
+                    }
+                });
+            
         }
 
         function add(sighting) {

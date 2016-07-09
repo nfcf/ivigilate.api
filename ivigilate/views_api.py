@@ -155,7 +155,9 @@ class AddSightingsView(views.APIView):
             for sighting in data:
 
                 timestamp = sighting.get('timestamp', None)
-                type = sighting.get('type', 'A')
+                type = sighting.get('type', 'AC')
+                if type != 'AC' and type != 'MC':
+                    type = 'AC'
 
                 detector_uid = sighting.get('detector_uid').lower()
                 detector_battery = sighting.get('detector_battery', None)
@@ -201,7 +203,7 @@ class AddSightingsView(views.APIView):
                             for beacon in beacons:
                                 if is_active:
                                     # Only open the sighting if 'AutoClosing' or if RSSI is greater than the configured value for the detector
-                                    if type == 'A' or rssi >= detector.arrival_rssi:
+                                    if type == 'AC' or rssi >= detector.arrival_rssi:
                                         self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location_parsed, metadata, type)
                                     else:
                                         logger.info('AddSightingsView.post() Ignored Beacon MAC / UID as the rssi is lower than the ' +
@@ -317,7 +319,7 @@ class AddSightingsView(views.APIView):
 
     def close_sighting(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata):
         logger.debug('close_sighting() Started...')
-        existing_sightings = Sighting.objects.filter(type='M', is_active=True, beacon=beacon, detector=detector).order_by('-last_seen_at')[:1]
+        existing_sightings = Sighting.objects.filter(type='MC', is_active=True, beacon=beacon, detector=detector).order_by('-last_seen_at')[:1]
         if existing_sightings:
             existing_sighting = existing_sightings[0]
             existing_sighting.last_seen_at = None  # this forces the datetime update on the model save()
@@ -484,7 +486,7 @@ class BeaconHistoryView(views.APIView):
                                                 Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
                     .order_by('-id')
 
-            return utils.view_list(request, account, queryset, SightingBeaconHistorySerializer)
+            return utils.view_list(request, account, queryset, BeaconDetectorHistorySerializer, True)
         else:
             return utils.build_http_response('The current logged on user is not associated with any account.',
                                              status.HTTP_400_BAD_REQUEST)
@@ -515,7 +517,7 @@ class DetectorHistoryView(views.APIView):
                                                 Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
                     .order_by('-id')
 
-            return utils.view_list(request, account, queryset, SightingDetectorHistorySerializer)
+            return utils.view_list(request, account, queryset, DetectorBeaconHistorySerializer, True)
         else:
             return utils.build_http_response('The current logged on user is not associated with any account.',
                                              status.HTTP_400_BAD_REQUEST)

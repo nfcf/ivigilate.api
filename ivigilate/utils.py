@@ -2,7 +2,6 @@ from datetime import datetime, timezone, timedelta
 from rest_framework.response import Response
 from rest_framework import status
 from ivigilate import actions
-from ivigilate.serializers import SightingReadSerializer
 from ivigilate.models import Sighting, Event, EventOccurrence, Limit, LimitOccurrence
 from django.db.models import Q
 import math, json, logging, time, threading, pytz

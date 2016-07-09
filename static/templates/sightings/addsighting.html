@@ -16,10 +16,10 @@
                             {{ $select.selected.name }}
                         </ui-select-match>
                         <ui-select-choices
-                                repeat="beacon in vm.beacons | propsFilter: {name: $select.search, reference_id: $select.search}">
+                                repeat="beacon in vm.beacons | propsFilter: {name: $select.search, uid: $select.search}">
                             <div ng-bind-html="beacon.name  | highlight: $select.search"></div>
                             <small>
-                                {{ beacon.type_display }} Beacon with ID: <span ng-bind-html="beacon.reference_id"></span>
+                                {{ beacon.type_display }} Beacon with ID:  <span ng-bind-html="beacon.uid"></span>
                             </small>
                         </ui-select-choices>
                     </ui-select>
@@ -33,10 +33,10 @@
                             {{ $select.selected.name }}
                         </ui-select-match>
                         <ui-select-choices
-                                repeat="detector in vm.detectors | propsFilter: {name: $select.search, reference_id: $select.search}">
+                                repeat="detector in vm.detectors | propsFilter: {name: $select.search, uid: $select.search}">
                             <div ng-bind-html="detector.name | highlight: $select.search"></div>
                             <small>
-                                {{ detector.type_display }} Detector with ID: <span ng-bind-html="detector.reference_id"></span>
+                                {{ detector.type_display }} Detector with ID: <span ng-bind-html="detector.uid"></span>
                             </small>
                         </ui-select-choices>
                     </ui-select>

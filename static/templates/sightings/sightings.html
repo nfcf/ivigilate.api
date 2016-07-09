@@ -1,18 +1,18 @@
 <div class="row">
-    <div class="col-md-10 col-md-offset-1">
-        <h1>Latest Sightings</h1>
+    <div class="col-md-12">
+        <h1>Sightings</h1>
 
         <div class="well">
             <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
             <div class="row">
                 <div class="col-md-3">
-                    <label for="filterDate">Date</label>
+                    <label for="filterStartDate">Start Date</label>
 
                     <div class="input-group">
-                        <input type="text" name="filterDate" class="form-control" uib-datepicker-popup="yyyy-MM-dd"
-                               datepicker-options="vm.datepickerOptions" max-date="vm.filterDateMax"
+                        <input type="text" name="filterStartDate" class="form-control" uib-datepicker-popup="yyyy-MM-dd"
+                               datepicker-options="vm.datepickerOptions" max-date="vm.filterEndDate"
                                show-button-bar="false"
-                               is-open="vm.filterDateIsOpen" ng-model="vm.filterDate" placeholder="YYYY-MM-DD"
+                               is-open="vm.filterDateIsOpen" ng-model="vm.filterStartDate" placeholder="YYYY-MM-DD"
                                readonly/>
                         <span class="input-group-btn">
                             <button type="button" class="btn btn-default"
@@ -21,46 +21,62 @@
                         </span>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <label for="filterFixedBeaconsAndDetectors">Seen at / by</label>
+                <div class="col-md-3">
+                    <label for="filterDate">End Date</label>
 
+                    <div class="input-group">
+                        <input type="text" name="filterEndDate" class="form-control" uib-datepicker-popup="yyyy-MM-dd"
+                               datepicker-options="vm.datepickerOptions" min-date="vm.filterStartDate"
+                               max-date="vm.filterDateMax"
+                               show-button-bar="false" n
+                               is-open="vm.filterEndDateIsOpen" ng-model="vm.filterEndDate" placeholder="YYYY-MM-DD"
+                               readonly/>
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default"
+                                    ng-click="vm.openDatePicker($event, 'filterEndDateIsOpen')">
+                                <i class="glyphicon glyphicon-calendar"></i></button>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-3">
                     <div class="form-group">
-                        <ui-select multiple ng-model="vm.filterFixedBeaconsAndDetectors" theme="select2" ng-disabled="disabled" style="width: 100%">
-                            <ui-select-match placeholder="Select fixed beacon(s) or detector(s)...">
-                                {{ $item.name || $item.reference_id || $item.id }}
+                        <label>Beacon or Detector</label>
+                        <ui-select ng-model="vm.filterBeaconOrDetector" theme="selectize" ng-disabled="disabled">
+                            <ui-select-match placeholder="Select a device from the list...">
+                                <a style="margin-right: 10px" ng-click="vm.resetValue($event)"
+                                   class="btn btn-xs pull-right"><span class="glyphicon glyphicon-remove"
+                                                                       aria-hidden="true"></span></a>
+                                {{ $select.selected.name }}
                             </ui-select-match>
-                            <ui-select-choices
-                                    repeat="fixedBeaconOrDetector in vm.fixedBeaconsAndDetectors | propsFilter: {name: $select.search, reference_id: $select.search}">
-                                <div ng-bind-html="(fixedBeaconOrDetector.name || fixedBeaconOrDetector.reference_id || fixedBeaconOrDetector.id) | highlight: $select.search"></div>
+
+                            <ui-select-choices allow-clear="true"
+                                               repeat="beaconOrDetector in vm.beaconsOrDetectors | propsFilter: {name: $select.search, uid: $select.search}">
+                                <div ng-bind-html="beaconOrDetector.name  | highlight: $select.search"></div>
                                 <small>
-                                    {{ fixedBeaconOrDetector.kind }} with ID: <span ng-bind-html="fixedBeaconOrDetector.reference_id"></span>
+                                    {{ beaconOrDetector.kind }} with ID: <span
+                                        ng-bind-html="beaconOrDetector.uid"></span>
                                 </small>
                             </ui-select-choices>
                         </ui-select>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <label for="filterShowAll">Show All</label>
 
-                    <div class="form-group">
-                        <toggle-switch id="filterShowAll" ng-model="vm.filterShowAll" class="bootstrap-switch-small"></toggle-switch>
-                    </div>
                 </div>
+
             </div>
 
             <div class="table-responsive">
                 <table st-table="vm.displayedSightings" st-safe-src="vm.sightings" class="table table-striped">
                     <thead>
                     <tr>
-                        <th st-sort="satisfyFilter" st-sort-default="true"><span
-                                class="glyphicon glyphicon-eye-open"></span></th>
                         <th>Photo</th>
-                        <th st-sort="beacon.reference_id">ID</th>
+                        <th st-sort="beacon.reference_id">Beacon ID</th>
                         <th st-sort="beacon.name">Name</th>
+                        <th st-sort="first_seen_at" st-sort-default="reverse">First Seen</th>
                         <th st-sort="last_seen_at">Last Seen</th>
+                        <th st-sort="detector.reference_id">Detector ID</th>
+                        <th st-sort="detector.name">Name</th>
                         <th class="text-center" st-sort="rssi">RSSI</th>
                         <th class="text-center" st-sort="battery">Battery</th>
-                        <th st-sort="comment">Comment</th>
                         <th class="text-center" st-sort="confirmed">Confirmed</th>
                         <th class="text-right">
                             <button ng-click="vm.addSighting()" class="btn btn-sm btn-success">
@@ -69,44 +85,46 @@
                         </th>
                     </tr>
                     <tr>
-                        <th colspan="10">
+                        <th colspan="12">
                             <input st-search placeholder="Global Search" class="input-sm form-control" type="search"/>
                         </th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="sighting in vm.displayedSightings"
-                        ng-class="{'danger': !sighting.satisfyFilter}">
-                        <td class="valign-middle text-center"></td>
+                    <tr ng-repeat="sighting in vm.displayedSightings">
+
                         <td style="height:56px">
                             <img height="40px"
-                                 ng-src="{{ sighting.beacon.type == 'F' ?
-                                         sighting.detector.photo :
-                                         sighting.beacon.photo }}"
-                                 ng-if="sighting.beacon.type == 'F' ?
-                                    sighting.detector.photo :
-                                    sighting.beacon.photo"/>
+                                 ng-src="{{ sighting.beacon.photo }}"
+                                 ng-if="sighting.beacon.photo"/>
                         </td>
                         <td class="valign-middle">
-                            <a ng-if="sighting.beacon.type == 'F' && !sighting.detector.reference_id" ng-click="vm.editDetector(sighting.detector)">{{ sighting.detector.uid.substring(0, 3) + '...' + sighting.detector.uid.substring(sighting.detector.uid.length - 3) }}</a>
-                            <span ng-if="sighting.beacon.type == 'F' && !!sighting.detector.reference_id" ng-click="vm.editDetector(sighting.detector)">{{ sighting.detector.reference_id }}</span>
-                            <a ng-if="sighting.beacon.type != 'F' && !sighting.beacon.reference_id" ng-click="vm.editBeacon(sighting.beacon)">{{ sighting.beacon.uid.substring(0, 3) + '...' + sighting.beacon.uid.substring(sighting.beacon.uid.length - 3) }}</a>
-                            <span ng-if="sighting.beacon.type != 'F' && !!sighting.beacon.reference_id" ng-click="vm.editBeacon(sighting.beacon)">{{ sighting.beacon.reference_id }}</span>
+                            <a ng-if="!sighting.beacon.reference_id"
+                               ng-click="vm.editBeacon(sighting.beacon)">
+                                {{ sighting.beacon.uid.length <= 10 ? sighting.beacon.uid :
+                                        sighting.beacon.uid.substring(0, 3) + '...' + sighting.beacon.uid.substring(sighting.beacon.uid.length - 3) }}</a>
+                            <span ng-if="!!sighting.beacon.reference_id"
+                                  ng-click="vm.editBeacon(sighting.beacon)">{{ sighting.beacon.reference_id }}</span>
                         </td>
                         <td class="valign-middle">
-                            {{ sighting.beacon.type == 'F' ?
-                                    sighting.detector.name :
-                                    sighting.beacon.name }}
+                            {{ sighting.beacon.name }}
                         </td>
                         <td class="valign-middle">
-                            {{ sighting.last_seen_at | relativeDate }}
-                            {{ sighting.beacon.type == 'F' ?
-                                    'at' : sighting.detector.type == 'F' ?
-                                    'at' :
-                                    'by' }}
-                            {{ sighting.beacon.type == 'F' ?
-                                    sighting.beacon.name :
-                                    sighting.detector.name }}
+                            {{ sighting.first_seen_at | date:'yyyy-MM-dd HH:mm:ss' }}
+                        </td>
+                        <td class="valign-middle">
+                            {{ sighting.last_seen_at | date:'yyyy-MM-dd HH:mm:ss' }}
+                        </td>
+                        <td class="valign-middle">
+                            <a ng-if="!sighting.detector.reference_id"
+                               ng-click="vm.editDetector(sighting.detector)">
+                                {{ sighting.detector.uid.length <= 10 ? sighting.detector.uid :
+                                        sighting.detector.uid.substring(0, 3) + '...' + sighting.detector.uid.substring(sighting.detector.uid.length - 3) }}</a>
+                            <span ng-if="!!sighting.detector.reference_id"
+                                  ng-click="vm.editDetector(sighting.detector)">{{ sighting.detector.reference_id }}</span>
+                        </td>
+                        <td class="valign-middle">
+                            {{ sighting.detector.name }}
                         </td>
                         <td class="valign-middle text-center">
                             {{ sighting.rssi || 'N/A' }}
@@ -114,11 +132,9 @@
                         <td class="valign-middle text-center">
                             {{ sighting.beacon_battery || 'N/A' }}
                         </td>
-                        <td class="valign-middle">
-                            {{ sighting.comment }}
-                        </td>
                         <td class="valign-middle text-center">
-                            <input type="checkbox" ng-model="sighting.confirmed" ng-click="vm.confirmSighting(sighting)">
+                            <input type="checkbox" ng-model="sighting.confirmed"
+                                   ng-click="vm.confirmSighting(sighting)">
                         </td>
                         <td class="valign-middle text-center">
                             <a ng-click="vm.editSighting(sighting)">Edit</a>

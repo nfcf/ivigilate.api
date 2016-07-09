@@ -13,7 +13,7 @@ logger.addHandler(logging.NullHandler())
 
 class ClearCronLogsJob(CronJobBase):
     RUN_EVERY_MINS = 1440  # 1 day
-    RETRY_AFTER_FAILURE_MINS = 720  # 1/2 day
+    RETRY_AFTER_FAILURE_MINS = 1440  # 1 day
 
     NUMBER_OF_DAYS_TO_BE_CONSIDERED_OLD = 7
 
@@ -24,7 +24,7 @@ class ClearCronLogsJob(CronJobBase):
         logger.debug('ClearCronLogsJob.do() Starting...')
         now = datetime.now(timezone.utc)
         filter_datetime = now - timedelta(days=ClearCronLogsJob.NUMBER_OF_DAYS_TO_BE_CONSIDERED_OLD)
-        CronJobLog.filter(end_time__lt=filter_datetime).delete()
+        CronJobLog.objects.filter(end_time__lt=filter_datetime, is_success=True).delete()
         logger.debug('RecurringLicensesJob.do() Finished...')
 
 
@@ -87,7 +87,7 @@ class CloseSightingsJob(CronJobBase):
         logger.debug('CloseSightingsJob.do() Starting iteration %s...', iteration)
         now = datetime.now(timezone.utc)
         filter_datetime = now - timedelta(seconds=CloseSightingsJob.NUMBER_OF_SECONDS_TO_BE_CONSIDERED_OLD)
-        sightings = Sighting.objects.filter(type='A', is_active=True, last_seen_at__lt=filter_datetime)
+        sightings = Sighting.objects.filter(type='AC', is_active=True, last_seen_at__lt=filter_datetime)
         if sightings:
             logger.info('CloseSightingsJob.do() Found %s sighting(s) that need closing.', len(sightings))
             for sighting in sightings:
