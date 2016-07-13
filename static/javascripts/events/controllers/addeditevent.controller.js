@@ -42,6 +42,14 @@
         vm.detectors_selected = [];
 
         vm.is_edit = data !== null;
+        
+        vm.sighting_status = [
+            {"status" : "N", "description" : "Normal"},
+             {"status" : "P", "description" : "Panic"},
+             {"status" : "F", "description" : "Fall"},
+        ]
+        
+        
 
         activate();
 
@@ -106,7 +114,8 @@
                                     'sighting_dormant_period_in_seconds': 0,
                                     'sighting_max_rssi': 0,
                                     'sighting_min_rssi': -99,
-                                    'once_per_sighting': false
+                                    'once_per_sighting': false,
+                                    'sighting_status' : 'N'
                                 }};
 
                     vm.schedule_start_time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0);
@@ -160,6 +169,7 @@
                 if (vm.event.metadata_object.sighting_previous_event) {
                     vm.event.metadata_object.sighting_previous_event = vm.event.metadata_object.sighting_previous_event.id;
                 }
+                
                 vm.event.metadata_object.actions = [];
                 if (vm.event.metadata_object.event_is_local) {
                     vm.event.metadata_object.actions.push({

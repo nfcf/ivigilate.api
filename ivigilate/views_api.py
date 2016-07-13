@@ -267,14 +267,23 @@ class AddSightingsView(views.APIView):
             else:
                 logger.debug('open_sighting() Updating previous related sighting \'%s\'.', previous_sighting)
                 new_sighting = previous_sighting
+                #TODO: metadata object should have separate properties for user defined / server util / app internal fields
+                metadata_obj = json.loads(metadata)
+                updated_metadata_obj = json.loads(new_sighting.metadata)
+                for key, value in metadata_obj.items():
+                    updated_metadata_obj[key] = value
+
                 previous_sighting_occurred_at = previous_sighting.last_seen_at
                 if not beacon.reported_missing or \
                                 (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60:
                     new_sighting.last_seen_at = None  # this forces the datetime update on the model save()
+
                 new_sighting.rssi = avg_rssi
                 new_sighting.detector_battery = detector_battery
                 new_sighting.beacon_battery = beacon_battery
                 new_sighting.location = location
+                new_sighting.metadata = json.dumps(updated_metadata_obj)
+
                 new_sighting.save()
 
         if beacon.account_id != detector.account.id:
@@ -329,7 +338,7 @@ class AddSightingsView(views.APIView):
             existing_sighting.location = location
 
             # This needs some work here...
-            # existing_sighting_metadata = json.loads(existing_sighting.metadata or '{}')
+            existing_sighting_metadata = json.loads(existing_sighting.metadata or '{}')
 
             utils.close_sighting(existing_sighting)
 
