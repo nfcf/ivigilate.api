@@ -4,7 +4,7 @@ from rest_framework import status
 from ivigilate import actions
 from ivigilate.models import Sighting, Event, EventOccurrence, Limit, LimitOccurrence
 from django.db.models import Q
-import math, json, logging, time, threading, pytz ,re
+import math, json, logging, time, threading, pytz
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())

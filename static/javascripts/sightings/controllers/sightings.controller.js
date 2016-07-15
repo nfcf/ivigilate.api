@@ -116,8 +116,8 @@
                 vm.error = null;
                 vm.sightings = sortByKey(response.data.data, 'id');
                 applyClientServerTimeOffset(response.data.timestamp);
-                prepareSightingsForExport();
 
+                setTimeout(prepareSightingsForExport, 50);
             }
 
             function errorFn(response, status, headers, config) {
