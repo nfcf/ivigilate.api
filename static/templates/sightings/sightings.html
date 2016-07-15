@@ -68,8 +68,8 @@
                 <table st-table="vm.displayedSightings" st-safe-src="vm.sightings" class="table table-striped">
                     <thead>
                     <div class="col-md-3">
-                       <button type="button" ng-csv="vm.formattedSightings" csv-header="['Beacon Name', 'Beacon Id','Detector Name',
-                       'Detector ID','First Seen','Last Seen', 'Location', 'RSSI', 'Battery', 'Confirmed']"
+                       <button type="button" ng-csv="vm.formattedSightings" csv-header="['Beacon Name', 'Beacon Id', 'Beacon Battery', 'Detector Name',
+                       'Detector ID', 'Detector Battery', 'First Seen','Last Seen', 'Location', 'RSSI', 'Is Active', 'Confirmed']"
                                filename="sightings.csv">Export</button>
                     </div>
                     <tr>

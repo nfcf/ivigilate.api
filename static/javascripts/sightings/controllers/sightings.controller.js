@@ -218,24 +218,25 @@
             var fields = ['beacon', 'beacon_id', 'detector', 'detector_id', 'first_seen_at', 'last_seen_at', 'location',
                 'rssi', 'beacon_battery', 'confirmed', 'is_active', 'detector_battery'];
 
-                for (var obj in vm.sightings) {
-                    formattedSighting = {};
-                    for (var prop in vm.sightings[obj]) {
+            for (var obj in vm.sightings) {
+                formattedSighting = {};
+                for (var prop in vm.sightings[obj]) {
 
-                        if (fields.includes(prop)) {
-                            if (prop === 'beacon' || prop === 'detector') {
-                                formattedSighting[prop + '_name'] = vm.sightings[obj][prop]['name'];
-                                continue;
-                            } else if (prop == 'location' && vm.sightings[obj][prop] != null) {
-                                formattedSighting['location'] = vm.sightings[obj][prop]['coordinates'][0] + ', ' +
-                                    vm.sightings[obj][prop]['coordinates'][1];
-                                continue;
-                            }
-                            formattedSighting[prop] = vm.sightings[obj][prop];
+                    if (fields.includes(prop)) {
+                        if (prop === 'beacon' || prop === 'detector') {
+                            formattedSighting[prop + '_name'] = vm.sightings[obj][prop]['name'];
+                            formattedSighting[prop + '_id'] = vm.sightings[obj][prop]['id'];
+                            continue;
+                        } else if (prop == 'location' && vm.sightings[obj][prop] != null) {
+                            formattedSighting['location'] = vm.sightings[obj][prop]['coordinates'][0] + ', ' +
+                                vm.sightings[obj][prop]['coordinates'][1];
+                            continue;
                         }
+                        formattedSighting[prop] = vm.sightings[obj][prop];
                     }
-                    vm.formattedSightings.push(formattedSighting);
                 }
+                vm.formattedSightings.push(formattedSighting);
+            }
         }
 
         Array.prototype.extend = function (other_array) {
