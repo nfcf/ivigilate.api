@@ -20,6 +20,8 @@
         vm.openDatePicker = openDatePicker;
 
         vm.sightings = undefined;
+        vm.formattedSightings = undefined;
+
         vm.filterStartDate = vm.filterDateMax = $filter('date')(new Date(), 'yyyy-MM-dd');
         vm.filterDateIsOpen = false;
 
@@ -43,6 +45,7 @@
         };
 
         activate();
+
 
         function activate() {
             var user = Authentication.getAuthenticatedUser();
@@ -106,15 +109,15 @@
             if (vm.filterStartDate) {
                 Sightings.list(vm.filterStartDate, vm.filterEndDate, vm.filterBeaconOrDetector, vm.filterShowAll).then(successFn, errorFn);
                 Notifications.checkForNotifications();
+
             }
 
             function successFn(response, status, headers, config) {
                 vm.error = null;
                 vm.sightings = sortByKey(response.data.data, 'id');
-
                 applyClientServerTimeOffset(response.data.timestamp);
+                prepareSightingsForExport();
 
-                preventTimesInTheFutureToSightings();
             }
 
             function errorFn(response, status, headers, config) {
@@ -202,6 +205,39 @@
 
                 return ((x < y) ? -1 : ((x > y) ? 1 : 0));
             });
+        }
+
+        //formats sightings for exportation to CSV format
+        function prepareSightingsForExport() {
+
+            vm.formattedSightings = [];
+            if (!vm.sightings || !vm.sightings.length > 0) {
+                return;
+            }
+            var formattedSighting;
+            var fields = ['beacon', 'beacon_id', 'detector', 'detector_id', 'first_seen_at', 'last_seen_at', 'location',
+                'rssi', 'beacon_battery', 'confirmed', 'is_active', 'detector_battery'];
+
+            while (vm.formattedSightings.length < vm.sightings.length - 1) {
+                for (var obj in vm.sightings) {
+                    formattedSighting = {};
+                    for (var prop in vm.sightings[obj]) {
+
+                        if (fields.includes(prop)) {
+                            if (prop === 'beacon' || prop === 'detector') {
+                                formattedSighting[prop + '_name'] = vm.sightings[obj][prop]['name'];
+                                continue;
+                            } else if (prop == 'location' && vm.sightings[obj][prop] != null) {
+                                formattedSighting['location'] = vm.sightings[obj][prop]['coordinates'][0] + ', ' +
+                                    vm.sightings[obj][prop]['coordinates'][1];
+                                continue;
+                            }
+                            formattedSighting[prop] = vm.sightings[obj][prop];
+                        }
+                    }
+                    vm.formattedSightings.push(formattedSighting);
+                }
+            }
         }
 
         Array.prototype.extend = function (other_array) {

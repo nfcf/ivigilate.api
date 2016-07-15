@@ -17,6 +17,7 @@
             'pascalprecht.translate',
             'ngAnimate',
             'ngSanitize',
+            'ngCsv',
             'ui.select',
             'ngTouch',
             'ngAudio',
