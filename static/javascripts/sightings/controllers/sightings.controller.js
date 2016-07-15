@@ -218,7 +218,6 @@
             var fields = ['beacon', 'beacon_id', 'detector', 'detector_id', 'first_seen_at', 'last_seen_at', 'location',
                 'rssi', 'beacon_battery', 'confirmed', 'is_active', 'detector_battery'];
 
-            while (vm.formattedSightings.length < vm.sightings.length - 1) {
                 for (var obj in vm.sightings) {
                     formattedSighting = {};
                     for (var prop in vm.sightings[obj]) {
@@ -237,7 +236,6 @@
                     }
                     vm.formattedSightings.push(formattedSighting);
                 }
-            }
         }
 
         Array.prototype.extend = function (other_array) {
