@@ -59,7 +59,6 @@
                             </ui-select-choices>
                         </ui-select>
                     </div>
-
                 </div>
 
             </div>
@@ -67,11 +66,6 @@
             <div class="table-responsive">
                 <table st-table="vm.displayedSightings" st-safe-src="vm.sightings" class="table table-striped">
                     <thead>
-                    <div class="col-md-3">
-                       <button type="button" ng-csv="vm.formattedSightings" csv-header="['Beacon Name', 'Beacon Id', 'Beacon Battery', 'Detector Name',
-                       'Detector ID', 'Detector Battery', 'First Seen','Last Seen', 'Location', 'RSSI', 'Is Active', 'Confirmed']"
-                               filename="sightings.csv">Export</button>
-                    </div>
                     <tr>
                         <th>Photo</th>
                         <th st-sort="beacon.reference_id">Beacon ID</th>
@@ -83,13 +77,21 @@
                         <th class="text-center" st-sort="rssi">RSSI</th>
                         <th class="text-center" st-sort="battery">Battery</th>
                         <th class="text-center" st-sort="confirmed">Confirmed</th>
-                        <th class="text-right">
+                        <th class="text-center">
                             <button ng-click="vm.addSighting()" class="btn btn-sm btn-success">
                                 <span class="glyphicon glyphicon-plus"></span> Add
                             </button>
                         </th>
                     </tr>
                     <tr>
+                        <div class="text-right">
+                            <button type="button" class="btn btn-sm btn-info" ng-csv="vm.formattedSightings"
+                                    csv-header="['Beacon Name', 'Beacon Id', 'Beacon Battery', 'Detector Name',
+                       'Detector ID', 'Detector Battery', 'First Seen','Last Seen', 'Location', 'Confirmed']"
+                                    filename="sightings.csv">
+                                <span class="glyphicon glyphicon-export"></span> Export
+                            </button>
+                        </div>
                         <th colspan="12">
                             <input st-search placeholder="Global Search" class="input-sm form-control" type="search"/>
                         </th>

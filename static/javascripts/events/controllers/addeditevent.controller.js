@@ -43,11 +43,8 @@
 
         vm.is_edit = data !== null;
         
-        vm.sighting_status = [
-            {"status" : "N", "description" : "Normal"},
-             {"status" : "P", "description" : "Panic"},
-             {"status" : "F", "description" : "Fall"},
-        ]
+        vm.sighting_status = ["N", "P", "F"];
+
         
         
 

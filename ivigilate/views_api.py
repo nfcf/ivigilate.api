@@ -337,8 +337,11 @@ class AddSightingsView(views.APIView):
             existing_sighting.beacon_battery = beacon_battery
             existing_sighting.location = location
 
-            # This needs some work here...
-            existing_sighting_metadata = json.loads(existing_sighting.metadata or '{}')
+            existing_sighting_metadata = json.loads(existing_sighting.metadata)
+            metadata_obj = json.loads(metadata)
+            for key,value in existing_sighting_metadata.items():
+                metadata_obj[key] = value
+            existing_sighting.metadata = json.dumps(metadata_obj)
 
             utils.close_sighting(existing_sighting)
 
