@@ -42,14 +42,11 @@
         vm.detectors_selected = [];
 
         vm.is_edit = data !== null;
-        
-        vm.sighting_status = [
-            {"status" : "N", "description" : "Normal"},
-             {"status" : "P", "description" : "Panic"},
-             {"status" : "F", "description" : "Fall"},
-        ]
-        
-        
+
+        vm.sighting_status = [{'status': 'N', 'description': 'Normal'},
+            {'status': 'P', 'description': 'Panic'},
+            {'status': 'F', 'description': 'Fall'}];
+
 
         activate();
 
@@ -104,19 +101,21 @@
                     }
                 } else {
                     vm.title = 'New Event';
-                    vm.event = {'is_active': true, 'schedule_timezone_offset': Math.abs(now.getTimezoneOffset()),
-                                'metadata_object': {
-                                    'action_buzzer_duration': 5,
-                                    'action_notification_category': 'Info',
-                                    'sighting_is_active': true,
-                                    'sighting_duration_in_seconds': 0,
-                                    'sighting_has_battery_below': 100,
-                                    'sighting_dormant_period_in_seconds': 0,
-                                    'sighting_max_rssi': 0,
-                                    'sighting_min_rssi': -99,
-                                    'once_per_sighting': false,
-                                    'sighting_status' : 'N'
-                                }};
+                    vm.event = {
+                        'is_active': true, 'schedule_timezone_offset': Math.abs(now.getTimezoneOffset()),
+                        'metadata_object': {
+                            'action_buzzer_duration': 5,
+                            'action_notification_category': 'Info',
+                            'sighting_is_active': true,
+                            'sighting_duration_in_seconds': 0,
+                            'sighting_has_battery_below': 100,
+                            'sighting_dormant_period_in_seconds': 0,
+                            'sighting_max_rssi': 0,
+                            'sighting_min_rssi': -99,
+                            'once_per_sighting': false,
+                            'sighting_status': 'N'
+                        }
+                    };
 
                     vm.schedule_start_time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0);
                     vm.schedule_end_time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59);
@@ -158,18 +157,18 @@
 
             if (vm.form.$valid) {
                 vm.event.schedule_days_of_week = vm.schedule_monday + vm.schedule_tuesday + vm.schedule_wednesday +
-                vm.schedule_thursday + vm.schedule_friday + vm.schedule_saturday +
-                vm.schedule_sunday;
+                    vm.schedule_thursday + vm.schedule_friday + vm.schedule_saturday +
+                    vm.schedule_sunday;
 
                 vm.event.schedule_start_time = pad('00', vm.schedule_start_time.getHours(), true) + ':' +
-                pad('00', vm.schedule_start_time.getMinutes(), true) + ':00';
+                    pad('00', vm.schedule_start_time.getMinutes(), true) + ':00';
                 vm.event.schedule_end_time = pad('00', vm.schedule_end_time.getHours(), true) + ':' +
-                pad('00', vm.schedule_end_time.getMinutes(), true) + ':59';
+                    pad('00', vm.schedule_end_time.getMinutes(), true) + ':59';
 
                 if (vm.event.metadata_object.sighting_previous_event) {
                     vm.event.metadata_object.sighting_previous_event = vm.event.metadata_object.sighting_previous_event.id;
                 }
-                
+
                 vm.event.metadata_object.actions = [];
                 if (vm.event.metadata_object.event_is_local) {
                     vm.event.metadata_object.actions.push({
@@ -226,6 +225,10 @@
                 vm.event.metadata_object.action_rest_uri = undefined;
                 vm.event.metadata_object.action_rest_method = undefined;
                 vm.event.metadata_object.action_rest_body = undefined;
+                
+                if (vm.event.metadata_object.sighting_status) {
+                    vm.event.metadata_object.sighting_status = vm.event.metadata_object.sighting_status['status'];
+                }
 
                 vm.event.metadata = JSON.stringify(vm.event.metadata_object);
 

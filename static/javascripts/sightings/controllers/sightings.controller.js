@@ -209,14 +209,14 @@
 
         //formats sightings for exportation to CSV format
         function prepareSightingsForExport() {
-
+            //todo: needs some improvement
             vm.formattedSightings = [];
             if (!vm.sightings || !vm.sightings.length > 0) {
                 return;
             }
             var formattedSighting;
             var fields = ['beacon', 'beacon_id', 'detector', 'detector_id', 'first_seen_at', 'last_seen_at', 'location',
-                'rssi', 'beacon_battery', 'confirmed', 'is_active', 'detector_battery'];
+                'beacon_battery', 'confirmed', 'detector_battery'];
 
             for (var obj in vm.sightings) {
                 formattedSighting = {};
