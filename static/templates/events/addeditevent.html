@@ -244,10 +244,12 @@
                         <ui-select ng-model="vm.event.metadata_object.sighting_status" theme="selectize"
                                    ng-disabled="disabled">
                             <ui-select-match placeholder="Select Sighting status...">
-                                {{ $select.selected }}
+                                {{ $select.selected.status }}
                             </ui-select-match>
-                            <ui-select-choices repeat="s in vm.sighting_status | highlight: $select.search">
-                                <div ng-bind-html="s | highlight: $select.search"></div>
+                            <ui-select-choices
+                                    repeat="item in vm.sighting_status |  propsFilter: {status: $select.search, description: $select.search}">
+                                <div ng-bind-html="item.status | highlight: $select.search"></div>
+                                <small ng-bind-html="item.description | highlight: $select.search"/>
                             </ui-select-choices>
                         </ui-select>
                     </div>

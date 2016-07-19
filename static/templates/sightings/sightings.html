@@ -60,7 +60,6 @@
                         </ui-select>
                     </div>
                 </div>
-
             </div>
 
             <div class="table-responsive">
@@ -77,23 +76,24 @@
                         <th class="text-center" st-sort="rssi">RSSI</th>
                         <th class="text-center" st-sort="battery">Battery</th>
                         <th class="text-center" st-sort="confirmed">Confirmed</th>
-                        <th class="text-center">
-                            <button ng-click="vm.addSighting()" class="btn btn-sm btn-success">
+                        <th class="text-right">
+                            <button ng-click="vm.addSighting()" class="btn btn-sm btn-success" style="width:72px">
                                 <span class="glyphicon glyphicon-plus"></span> Add
                             </button>
                         </th>
                     </tr>
                     <tr>
-                        <div class="text-right">
-                            <button type="button" class="btn btn-sm btn-info" ng-csv="vm.formattedSightings"
+                        <th colspan="10">
+                            <input st-search placeholder="Global Search" class="input-sm form-control" type="search"/>
+                        </th>
+                        <th colspan="2">
+                            <button type="button" class="btn btn-sm  pull-right btn-info "
+                                    ng-csv="vm.formattedSightings"
                                     csv-header="['Beacon Name', 'Beacon Id', 'Beacon Battery', 'Detector Name',
                        'Detector ID', 'Detector Battery', 'First Seen','Last Seen', 'Location', 'Confirmed']"
                                     filename="sightings.csv">
                                 <span class="glyphicon glyphicon-export"></span> Export
                             </button>
-                        </div>
-                        <th colspan="12">
-                            <input st-search placeholder="Global Search" class="input-sm form-control" type="search"/>
                         </th>
                     </tr>
                     </thead>
