@@ -390,28 +390,21 @@ class AutoUpdateView(views.APIView):
         return utils.build_http_response(None, status.HTTP_200_OK)
 
 
-class LocalEventView(views.APIView):
+class LocalEventsView(views.APIView):
     permission_classes = (permissions.AllowAny,)
 
     def get(self, request, format=None):
-        company_id = request.query_params.get('company_id')
         detector_uid = request.query_params.get('detector_uid').lower()
 
-        logger.info('LocalEventView.get() Retrieving local events for detector \'%s: %s\'', company_id, detector_uid)
+        logger.info('LocalEventView.get() Retrieving local events for detector \'%s\'', detector_uid)
 
-        try:
-            account = Account.objects.get(company_id=company_id)
-        except Account.DoesNotExist:
-            return utils.build_http_response('Invalid Company ID.', status.HTTP_400_BAD_REQUEST)
+        detectors = Detector.objects.filter(uid=detector_uid, is_active=True)
 
-        try:
-            detector = Detector.objects.get(uid=detector_uid)
-        except Detector.DoesNotExist:
-            return utils.build_http_response('Invalid Detector UID.', status.HTTP_400_BAD_REQUEST)
+        if len(detectors) == 0:
+            return utils.build_http_response('Invalid Detector UID or no active Detector found.', status.HTTP_400_BAD_REQUEST)
 
-        events = Event.objects.filter(Q(account=account),
-                                      Q(is_active=True),
-                                      Q(detectors=None) | Q(detectors__id__exact=detector.id))
+        events = Event.objects.filter(Q(is_active=True),
+                                      Q(detectors=None) | Q(detectors__id__in=detectors.values_list('id', flat=True)))
         local_event_list = []
         if events is not None and len(events) > 0:
             for event in events:
