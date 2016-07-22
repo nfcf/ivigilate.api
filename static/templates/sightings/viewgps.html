@@ -1,0 +1,20 @@
+<div class="modal-header">
+    <button ng-click="vm.cancel()" class="close">×</button>
+    <h3 class="modal-title">GPS Sighting</h3>
+</div>
+
+<div class="modal-body">
+    <div class="alert alert-danger" ng-show="vm.error" ng-bind="vm.error"></div>
+
+    <div class="form-group" ng-if="vm.showMap">
+        <script type="text/ng-template" id="searchbox.tpl.html">
+            <input type="text" class="angular-google-map-searchbox" placeholder="Search Box">
+        </script>
+        <ui-gmap-google-map center="vm.map.center" zoom="vm.map.zoom">
+            <ui-gmap-marker idKey="vm.marker.id" coords="vm.marker.coords" options="vm.marker.options"
+                            events="vm.marker.events"></ui-gmap-marker>
+        </ui-gmap-google-map>
+    </div>
+</div>
+
+

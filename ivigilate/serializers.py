@@ -230,7 +230,7 @@ class SightingHistorySerializer(gis_serializers.GeoModelSerializer):
         geo_field = 'location'
         fields = ('id', 'beacon', 'beacon_battery', 'detector', 'detector_battery',
                   'first_seen_at', 'last_seen_at', 'duration_in_seconds',
-                  'location', 'rssi', 'metadata', 'is_active', 'comment', 'confirmed')
+                  'location', 'rssi', 'metadata', 'is_active', 'comment', 'confirmed','type')
 
 
 class SightingReadSerializer(gis_serializers.GeoModelSerializer):

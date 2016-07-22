@@ -254,10 +254,11 @@ class Sighting(models.Model):
     TYPE = (
         ('AC', 'AutoClosing'),
         ('MC', 'ManualClosing'),
+        ('GPS', 'GPS')
     )
-    beacon = models.ForeignKey(Beacon)
-    detector = models.ForeignKey(Detector, null=True)
-    type = models.CharField(max_length=2, choices=TYPE, default='AC')
+    beacon = models.ForeignKey(Beacon, null=True)
+    detector = models.ForeignKey(Detector)
+    type = models.CharField(max_length=3, choices=TYPE, default='AC')
     first_seen_at = models.DateTimeField()
     last_seen_at = models.DateTimeField()
     location = models.PointField(null=True, blank=True)
