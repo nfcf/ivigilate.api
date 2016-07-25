@@ -354,9 +354,7 @@ class SightingViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             sighting = serializer.save(user=user)
             if sighting:
-                # check for events associated with this sighting in a different thread
-                t = threading.Thread(target=utils.check_for_events, args=(sighting,))
-                t.start()
+                utils.check_for_events_async(sighting)
 
                 # remove fields from the response as they aren't serializable nor needed
                 if 'beacon' in serializer.validated_data:
@@ -375,9 +373,7 @@ class SightingViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             sighting = serializer.save(user=user)
             if sighting:
-                # check for events associated with this sighting in a different thread
-                t = threading.Thread(target=utils.check_for_events, args=(sighting,))
-                t.start()
+                utils.check_for_events_async(sighting)
 
                 # remove fields from the response as they aren't serializable nor needed
                 if 'beacon' in serializer.validated_data:

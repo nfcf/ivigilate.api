@@ -171,7 +171,7 @@ class AddSightingsView(views.APIView):
 
                 rssi = sighting.get('rssi', None)
                 location = sighting.get('location', None)
-                metadata = sighting.get('metadata', '')
+                metadata = sighting.get('metadata', '{}')
 
                 is_active = sighting.get('is_active', True)  # for now, only mobile apps are smart enough to send this set to False...
 
@@ -317,7 +317,8 @@ class AddSightingsView(views.APIView):
                                                        location=location, rssi=rssi, metadata=metadata, type=type)
                 logger.debug('open_sighting() Created new sighting \'%s\'.', new_sighting)
 
-        utils.check_for_events_async(new_sighting, )
+        if new_sighting is not None:
+            utils.check_for_events_async(new_sighting, )
 
 
     def close_sighting_async(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata):
@@ -413,13 +414,21 @@ class LocalEventsView(views.APIView):
                 if is_local_event:
                     event_dict = model_to_dict(event)
 
+                    # Convert beacon IDs to UIDs (that's what the client knows)
                     if len(event_dict.get('unauthorized_beacons', [])) > 0:
                         event_dict['unauthorized_beacons'] = Beacon.objects.filter(is_active=True,
-                                                                                   id__in=event_dict['unauthorized_beacons']). \
-                            values_list('uid', flat=True)
+                                                                                   id__in=event_dict['unauthorized_beacons']).\
+                                                                                    values_list('uid', flat=True)
+
+                    # Convert beacon IDs to UIDs (that's what the client knows)
+                    if len(event_dict.get('authorized_beacons', [])) > 0:
+                        event_dict['authorized_beacons'] = Beacon.objects.filter(is_active=True,
+                                                                                   id__in=event_dict['authorized_beacons']).\
+                                                                                    values_list('uid', flat=True)
 
                     if 'detectors' in event_dict:
                         del event_dict['detectors']
+
                     local_event_list.append(event_dict)
 
         return utils.build_http_response(local_event_list, status.HTTP_200_OK)

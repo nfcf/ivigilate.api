@@ -78,8 +78,8 @@
                         vm.event.metadata_object = metadata;
                         vm.event.metadata_object.action_notification_category = 'Info'; // Default value
                         for (var i = 0; i < metadata.actions.length; i++) {  // Required for the REST serializer
-                            if (metadata.actions[i].type == 'BUZZER') {
-                                vm.event.metadata_object.action_buzzer_duration = metadata.actions[i].duration_in_seconds;
+                            if (metadata.actions[i].type == 'LOCAL') {
+                                vm.event.metadata_object.action_local_duration = metadata.actions[i].duration_in_seconds;
                             } else if (metadata.actions[i].type == 'NOTIFICATION') {
                                 vm.event.metadata_object.action_notification_title = metadata.actions[i].title;
                                 vm.event.metadata_object.action_notification_category = metadata.actions[i].category;
@@ -104,7 +104,7 @@
                     vm.event = {
                         'is_active': true, 'schedule_timezone_offset': Math.abs(now.getTimezoneOffset()),
                         'metadata_object': {
-                            'action_buzzer_duration': 5,
+                            'action_local_duration': 5,
                             'action_notification_category': 'Info',
                             'sighting_is_active': true,
                             'sighting_duration_in_seconds': 0,
@@ -172,11 +172,11 @@
                 vm.event.metadata_object.actions = [];
                 if (vm.event.metadata_object.event_is_local) {
                     vm.event.metadata_object.actions.push({
-                        'type': 'BUZZER',
-                        'duration_in_seconds': vm.event.metadata_object.action_buzzer_duration
+                        'type': 'LOCAL',
+                        'duration_in_seconds': vm.event.metadata_object.action_local_duration
                     });
                 }
-                vm.event.metadata_object.action_buzzer_duration = undefined;
+                vm.event.metadata_object.action_local_duration = undefined;
 
                 if (vm.event.metadata_object.action_notification_message) {
                     vm.event.metadata_object.actions.push({
