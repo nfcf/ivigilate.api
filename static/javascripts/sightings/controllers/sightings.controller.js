@@ -244,7 +244,7 @@
                 return;
             }
             var formattedSighting;
-            var fields = ['beacon', 'beacon_id', 'detector', 'detector_id', 'first_seen_at', 'last_seen_at', 'location',
+            var fields = ['beacon', 'detector', 'first_seen_at', 'last_seen_at', 'location',
                 'beacon_battery', 'confirmed', 'detector_battery'];
 
             for (var i = 0; i < vm.sightings.length; i++) {
@@ -254,7 +254,7 @@
                     if (fields.includes(prop)) {
                         if (prop === 'beacon' || prop === 'detector') {
                             formattedSighting[prop + '_name'] = vm.sightings[i][prop] != null ? vm.sightings[i][prop]['name'] : 'GPS';
-                            formattedSighting[prop + '_id'] = vm.sightings[i][prop] != null ? vm.sightings[i][prop]['id'] : 'N/A'
+                            formattedSighting[prop + '_uid'] = vm.sightings[i][prop] != null ? vm.sightings[i][prop]['uid'] : 'N/A'
                             continue;
                         } else if (prop == 'location' && vm.sightings[i][prop] != null) {
                             formattedSighting['location'] = vm.sightings[i][prop]['coordinates'][0] + ', ' +

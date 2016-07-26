@@ -315,9 +315,9 @@ class SightingViewSet(viewsets.ModelViewSet):
 
             if filter_beacon_id is None and filter_detector_id is None:
                 queryset = self.queryset.filter(
-                    Q(beacon__account=account) | Q(beacon=None), Q(detector__account=account),
+                    Q(beacon=None) | Q(beacon__account=account), Q(detector__account=account),
                     Q(first_seen_at__range=(filter_start_date, filter_end_date)),
-                    Q(beacon__is_active=True) | Q(beacon=None), Q(detector__is_active=True)) \
+                    Q(beacon=None) | Q(beacon__is_active=True), Q(detector__is_active=True)) \
                     .order_by('-id')
             elif filter_beacon_id:
                 queryset = self.queryset.filter(
@@ -327,10 +327,10 @@ class SightingViewSet(viewsets.ModelViewSet):
                     Q(beacon__is_active=True), Q(detector__is_active=True))
             else:
                 queryset = self.queryset.filter(
-                    Q(beacon__account=account) | Q(beacon=None), Q(detector__account=account),
+                    Q(beacon=None) | Q(beacon__account=account), Q(detector__account=account),
                     Q(detector__uid=filter_detector_id) | Q(detector__reference_id=filter_detector_id),
                     Q(first_seen_at__range=(filter_start_date, filter_end_date)),
-                    Q(beacon__is_active=True) | Q(beacon=None), Q(detector__is_active=True)) \
+                    Q(beacon=None) | Q(beacon__is_active=True), Q(detector__is_active=True)) \
                     .order_by('-id')
 
             return utils.view_list(request, account, queryset, SightingHistorySerializer, True)
