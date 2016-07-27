@@ -60,6 +60,27 @@
                         </ui-select>
                     </div>
                 </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Sighting Type</label>
+                        <ui-select ng-model="vm.filterSightingType" theme="selectize" ng-disabled="disabled">
+                            <ui-select-match placeholder="Filter Sighting Type...">
+                                <a style="margin-right: 10px" ng-click="vm.resetType($event)"
+                                   class="btn btn-xs pull-right"><span class="glyphicon glyphicon-remove"
+                                                                       aria-hidden="true"></span></a>
+                                {{ $select.selected.type }}
+                            </ui-select-match>
+
+                            <ui-select-choices allow-clear="true"
+                                               repeat="item in vm.sightingType | propsFilter: {type: $select.search, description: $select.search}">
+                                <div ng-bind-html="item.type  | highlight: $select.search"></div>
+                                <small><span ng-bind-html="item.description"></span>
+                                </small>
+                            </ui-select-choices>
+                        </ui-select>
+
+                    </div>
+                </div>
             </div>
 
             <div class="table-responsive">
@@ -67,12 +88,10 @@
                     <thead>
                     <tr>
                         <th>Photo</th>
-                        <th st-sort="beacon.reference_id">Beacon ID</th>
-                        <th st-sort="beacon.name">Name</th>
+                        <th st-sort="beacon.name">Beacon | GPS</th>
                         <th st-sort="first_seen_at" st-sort-default="reverse">First Seen</th>
                         <th st-sort="last_seen_at">Last Seen</th>
-                        <th st-sort="detector.reference_id">Detector ID</th>
-                        <th st-sort="detector.name">Name</th>
+                        <th st-sort="detector.name">Detector</th>
                         <th class="text-center" st-sort="rssi">RSSI</th>
                         <th class="text-center" st-sort="battery">Battery</th>
                         <th class="text-center" st-sort="confirmed">Confirmed</th>
@@ -83,10 +102,10 @@
                         </th>
                     </tr>
                     <tr>
-                        <th colspan="10">
+                        <th colspan="8">
                             <input st-search placeholder="Global Search" class="input-sm form-control" type="search"/>
                         </th>
-                        <th colspan="2">
+                        <th colspan="1">
                             <button type="button" class="btn btn-sm  pull-right btn-info "
                                     ng-csv="vm.formattedSightings"
                                     csv-header="['Beacon Name', 'Beacon Id', 'Beacon Battery', 'Detector Name',
@@ -106,15 +125,14 @@
                                  ng-if="sighting.beacon.photo"/>
                         </td>
                         <td class="valign-middle">
-                            <a ng-if="!sighting.beacon.reference_id"
+                            <a ng-if="!sighting.beacon.uid"
+                               ng-click="vm.viewGps(sighting)">GPS Coordinates</a>
+                            <a ng-if="!!sighting.beacon.reference_id"
                                ng-click="vm.editBeacon(sighting.beacon)">
-                                {{ sighting.beacon.uid.length <= 10 ? sighting.beacon.uid :
+                                {{ sighting.beacon.reference_id : sighting.beacon.uid.length <= 10 ? sighting.beacon.uid :
                                         sighting.beacon.uid.substring(0, 3) + '...' + sighting.beacon.uid.substring(sighting.beacon.uid.length - 3) }}</a>
-                            <span ng-if="!!sighting.beacon.reference_id"
-                                  ng-click="vm.editBeacon(sighting.beacon)">{{ sighting.beacon.reference_id }}</span>
-                        </td>
-                        <td class="valign-middle">
-                            {{ sighting.beacon.name }}
+                            <a ng-if="!!sighting.beacon.name"
+                               ng-click="vm.editBeacon(sighting.beacon)">{{ sighting.beacon.name }}</a>
                         </td>
                         <td class="valign-middle">
                             {{ sighting.first_seen_at | date:'yyyy-MM-dd HH:mm:ss' }}
@@ -123,15 +141,12 @@
                             {{ sighting.last_seen_at | date:'yyyy-MM-dd HH:mm:ss' }}
                         </td>
                         <td class="valign-middle">
-                            <a ng-if="!sighting.detector.reference_id"
+                            <a ng-if="!!sighting.detector.reference_id"
                                ng-click="vm.editDetector(sighting.detector)">
-                                {{ sighting.detector.uid.length <= 10 ? sighting.detector.uid :
+                                {{ sighting.detector.reference_id : sighting.detector.uid.length <= 10 ? sighting.detector.uid :
                                         sighting.detector.uid.substring(0, 3) + '...' + sighting.detector.uid.substring(sighting.detector.uid.length - 3) }}</a>
-                            <span ng-if="!!sighting.detector.reference_id"
-                                  ng-click="vm.editDetector(sighting.detector)">{{ sighting.detector.reference_id }}</span>
-                        </td>
-                        <td class="valign-middle">
-                            {{ sighting.detector.name }}
+                            <a ng-if="!!sighting.detector.name"
+                               ng-click="vm.editDetector(sighting.detector)">{{ sighting.detector.name }}</a>
                         </td>
                         <td class="valign-middle text-center">
                             {{ sighting.rssi || 'N/A' }}

@@ -1,11 +1,14 @@
+import logging
+import threading
+
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import Q
-from rest_framework.response import Response
-from ivigilate.serializers import *
 from rest_framework import permissions, viewsets, status, mixins
+from rest_framework.response import Response
+
 from ivigilate import utils
-import json, logging, threading
+from ivigilate.serializers import *
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
@@ -312,23 +315,22 @@ class SightingViewSet(viewsets.ModelViewSet):
 
             if filter_beacon_id is None and filter_detector_id is None:
                 queryset = self.queryset.filter(
-                        Q(beacon__account=account), Q(detector__account=account),
-                        Q(first_seen_at__range=(filter_start_date, filter_end_date)),
-                        Q(beacon__is_active=True), Q(detector__is_active=True)) \
+                    Q(beacon=None) | Q(beacon__account=account), Q(detector__account=account),
+                    Q(first_seen_at__range=(filter_start_date, filter_end_date)),
+                    Q(beacon=None) | Q(beacon__is_active=True), Q(detector__is_active=True)) \
                     .order_by('-id')
             elif filter_beacon_id:
                 queryset = self.queryset.filter(
-                        Q(beacon__account=account), Q(detector__account=account),
-                        Q(beacon__uid=filter_beacon_id) | Q(beacon__reference_id=filter_beacon_id),
-                        Q(first_seen_at__range=(filter_start_date, filter_end_date)),
-                        Q(beacon__is_active=True), Q(detector__is_active=True)) \
-                    .order_by('-id')
+                    Q(beacon__account=account), Q(detector__account=account),
+                    Q(beacon__uid=filter_beacon_id) | Q(beacon__reference_id=filter_beacon_id),
+                    Q(first_seen_at__range=(filter_start_date, filter_end_date)),
+                    Q(beacon__is_active=True), Q(detector__is_active=True))
             else:
                 queryset = self.queryset.filter(
-                        Q(beacon__account=account), Q(detector__account=account),
-                        Q(detector__uid=filter_detector_id) | Q(detector__reference_id=filter_detector_id),
-                        Q(first_seen_at__range=(filter_start_date, filter_end_date)),
-                        Q(beacon__is_active=True), Q(detector__is_active=True)) \
+                    Q(beacon=None) | Q(beacon__account=account), Q(detector__account=account),
+                    Q(detector__uid=filter_detector_id) | Q(detector__reference_id=filter_detector_id),
+                    Q(first_seen_at__range=(filter_start_date, filter_end_date)),
+                    Q(beacon=None) | Q(beacon__is_active=True), Q(detector__is_active=True)) \
                     .order_by('-id')
 
             return utils.view_list(request, account, queryset, SightingHistorySerializer, True)

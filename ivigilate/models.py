@@ -254,7 +254,7 @@ class Sighting(models.Model):
     TYPE = (
         ('AC', 'AutoClosing'),
         ('MC', 'ManualClosing'),
-        ('GPS', 'GPS'),
+        ('GPS', 'GPS')
     )
     beacon = models.ForeignKey(Beacon, null=True)
     detector = models.ForeignKey(Detector)

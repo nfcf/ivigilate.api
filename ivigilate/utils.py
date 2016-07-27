@@ -126,8 +126,8 @@ def check_for_events(sighting, new_sighting_detector=None):
                                   'AND e.schedule_days_of_week & %s > 0 ' +
                                   'AND e.schedule_start_time <= (%s + interval \'1m\' * e.schedule_timezone_offset) :: time ' +
                                   'AND e.schedule_end_time >= (%s + interval \'1m\' * e.schedule_timezone_offset) :: time)',
-                                  [sighting.detector.account_id, sighting.beacon.id,
-                                   sighting.detector.id if sighting.detector is not None else 0,
+                                  [sighting.detector.account_id, sighting.beacon.id if sighting.beacon is not None else 0,
+                                   sighting.detector.id,
                                    int(current_week_day_representation),
                                    now.strftime('%H:%M:%S'), now.strftime('%H:%M:%S')])
 

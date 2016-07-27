@@ -18,6 +18,7 @@
         vm.editDetector = editDetector;
         vm.confirmSighting = confirmSighting;
         vm.openDatePicker = openDatePicker;
+        vm.viewGps = viewGps;
 
         vm.sightings = undefined;
         vm.formattedSightings = undefined;
@@ -28,11 +29,14 @@
         vm.filterEndDate = vm.filterDateMax = $filter('date')(new Date(), 'yyyy-MM-dd');
         vm.filterEndDateIsOpen = false;
 
-        vm.fixedBeaconsAndDetectors = [];
-
-
         vm.beaconsOrDetectors = [];
         vm.filterBeaconOrDetector = undefined;
+
+        vm.sightingType = [{'type': 'Beacon', 'description': 'Show only Beacon Sightings'},
+            {'type': 'GPS', 'description': 'Show only GPS Sightings'}];
+        vm.filterSightingType = undefined;
+        vm.filteredSightings = undefined;
+
 
         vm.datepickerOptions = {
             showWeeks: false,
@@ -43,6 +47,11 @@
             vm.filterBeaconOrDetector = null;
             $event.stopPropagation();
         };
+
+        vm.resetType = function ($event) {
+            vm.filterSightingType = null;
+            $event.stopPropagation();
+        }
 
         activate();
 
@@ -117,6 +126,8 @@
                 vm.sightings = sortByKey(response.data.data, 'id');
                 applyClientServerTimeOffset(response.data.timestamp);
 
+                filterSightingsByType();
+
                 setTimeout(prepareSightingsForExport, 50);
             }
 
@@ -151,6 +162,10 @@
             dlg.result.then(function (editedDetector) {
                 refresh();
             });
+        }
+
+        function viewGps(sighting) {
+            var dlg = dialogs.create('static/templates/sightings/viewgps.html', 'ViewGpsController as vm', sighting, {'size': 'lg'});
         }
 
         function confirmSighting(sighting) {
@@ -207,6 +222,20 @@
             });
         }
 
+        function filterSightingsByType() {
+            if (!vm.filterSightingType) {
+                return;
+            }
+            vm.filteredSightings = [];
+            for (var i = 0 ; i < vm.sightings.length ; i++) {
+                if (vm.filterSightingType.type === 'GPS' && vm.sightings[i].type === vm.filterSightingType.type ||
+                    vm.filterSightingType.type === 'Beacon' && vm.sightings[i].type !== 'GPS') {
+                    vm.filteredSightings.push(vm.sightings[i]);
+                }
+            }
+            vm.sightings = vm.filteredSightings;
+        }
+
         //formats sightings for exportation to CSV format
         function prepareSightingsForExport() {
             //todo: needs some improvement
@@ -215,24 +244,24 @@
                 return;
             }
             var formattedSighting;
-            var fields = ['beacon', 'beacon_id', 'detector', 'detector_id', 'first_seen_at', 'last_seen_at', 'location',
+            var fields = ['beacon', 'detector', 'first_seen_at', 'last_seen_at', 'location',
                 'beacon_battery', 'confirmed', 'detector_battery'];
 
-            for (var obj in vm.sightings) {
+            for (var i = 0; i < vm.sightings.length; i++) {
                 formattedSighting = {};
-                for (var prop in vm.sightings[obj]) {
+                for (var prop in vm.sightings[i]) {
 
                     if (fields.includes(prop)) {
                         if (prop === 'beacon' || prop === 'detector') {
-                            formattedSighting[prop + '_name'] = vm.sightings[obj][prop]['name'];
-                            formattedSighting[prop + '_id'] = vm.sightings[obj][prop]['id'];
+                            formattedSighting[prop + '_name'] = vm.sightings[i][prop] != null ? vm.sightings[i][prop]['name'] : 'GPS';
+                            formattedSighting[prop + '_uid'] = vm.sightings[i][prop] != null ? vm.sightings[i][prop]['uid'] : 'N/A'
                             continue;
-                        } else if (prop == 'location' && vm.sightings[obj][prop] != null) {
-                            formattedSighting['location'] = vm.sightings[obj][prop]['coordinates'][0] + ', ' +
-                                vm.sightings[obj][prop]['coordinates'][1];
+                        } else if (prop == 'location' && vm.sightings[i][prop] != null) {
+                            formattedSighting['location'] = vm.sightings[i][prop]['coordinates'][0] + ', ' +
+                                vm.sightings[i][prop]['coordinates'][1];
                             continue;
                         }
-                        formattedSighting[prop] = vm.sightings[obj][prop];
+                        formattedSighting[prop] = vm.sightings[i][prop];
                     }
                 }
                 vm.formattedSightings.push(formattedSighting);

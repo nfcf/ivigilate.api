@@ -1,22 +1,24 @@
-import os
+import json
+import logging
 import threading
+import time
+from datetime import datetime
 
+import os
+import stripe
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import AnonymousUser
-from django.forms import model_to_dict
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
-from django.views.generic.base import TemplateView
-from django.utils.decorators import method_decorator
 from django.db.models import Q
-from rest_framework.authtoken.models import Token
+from django.forms import model_to_dict
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.generic.base import TemplateView
+from rest_framework import permissions, status, views
 from rest_framework.response import Response
-import stripe
-from ivigilate.serializers import *
-from rest_framework import permissions, viewsets, status, views, mixins
+
 from ivigilate import utils
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-import pytz, json, logging, time
+from ivigilate.serializers import *
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
@@ -54,7 +56,7 @@ class LoginView(views.APIView):
                     if user.metadata is not None and len(user.metadata.strip()) > 0:
                         user_metadata = json.loads(user.metadata)
                         existing_device = next(
-                                (device for device in user_metadata['devices'] if device.get('uid', '') == metadata['device'].get('uid', '')), None)
+                            (device for device in user_metadata['devices'] if device.get('uid', '') == metadata['device'].get('uid', '')), None)
                         if existing_device is not None:
                             existing_device['last_login_date'] = now.strftime('%Y-%m-%d %H:%M')
                     else:
@@ -118,7 +120,7 @@ class ProvisionDeviceView(views.APIView):
                 except Beacon.DoesNotExist:
                     beacon = Beacon.objects.create(account=account, uid=uid, name=name, type=type[1], metadata=metadata)
 
-                # serialized = BeaconReadSerializer(beacon, context={'request': request})
+
             elif type[0] == 'D':
                 try:
                     detector = Detector.objects.get(account=account, uid=uid)
@@ -132,12 +134,12 @@ class ProvisionDeviceView(views.APIView):
                 except Detector.DoesNotExist:
                     detector = Detector.objects.create(account=account, uid=uid, name=name, type=type[1], metadata=metadata)
 
-                # serialized = DetectorReadSerializer(detector, context={'request': request})
+
 
             return utils.build_http_response('Success!', status.HTTP_200_OK)
         else:
             return utils.build_http_response('The current logged on user is not associated with any account.',
-                                             status.HTTP_400_BAD_REQUEST)
+                                     status.HTTP_400_BAD_REQUEST)
 
 
 class AddSightingsView(views.APIView):
@@ -156,8 +158,6 @@ class AddSightingsView(views.APIView):
 
                 timestamp = sighting.get('timestamp', None)
                 type = sighting.get('type', 'AC')
-                if type != 'AC' and type != 'MC':
-                    type = 'AC'
 
                 detector_uid = sighting.get('detector_uid').lower()
                 detector_battery = sighting.get('detector_battery', None)
@@ -176,17 +176,19 @@ class AddSightingsView(views.APIView):
                 is_active = sighting.get('is_active', True)  # for now, only mobile apps are smart enough to send this set to False...
 
                 logger.info('AddSightingsView.post() Sighting: %s %s %s %s %s %s %s %s %s %s %s %s',
-                             timestamp, type, detector_uid, detector_battery, beacon_mac, beacon_uid, beacon_battery, rssi, is_active, metadata, location, is_active)
+                            timestamp, type, detector_uid, detector_battery, beacon_mac, beacon_uid, beacon_battery,
+                            rssi, is_active, metadata, location, is_active)
 
-                #if now_timestamp - timestamp > utils.TIMESTAMP_DIFF_ALLOWED:
+                # if now_timestamp - timestamp > utils.TIMESTAMP_DIFF_ALLOWED:
                 #    logger.error('AddSightingsView.post() ignoring sighting with outdated timestamp...')
                 #    return utils.build_http_response('Ignoring sighting with outdated timestamp.',
                 #                                     status.HTTP_400_BAD_REQUEST)
 
                 detectors = Detector.objects.filter(is_active=True, uid=detector_uid)  # this can yield more than one detector...
                 if len(detectors) > 0:
-                    beacons = Beacon.objects.filter(Q(is_active=True),
-                                                    Q(uid=beacon_mac)|Q(uid=beacon_uid))  # this can yield more than one beacon...
+                    if type != 'GPS':
+                        beacons = Beacon.objects.filter(Q(is_active=True),
+                                                        Q(uid=beacon_mac) | Q(uid=beacon_uid))  # this can yield more than one beacon...
                     for detector in detectors:
                         if location is not None:
                             location_parsed = json.dumps(location)
@@ -199,15 +201,21 @@ class AddSightingsView(views.APIView):
                             # return utils.build_http_response('Ignoring sighting as the associated Account doesn\'t have a valid subscription.',
                             #                                  status.HTTP_402_PAYMENT_REQUIRED)
 
-                        if len(beacons) > 0:
+                        if (type == 'GPS'):
+                            self.open_sighting_async(detector, detector_battery, None, 0, rssi,
+                                                     location_parsed, metadata, type)
+                        elif len(beacons) > 0:
                             for beacon in beacons:
+                                if beacon.type == 'F':
+                                    location_parsed = beacon.location
                                 if is_active:
                                     # Only open the sighting if 'AutoClosing' or if RSSI is greater than the configured value for the detector
                                     if type == 'AC' or rssi >= detector.arrival_rssi:
                                         self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location_parsed, metadata, type)
                                     else:
                                         logger.info('AddSightingsView.post() Ignored Beacon MAC / UID as the rssi is lower than the ' +
-                                                        'arrival_rssi configured for this detector / user (%s < %s)', rssi, detector.arrival_rssi)
+                                            'arrival_rssi configured for this detector / user (%s < %s)', rssi,
+                                            detector.arrival_rssi)
                                         ignored_beacons.append(beacon_mac + beacon_uid)
                                 else:
                                     self.close_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location_parsed, metadata)
@@ -218,7 +226,7 @@ class AddSightingsView(views.APIView):
                 else:
                     logger.warning('AddSightingsView.post() Invalid Detector UID (couldn\'t find corresponding active device).')
                     return utils.build_http_response('Invalid Detector UID (couldn\'t find corresponding active device).',
-                                                     status.HTTP_401_UNAUTHORIZED)
+                        status.HTTP_401_UNAUTHORIZED)
 
         # serialized = SightingReadSerializer(new_sighting, context={'request': request})
         # return Response(serialized.data)
@@ -230,12 +238,11 @@ class AddSightingsView(views.APIView):
         else:
             return utils.build_http_response(None, status.HTTP_200_OK)
 
-
     def open_sighting_async(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type):
         # check for events associated with this sighting in a different  thread
-        t = threading.Thread(target=self.open_sighting, args=(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type))
+        t = threading.Thread(target=self.open_sighting,
+                             args=(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type))
         t.start()
-
 
     def open_sighting(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type):
         REPORTED_MISSING_NOTIFICATION_EVERY_MINS = 1
@@ -244,6 +251,7 @@ class AddSightingsView(views.APIView):
         now = datetime.now(timezone.utc)
         previous_sightings = Sighting.objects.filter(is_active=True, beacon=beacon, detector__account=detector.account). \
                                  order_by('-last_seen_at')[:1]
+
         previous_sighting_occurred_at = None
         new_sighting = None
         if len(previous_sightings) > 0:
@@ -260,14 +268,14 @@ class AddSightingsView(views.APIView):
                 utils.close_sighting(previous_sighting, detector)
                 # TODO: instead of having the 5% margin, force that at least 2 or 3 new sightings are > than the current one...
             elif previous_sighting.detector != detector and rssi * 1.05 > (
-            previous_sighting.rssi if previous_sighting.rssi is not None else 0):
+                    previous_sighting.rssi if previous_sighting.rssi is not None else 0):
                 logger.info('open_sighting() Closing previous related sighting \'%s\' as the beacon moved to another location.',
-                            previous_sighting)
+                    previous_sighting)
                 utils.close_sighting(previous_sighting, detector)
             else:
                 logger.debug('open_sighting() Updating previous related sighting \'%s\'.', previous_sighting)
                 new_sighting = previous_sighting
-                #TODO: metadata object should have separate properties for user defined / server util / app internal fields
+                # TODO: metadata object should have separate properties for user defined / server util / app internal fields
                 metadata_obj = json.loads(metadata)
                 updated_metadata_obj = json.loads(new_sighting.metadata)
                 for key, value in metadata_obj.items():
@@ -286,17 +294,15 @@ class AddSightingsView(views.APIView):
 
                 new_sighting.save()
 
-        if beacon.account_id != detector.account.id:
+        if beacon is not None and beacon.account_id != detector.account.id:
             if beacon.reported_missing:
                 if (previous_sighting_occurred_at is None or
-                            (now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60):
+                            ( now - previous_sighting_occurred_at).total_seconds() > REPORTED_MISSING_NOTIFICATION_EVERY_MINS * 60):
                     logger.info('open_sighting() Reported missing beacon was seen at / by \'%s\'. ' +
                                 'Notifying corresponding account owners...', detector)
                     try:
                         send_mail('Reported missing: {0}'.format(beacon.name),
-                                  '{0} was seen near the following coordinates: {1}'.format(beacon.name, detector.location),
-                                  settings.DEFAULT_FROM_EMAIL,
-                                  [u.email for u in beacon.account.get_account_admins()])
+                                  '{0} was seen near the following coordinates: {1}'.format(beacon.name,detector.location), settings.DEFAULT_FROM_EMAIL, [u.email for u in beacon.account.get_account_admins()])
                     except Exception as ex:
                         logger.exception('open_sighting() Failed to send reported missing email to account admins!')
                 else:
@@ -314,18 +320,17 @@ class AddSightingsView(views.APIView):
                             'arrival_rssi configured for this detector / user (%s < %s).', beacon, detector, rssi, detector.arrival_rssi)
             else:
                 new_sighting = Sighting.objects.create(beacon=beacon, beacon_battery=beacon_battery, detector=detector, detector_battery=detector_battery,
-                                                       location=location, rssi=rssi, metadata=metadata, type=type)
+                                                       location=location, rssi=rssi, metadata=metadata, type=type, is_active=(type != 'GPS'))
+
                 logger.debug('open_sighting() Created new sighting \'%s\'.', new_sighting)
 
         if new_sighting is not None:
             utils.check_for_events_async(new_sighting, )
 
-
     def close_sighting_async(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata):
         # check for events associated with this sighting in a different  thread
         t = threading.Thread(target=self.close_sighting, args=(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata))
         t.start()
-
 
     def close_sighting(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata):
         logger.debug('close_sighting() Started...')
@@ -340,7 +345,7 @@ class AddSightingsView(views.APIView):
 
             metadata_obj = json.loads(metadata)
             existing_sighting_metadata = json.loads(existing_sighting.metadata)
-            for key,value in metadata_obj.items():
+            for key, value in metadata_obj.items():
                 existing_sighting_metadata[key] = value
             existing_sighting.metadata = json.dumps(existing_sighting_metadata)
 
@@ -454,15 +459,15 @@ class MakePaymentView(views.APIView):
                 months=license_metadata['duration_in_months'])
 
             try:
-                logger.debug('MakePaymentView.post() Charging %s%s on the card with token %s', license_due_for_payment.currency,
+                logger.debug('MakePaymentView.post() Charging %s%s on the card with token %s',license_due_for_payment.currency,
                              license_due_for_payment.amount, license_due_for_payment.reference_id)
                 stripe.api_key = os.environ['STRIPE_SECRET_KEY']
                 charge = stripe.Charge.create(
-                        amount=license_due_for_payment.amount,
-                        currency=license_due_for_payment.currency,
-                        source=license_due_for_payment.reference_id,
-                        description=license_due_for_payment.description,
-                        receipt_email=data.get('receipt_email', None)
+                    amount=license_due_for_payment.amount,
+                    currency=license_due_for_payment.currency,
+                    source=license_due_for_payment.reference_id,
+                    description=license_due_for_payment.description,
+                    receipt_email=data.get('receipt_email', None)
                 )
                 logger.info('MakePaymentView.post() Payment completed successfuly: %s', charge)
                 license_due_for_payment.save()
@@ -486,18 +491,17 @@ class BeaconHistoryView(views.APIView):
             filter_beacon_id = request.query_params.get('beaconId', None)
             filter_timezone_offset = int(request.query_params.get('timezoneOffset', 0))
             filter_start_date = request.query_params.get('startDate', str(datetime.now(timezone.utc).date()) + 'T00:00:00')
-            filter_start_date = str(
-                datetime.strptime(filter_start_date, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=filter_timezone_offset)) + '+00'
+            filter_start_date = str(datetime.strptime(filter_start_date, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=filter_timezone_offset)) + '+00'
             filter_end_date = request.query_params.get('endDate', str(datetime.now(timezone.utc).date()) + 'T23:59:59')
-            filter_end_date = str(
-                datetime.strptime(filter_end_date, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=filter_timezone_offset)) + '+00'
+            filter_end_date = str(datetime.strptime(filter_end_date, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=filter_timezone_offset)) + '+00'
 
             if filter_beacon_id is None:
                 queryset = self.queryset.filter(Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
                     .order_by('-id')
             else:
-                queryset = self.queryset.filter(Q(beacon__uid=filter_beacon_id) | Q(beacon__reference_id=filter_beacon_id),
-                                                Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
+                queryset = self.queryset.filter(
+                    Q(beacon__uid=filter_beacon_id) | Q(beacon__reference_id=filter_beacon_id),
+                    Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
                     .order_by('-id')
 
             return utils.view_list(request, account, queryset, BeaconDetectorHistorySerializer, True)
@@ -517,11 +521,10 @@ class DetectorHistoryView(views.APIView):
             filter_detector_id = request.query_params.get('detectorId', None)
             filter_timezone_offset = int(request.query_params.get('timezoneOffset', 0))
             filter_start_date = request.query_params.get('startDate', todayString + 'T00:00:00')
-            filter_start_date = str(
-                datetime.strptime(filter_start_date, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=filter_timezone_offset)) + '+00'
+            filter_start_date = str(datetime.strptime(filter_start_date, '%Y-%m-%dT%H:%M:%S') + timedelta(
+                    minutes=filter_timezone_offset)) + '+00'
             filter_end_date = request.query_params.get('endDate', todayString + 'T23:59:59')
-            filter_end_date = str(
-                datetime.strptime(filter_end_date, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=filter_timezone_offset)) + '+00'
+            filter_end_date = str(datetime.strptime(filter_end_date, '%Y-%m-%dT%H:%M:%S') + timedelta(minutes=filter_timezone_offset)) + '+00'
 
             if filter_detector_id is None:
                 queryset = self.queryset.filter(Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
@@ -529,7 +532,7 @@ class DetectorHistoryView(views.APIView):
             else:
                 queryset = self.queryset.filter(Q(detector__uid=filter_detector_id) | Q(detector__reference_id=filter_detector_id),
                                                 Q(first_seen_at__range=(filter_start_date, filter_end_date))) \
-                    .order_by('-id')
+                                                .order_by('-id')
 
             return utils.view_list(request, account, queryset, DetectorBeaconHistorySerializer, True)
         else:
