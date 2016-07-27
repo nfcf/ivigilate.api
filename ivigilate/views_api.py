@@ -206,8 +206,9 @@ class AddSightingsView(views.APIView):
                                                      location_parsed, metadata, type)
                         elif len(beacons) > 0:
                             for beacon in beacons:
-                                if beacon.type == 'F':
+                                if beacon.type == 'F' and beacon.location is not None:
                                     location_parsed = beacon.location
+
                                 if is_active:
                                     # Only open the sighting if 'AutoClosing' or if RSSI is greater than the configured value for the detector
                                     if type == 'AC' or rssi >= detector.arrival_rssi:
