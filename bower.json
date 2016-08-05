@@ -43,6 +43,10 @@
     "underscore.string": "~3.0.0",
     "angular-simple-logger": "^0.1.7",
     "angular-audio": "^1.7.1",
-    "ng-csv": "^0.3.6"
+    "ng-csv": "^0.3.6",
+    "angular-leaflet-directive": "angular-leaflet#^0.10.0",
+    "Leaflet.vector-markers": "leaflet.vector-markers#^0.0.6",
+    "font-awesome": "fontawesome#^4.6.3",
+    "leaflet-search": "^1.9.9"
   }
 }

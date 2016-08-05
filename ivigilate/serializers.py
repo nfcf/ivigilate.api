@@ -277,8 +277,12 @@ class SightingWriteSerializer(gis_serializers.GeoModelSerializer):
             sighting.commented_by = validated_data.get('commented_by')
             sighting.save()
         else:
-            if not validated_data.get('location') and validated_data.get('detector'):
-                validated_data['location'] = validated_data.get('detector').location
+            beacon = validated_data.get('beacon', None)
+            if not validated_data.get('location') :
+                if beacon is not None and beacon.type == 'F':
+                    validated_data['location'] = beacon.location
+                elif validated_data.get('detector'):
+                    validated_data['location'] = validated_data.get('detector').location
 
             if not validated_data.get('comment'):
                 raise serializers.ValidationError('Comment field cannot be empty.')

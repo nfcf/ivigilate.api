@@ -78,15 +78,9 @@
     </form>
 
     <div class="form-group" ng-if="vm.showMap">
-        <script type="text/ng-template" id="searchbox.tpl.html">
-            <input type="text" class="angular-google-map-searchbox" placeholder="Search Box">
-        </script>
-        <ui-gmap-google-map center="vm.map.center" zoom="vm.map.zoom">
-            <ui-gmap-search-box template="vm.searchbox.template"
-                                events="vm.searchbox.events"></ui-gmap-search-box>
-            <ui-gmap-marker idKey="vm.marker.id" coords="vm.marker.coords" options="vm.marker.options"
-                            events="vm.marker.events"></ui-gmap-marker>
-        </ui-gmap-google-map>
+        <div class="form-group">
+            <leaflet id='editBeaconMap' lf-center="vm.map.center" height="480px" width="100%" markers="vm.map.markers" maxbounds="vm.map.maxbounds"></leaflet>
+        </div>
     </div>
 </div>
 

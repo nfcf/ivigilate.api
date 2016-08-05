@@ -154,7 +154,8 @@ def check_for_events(sighting, new_sighting_detector=None):
             # Check if the bulk of the conditions are met...
             if event_metadata.get('event_is_local', False) == False and \
                             event_metadata.get('sighting_is_active', True) == sighting.is_active and \
-                            event_metadata.get('sighting_has_battery_below', 0) >= sighting.beacon_battery and \
+                    (sighting.beacon_battery is None or
+                            event_metadata.get('sighting_has_battery_below', 0) >= sighting.beacon_battery) and \
                     (event_metadata.get('sighting_has_comment', None) is None or
                          (event_metadata['sighting_has_comment'] and sighting.comment) or
                          (not event_metadata['sighting_has_comment'] and not sighting.comment)) and \

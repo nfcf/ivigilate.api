@@ -5,13 +5,15 @@
         .module('ivigilate.detectors.controllers')
         .controller('EditDetectorController', EditDetectorController);
 
-    EditDetectorController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data', 'Authentication', 'Detectors', 'uiGmapGoogleMapApi'];
+    EditDetectorController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data', 'Authentication', 'Detectors', 'leafletData'];
 
-    function EditDetectorController($location, $scope, $timeout, $modalInstance, data, Authentication, Detectors, uiGmapGoogleMapApi) {
+    function EditDetectorController($location, $scope, $timeout, $modalInstance, data, Authentication, Detectors, leafletData) {
         var vm = this;
         vm.fileChanged = fileChanged;
         vm.cancel = cancel;
         vm.save = save;
+        vm.resizeMap = resizeMap;
+        vm.zoomToFit = zoomToFit;
 
         vm.error = undefined;
         vm.detector = undefined;
@@ -19,20 +21,30 @@
         vm.imageToUpload = undefined;
         vm.map = undefined;
         vm.showMap = false;
-        vm.defaultZoomLevel = 15;
-        vm.marker = {
-            id: 1,
-            coords: {
-                latitude: 0,
-                longitude: 0
-            },
-            options: {draggable: true},
-            events: {
-                dragend: function (marker, eventName, args) {
-                    vm.detector.location.coordinates = [marker.getPosition().lng(), marker.getPosition().lat()];
-                }
-            }
-        };
+        //todo:this has to work with new search
+        var searchControl = new L.Control.Search({
+            url: 'http://nominatim.openstreetmap.org/search?format=json&q={s}',
+            jsonpParam: 'json_callback',
+            propertyName: 'display_name',
+            propertyLoc: ['lat', 'lon'],
+            markerLocation: true,
+            autoCollapse: true,
+            autoType: false,
+            minLength: 2
+        });
+
+        searchControl.on('search_locationfound', function (e) {
+            vm.coords = e.latlng;
+        });
+
+
+        leafletData.getMap('editDetectorMap').then(function (map) {
+            map.addControl(searchControl);
+        });
+
+
+        vm.coords = [];
+
         vm.searchbox = {
             template: 'searchbox.tpl.html',
             events: {
@@ -57,12 +69,7 @@
         function activate() {
             var user = Authentication.getAuthenticatedUser();
             if (user) {
-                uiGmapGoogleMapApi.then(function (maps) {
-                    $timeout(function () {
-                        populateDialog(data);
-                        vm.showMap = true;
-                    }, 250);
-                });
+                populateDialog(data);
             }
             else {
                 $location.url('/');
@@ -77,22 +84,45 @@
                 vm.showMap = vm.detector.type == 'F';
             }, true);
 
+            $scope.$watch('vm.coords', function () {
+                if(vm.coords.length === 0){
+                    return;
+                }
+                 vm.map.markers['m']['lat'] = vm.coords['lat'];
+                 vm.map.markers['m']['lng'] = vm.coords['lng'];
+                 zoomToFit();
+            }, true);
+
             if (!vm.detector.location) {
                 vm.detector.location = {
                     'type': 'Point',
                     'coordinates': [-40.70744491, 34.698986644] //Defaults to the middle of the ocean
                 };
             }
-
             vm.map = {
                 center: {
-                    longitude: vm.detector.location.coordinates[0],
-                    latitude: vm.detector.location.coordinates[1]
+                    lng: vm.detector.location.coordinates[0],
+                    lat: vm.detector.location.coordinates[1],
+                    zoom: 10
                 },
-                zoom: vm.defaultZoomLevel
+                defaults: {
+                    scrollWheelZoom: false
+                },
+                maxbounds: {'northEast': {'lat': -60, 'lng': -120}, 'southWest': {'lat': 60, 'lng': 120}},
+                markers: {
+                    'm': {
+                        'lng': vm.detector.location.coordinates[0],
+                        'lat': vm.detector.location.coordinates[1],
+                        'message': vm.detector['type'] + " " + vm.detector['name'] + " with ID: " + vm.detector['uid'],
+                        'icon': {
+                            'type': 'vectorMarker',
+                            'icon': 'map-marker',
+                            'markerColor': '#00c6d2'
+                        }
+                    }
+                }
             };
-            vm.marker.coords.latitude = vm.map.center.latitude;
-            vm.marker.coords.longitude = vm.map.center.longitude;
+            resizeMap();
         }
 
         function fileChanged(files) {
@@ -133,5 +163,22 @@
         function cancel() {
             $modalInstance.dismiss('Cancel');
         }
+
+        function zoomToFit() {
+            vm.mapBounds = new L.latLngBounds([vm.map.markers.m1['lat'], vm.map.markers.m1['lng']]);
+            leafletData.getMap('editDetectorMap').then(function (map) {
+                map.fitBounds(vm.mapBounds, {padding: [30, 30]});
+            });
+        }
+
+        function resizeMap() {
+            leafletData.getMap('editDetectorMap').then(function (map) {
+                setTimeout(function () {
+                    map.invalidateSize();
+                    map.options.minZoom = 1;
+                }, 500);
+            });
+        }
+
     }
 })();

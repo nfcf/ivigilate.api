@@ -5,6 +5,7 @@
         .module('ivigilate', [
             'uiGmapgoogle-maps',
             'uiGmapgoogle-maps.providers',
+            'leaflet-directive',
             'smart-table',
             'ngPasswordStrength',
             'ui.bootstrap',
