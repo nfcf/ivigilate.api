@@ -21,48 +21,26 @@
         vm.imageToUpload = undefined;
         vm.map = undefined;
         vm.showMap = false;
-        //todo:this has to work with new search
+        vm.current_marker = [];
+
         var searchControl = new L.Control.Search({
             url: 'http://nominatim.openstreetmap.org/search?format=json&q={s}',
             jsonpParam: 'json_callback',
             propertyName: 'display_name',
             propertyLoc: ['lat', 'lon'],
-            markerLocation: true,
             autoCollapse: true,
             autoType: false,
             minLength: 2
         });
-
         searchControl.on('search_locationfound', function (e) {
-            vm.coords = e.latlng;
+            vm.map.markers['m']['lng'] = e.latlng['lng'];
+            vm.map.markers['m']['lat'] = e.latlng['lat'];
+            vm.detector.location.coordinates = [vm.map.markers['m']['lng'], vm.map.markers['m']['lat']];
         });
-
 
         leafletData.getMap('editDetectorMap').then(function (map) {
             map.addControl(searchControl);
         });
-
-
-        vm.coords = [];
-
-        vm.searchbox = {
-            template: 'searchbox.tpl.html',
-            events: {
-                places_changed: function (searchBox) {
-                    var places = searchBox.getPlaces();
-                    if (places && places.length > 0) {
-                        vm.map.center.latitude = places[0].geometry.location.lat();
-                        vm.map.center.longitude = places[0].geometry.location.lng();
-                        vm.map.center.zoom = vm.defaultZoomLevel;
-
-                        vm.marker.coords.latitude = vm.map.center.latitude;
-                        vm.marker.coords.longitude = vm.map.center.longitude;
-
-                        vm.detector.location.coordinates = [vm.marker.coords.longitude, vm.marker.coords.latitude];
-                    }
-                }
-            }
-        };
 
         activate();
 
@@ -82,15 +60,6 @@
 
             $scope.$watch('vm.detector.type', function () {
                 vm.showMap = vm.detector.type == 'F';
-            }, true);
-
-            $scope.$watch('vm.coords', function () {
-                if(vm.coords.length === 0){
-                    return;
-                }
-                 vm.map.markers['m']['lat'] = vm.coords['lat'];
-                 vm.map.markers['m']['lng'] = vm.coords['lng'];
-                 zoomToFit();
             }, true);
 
             if (!vm.detector.location) {
@@ -123,6 +92,15 @@
                 }
             };
             resizeMap();
+            vm.current_marker.push ([vm.map.markers['m']['lat'], vm.map.markers['m']['lng']]);
+            zoomToFit();
+            //set up map custom controls
+            leafletData.getMap('editDetectorMap').then(function (map) {
+                L.easyButton('fa-arrows', function () {
+                    zoomToFit();
+                }).addTo(map);
+
+            });
         }
 
         function fileChanged(files) {
@@ -165,9 +143,13 @@
         }
 
         function zoomToFit() {
-            vm.mapBounds = new L.latLngBounds([vm.map.markers.m1['lat'], vm.map.markers.m1['lng']]);
+            if(!vm.map.markers){
+                vm.current_marker.push([vm.map.maxbounds.northEast.lat, vm.map.maxbounds.northEast.lng],
+                    [vm.map.maxbounds.southWest.lat, vm.map.maxbounds.southWest.lng]);
+            }
+            vm.mapBounds = new L.latLngBounds(vm.current_marker);
             leafletData.getMap('editDetectorMap').then(function (map) {
-                map.fitBounds(vm.mapBounds, {padding: [30, 30]});
+                map.fitBounds(vm.mapBounds, {padding: [50, 50]});
             });
         }
 

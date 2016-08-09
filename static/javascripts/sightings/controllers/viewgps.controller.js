@@ -19,6 +19,7 @@
         vm.map = undefined;
         vm.showMap = false;
         vm.defaultZoomLevel = 15;
+        vm.current_marker = [];
 
         activate();
 
@@ -59,8 +60,8 @@
                 maxbounds: {'northEast': {'lat': -60, 'lng': -120}, 'southWest': {'lat': 60, 'lng': 120}},
                 markers: {
                     'm': {
-                        'lng': parseFloat(vm.sighting.location.coordinates[0]),
-                        'lat': parseFloat(vm.sighting.location.coordinates[1]),
+                        'lng': vm.sighting.location.coordinates[0],
+                        'lat': vm.sighting.location.coordinates[1],
                         'message': vm.sighting['detector']['type'] + " " + vm.sighting['detector']['name'] + " with ID: " + vm.sighting['detector']['uid'],
                         'icon': {
                             'type': 'vectorMarker',
@@ -71,6 +72,15 @@
                 }
             };
             resizeMap();
+            vm.current_marker.push ([vm.map.markers['m']['lat'], vm.map.markers['m']['lng']]);
+            zoomToFit();
+            //set up map custom controls
+            leafletData.getMap('viewGpsMap').then(function (map) {
+                L.easyButton('fa-arrows', function () {
+                    zoomToFit();
+                }).addTo(map);
+
+            });
         }
 
         function cancel() {
@@ -78,9 +88,13 @@
         }
 
         function zoomToFit() {
-            vm.mapBounds = new L.latLngBounds([vm.map.markers.m1['lat'], vm.map.markers.m1['lng']]);
+           if(!vm.map.markers){
+                vm.current_marker.push([vm.map.maxbounds.northEast.lat, vm.map.maxbounds.northEast.lng],
+                    [vm.map.maxbounds.southWest.lat, vm.map.maxbounds.southWest.lng]);
+            }
+            vm.mapBounds = new L.latLngBounds(vm.current_marker);
             leafletData.getMap('viewGpsMap').then(function (map) {
-                map.fitBounds(vm.mapBounds, {padding: [30, 30]});
+                map.fitBounds(vm.mapBounds, {padding: [50, 50]});
             });
         }
 

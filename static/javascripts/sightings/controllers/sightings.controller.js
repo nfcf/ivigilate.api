@@ -41,6 +41,7 @@
 
         vm.datepickerOptions = {
             showWeeks: false,
+            sideBySide: true,
             startingDay: 1
         };
         vm.mapView = false;
@@ -56,31 +57,12 @@
             paths: {},
             legend: {
                 position: 'bottomleft'
-            },
-            controls: {}
+            }
         };
 
         vm.colors = ['#00c6d2', '#839d57', '#f04d4c', '#65666a', '#dddddd'];
-        vm.current_markers = undefined;
+        vm.current_marker = undefined;
         vm.mapBounds = undefined;
-
-
-        var zoomToFitControl = L.control();
-        zoomToFitControl.setPosition('topleft');
-        zoomToFitControl.onAdd = function () {
-            var className = 'zoomToFit',
-                container = L.DomUtil.create('div', className + ' leaflet-bar');
-            container.style.backgroundColor = "white";
-            container.style.width = "26px";
-            container.style.height = "26px";
-            container.onclick = function () {
-                zoomToFit();
-            };
-            return container;
-        };
-
-        vm.map.controls.custom = [zoomToFitControl];
-
 
         vm.resetValue = function ($event) {
             vm.filterBeaconOrDetector = null;
@@ -95,6 +77,7 @@
         vm.setMapView = function (mapView) {
             vm.mapView = mapView;
             resizeMap();
+            zoomToFit();
         };
 
         activate();
@@ -163,6 +146,14 @@
                 vm.error = 'Failed to get filter data with error: ' +
                 data.status != 500 ? JSON.stringify(data.data) : data.statusText;
             }
+
+            //set up map custom controls
+            leafletData.getMap('mapLeaflet').then(function (map) {
+                L.easyButton('fa-arrows', function () {
+                    zoomToFit();
+                }).addTo(map);
+
+            });
         }
 
         function refresh() {
@@ -310,8 +301,7 @@
             for (var i = 0; i < vm.sightings.length; i++) {
                 formattedSighting = {};
                 for (var prop in vm.sightings[i]) {
-
-                    if (fields.includes(prop)) {
+                    if (vm.sightings[i].hasOwnProperty(prop) && fields.includes(prop)) {
                         if (prop === 'beacon' || prop === 'detector') {
                             formattedSighting[prop + '_name'] = vm.sightings[i][prop] != null ? vm.sightings[i][prop]['name'] : 'GPS';
                             formattedSighting[prop + '_uid'] = vm.sightings[i][prop] != null ? vm.sightings[i][prop]['uid'] : 'N/A';
@@ -344,38 +334,61 @@
             }
             vm.map.markers = {};
             vm.map.paths = {};
-            vm.map.legend = {
-                position : 'bottomleft'
+            vm.map.legend = vm.sightings.length === 0 ? undefined : {
+                position: 'bottomleft',
+                colors: [],
+                labels: []
             };
-            vm.map.legend.colors = [];
-            vm.map.legend.labels = [];
-            vm.current_markers = [];
-            var color_index = 0;
-            var sighted_devices = [];
-            var marker;
-            var marker_index = 0;
+            vm.current_marker = [];
+
             var uid;
             var device_name;
+            var sighted_devices = [];
+            var color_index = 0;
+            var marker;
+            var circle_marker;
+            var marker_index = 0;
+            var circle_marker_index = 0;
 
             for (var i = 0; i < vm.sightings.length; i++) {
-                uid = vm.sightings[i]['beacon'] && vm.sightings[i]['beacon']['type'] === 'M' ? vm.sightings[i]['beacon']['uid']
-                    :vm.sightings[i]['detector']['uid'];
-                device_name = vm.sightings[i]['beacon'] && vm.sightings[i]['beacon']['type'] === 'M' ? vm.sightings[i]['beacon']['name']
-                    :vm.sightings[i]['detector']['name'];
+
+                if (vm.sightings[i]['beacon'] && vm.sightings[i]['beacon']['type'] === 'M') {
+                    uid = vm.sightings[i]['beacon']['uid'];
+                    device_name = vm.sightings[i]['beacon']['name'];
+                } else {
+                    uid = vm.sightings[i]['detector']['uid'];
+                    device_name = vm.sightings[i]['detector']['name'];
+                }
+                //set up path object and legend for each sighted device
                 if (vm.sightings[i]['location'] && !sighted_devices.includes(uid)) {
                     sighted_devices.push(uid);
                     vm.map.paths[uid] = {
-                        'color': vm.colors[color_index], 'weight': 5, 'latlngs': []
+                        color: vm.colors[color_index],
+                        weight: 2,
+                        latlngs: [],
+                        dashArray: '1, 5'
                     };
                     vm.map.legend.colors.push(vm.colors[color_index]);
                     vm.map.legend.labels.push(device_name);
                     color_index = color_index < vm.colors.length ? color_index + 1 : 0;
                     marker_index = 0;
+                    circle_marker_index = 0;
                 }
                 marker = uid + "_" + marker_index;
-                vm.map.markers[marker] = {
-                    'lat': vm.sightings[i]['location']['coordinates'][1],
+                circle_marker = uid + '_circleMarker_' + circle_marker_index;
+                //set up circleMarker object for each sighting
+                vm.map.paths[uid + '_circleMarker_' + circle_marker_index] = {
+                    opacity: 1,
+                    weight: 2,
+                    latlngs: [vm.sightings[i]['location']['coordinates'][1], vm.sightings[i]['location']['coordinates'][0]],
+                    radius: 5,
+                    type: 'circleMarker'
+                };
+
+                //set up full marker object to show at first and last location as well as every 5 sightings
+                var current_marker = {
                     'lng': vm.sightings[i]['location']['coordinates'][0],
+                    'lat': vm.sightings[i]['location']['coordinates'][1],
                     'message': vm.sightings[i]['beacon'] != null ?
                     vm.sightings[i]['detector']['type'] + " " + vm.sightings[i]['detector']['name'] + " with ID: " + vm.sightings[i]['detector']['uid'] +
                     "<br>" + vm.sightings[i]['beacon']['type'] + " " + vm.sightings[i]['beacon']['name'] + " with ID: " + vm.sightings[i]['beacon']['uid'] +
@@ -385,34 +398,42 @@
                     'icon': {
                         'type': 'vectorMarker',
                         'icon': 'map-marker'
-                    },
-                    'draggable': true
+                    }
                 };
-                //save to current markers for calculating bounds
-                vm.current_markers.push([vm.map.markers[marker]['lat'], vm.map.markers[marker]['lng']]);
 
+                if (marker_index !== 0 && (circle_marker_index + 1 ) % 5 !== 0) {
+                    marker_index--;
+                }
+                vm.map.markers[marker] = current_marker;
+
+                //add sighting coordinates to corresponding device path array and update current marker
                 for (var prop in vm.map.paths) {
-                    if (prop === uid) {
+                    if (vm.map.paths.hasOwnProperty(prop) && prop === uid) {
+                        vm.map.paths[circle_marker]['color'] = vm.map.paths[uid]['color'];
                         vm.map.markers[marker]['icon']['markerColor'] = vm.map.paths[uid]['color'];
-                        vm.map.paths[prop]['latlngs'].push(vm.map.markers[marker]);
+                        vm.map.paths[prop]['latlngs'].push(vm.map.paths[circle_marker]['latlngs']);
                         break;
                     }
                 }
+                //save sighting location to current markers for calculating map bounds
+                vm.current_marker.push([vm.map.markers[marker]['lat'], vm.map.markers[marker]['lng']]);
+
                 uid = "";
                 marker_index++;
+                circle_marker_index++;
             }
         }
 
         function zoomToFit() {
 
-            if (!vm.sightings || !vm.current_markers) {
+            if (!vm.sightings || !vm.current_marker) {
                 return;
             }
-            if (vm.current_markers.length === 0) {
-                vm.current_markers.push([vm.map.maxbounds.northEast.lat, vm.map.maxbounds.northEast.lng],
+            if (vm.current_marker.length === 0) {
+                vm.current_marker.push([vm.map.maxbounds.northEast.lat, vm.map.maxbounds.northEast.lng],
                     [vm.map.maxbounds.southWest.lat, vm.map.maxbounds.southWest.lng]);
             }
-            vm.mapBounds = new L.latLngBounds(vm.current_markers);
+            vm.mapBounds = new L.latLngBounds(vm.current_marker);
             leafletData.getMap('mapLeaflet').then(function (map) {
                 map.fitBounds(vm.mapBounds, {padding: [30, 30]});
             });

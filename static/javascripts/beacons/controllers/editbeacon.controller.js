@@ -12,8 +12,8 @@
         vm.fileChanged = fileChanged;
         vm.cancel = cancel;
         vm.save = save;
-        vm.zoomToFit = zoomToFit;
         vm.resizeMap = resizeMap;
+        vm.zoomToFit = zoomToFit;
 
         vm.error = undefined;
         vm.beacon = undefined;
@@ -23,7 +23,26 @@
         vm.events_selected = [];
         vm.map = undefined;
         vm.showMap = false;
-        vm.defaultZoomLevel = 15;
+        vm.current_marker = [];
+
+        var searchControl = new L.Control.Search({
+            url: 'http://nominatim.openstreetmap.org/search?format=json&q={s}',
+            jsonpParam: 'json_callback',
+            propertyName: 'display_name',
+            propertyLoc: ['lat', 'lon'],
+            autoCollapse: true,
+            autoType: false,
+            minLength: 2
+        });
+        searchControl.on('search_locationfound', function (e) {
+            vm.map.markers['m']['lng'] = e.latlng['lng'];
+            vm.map.markers['m']['lat'] = e.latlng['lat'];
+            vm.beacon.location.coordinates = [vm.map.markers['m']['lng'], vm.map.markers['m']['lat']];
+        });
+
+        leafletData.getMap('editBeaconMap').then(function (map) {
+            map.addControl(searchControl);
+        });
 
 
         activate();
@@ -54,53 +73,33 @@
             }
 
             vm.map = {
-                center: {
-                    lng: vm.beacon.location.coordinates[0],
-                    lat: vm.beacon.location.coordinates[1],
-                    zoom: 10
-                },
                 defaults: {
                     scrollWheelZoom: false
                 },
                 maxbounds: {'northEast': {'lat': -60, 'lng': -120}, 'southWest': {'lat': 60, 'lng': 120}},
                 markers: {
                     'm': {
-                        'lng': parseFloat(vm.beacon.location.coordinates[0]),
-                        'lat': parseFloat(vm.beacon.location.coordinates[1]),
+                        'lng': vm.beacon.location.coordinates[0],
+                        'lat': vm.beacon.location.coordinates[1],
                         'message': vm.beacon['type'] + " " + vm.beacon['name'] + " with ID: " + vm.beacon['uid'],
                         'icon': {
                             'type': 'vectorMarker',
                             'icon': 'map-marker',
                             'markerColor': '#00c6d2'
-                        },
-                        'draggable':true
+                        }
                     }
                 }
             };
-
-            vm.map.controls = {
-                custom: []
-            };
-
-            var MyControl = L.control();
-            MyControl.setPosition('topleft');
-            MyControl.onAdd = function () {
-                var className = 'leaflet-search-control',
-                    container = L.DomUtil.create('div', className + ' leaflet-bar');
-                container.style.backgroundColor = "white";
-                container.style.width = "26px";
-                container.style.height = "26px";
-                container.style.icon = "fa-home";
-                container.onclick = function () {
-                    zoomToFit();
-                };
-                return container;
-            };
-
-            vm.map.controls.custom.push(MyControl);
-
-           
             resizeMap();
+            vm.current_marker.push ([vm.map.markers['m']['lat'], vm.map.markers['m']['lng']]);
+            zoomToFit();
+            //set up map custom controls
+            leafletData.getMap('editBeaconMap').then(function (map) {
+                L.easyButton('fa-arrows', function () {
+                    zoomToFit();
+                }).addTo(map);
+
+            });
 
             Events.list().then(eventsSuccessFn, eventsErrorFn);
 
@@ -159,9 +158,13 @@
         }
 
         function zoomToFit() {
-            vm.mapBounds = new L.latLngBounds([vm.map.markers.m1['lat'], vm.map.markers.m1['lng']]);
+            if(!vm.map.markers){
+                vm.current_marker.push([vm.map.maxbounds.northEast.lat, vm.map.maxbounds.northEast.lng],
+                    [vm.map.maxbounds.southWest.lat, vm.map.maxbounds.southWest.lng]);
+            }
+            vm.mapBounds = new L.latLngBounds(vm.current_marker);
             leafletData.getMap('editBeaconMap').then(function (map) {
-                map.fitBounds(vm.mapBounds, {padding: [30, 30]});
+                map.fitBounds(vm.mapBounds, {padding: [50, 50]});
             });
         }
 

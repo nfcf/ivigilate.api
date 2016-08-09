@@ -85,8 +85,10 @@
 
             <div class="form-group">
                 <ul class="nav nav-pills nav-justified">
-                    <li class="active"><a data-target="#list" data-toggle="pill" ng-click="vm.setMapView(false)">List</a></li>
-                    <li><a data-target="#map" data-toggle="pill" ng-click="vm.setMapView(true); vm.zoomToFit()">Map</a></li>
+                    <li class="active"><a data-target="#list" data-toggle="pill"
+                                          ng-click="vm.setMapView(false)">List</a></li>
+                    <li><a data-target="#map" data-toggle="pill" ng-click="vm.setMapView(true)">Map</a>
+                    </li>
                 </ul>
                 <div class="tab-content">
                     <div id="list" class="tab-pane fade in active">
@@ -138,9 +140,10 @@
                                         <a ng-if="!sighting.beacon.uid"
                                            ng-click="vm.viewGps(sighting)">GPS Coordinates</a>
                                         <a ng-if="!!sighting.beacon.reference_id"
+                                                {{ sighting.beacon.reference_id : sighting.beacon.uid.length <= 10 ? sighting.beacon.uid :
+                                                        sighting.beacon.uid.substring(0, 3) + '...' + sighting.beacon.uid.substring(sighting.beacon.uid.length - 3) }}
                                            ng-click="vm.editBeacon(sighting.beacon)">
-                                            {{ sighting.beacon.reference_id : sighting.beacon.uid.length <= 10 ? sighting.beacon.uid :
-                                                    sighting.beacon.uid.substring(0, 3) + '...' + sighting.beacon.uid.substring(sighting.beacon.uid.length - 3) }}</a>
+                                        </a>
                                         <a ng-if="!!sighting.beacon.name"
                                            ng-click="vm.editBeacon(sighting.beacon)">{{ sighting.beacon.name }}</a>
                                     </td>
@@ -152,9 +155,9 @@
                                     </td>
                                     <td class="valign-middle">
                                         <a ng-if="!!sighting.detector.reference_id"
-                                           ng-click="vm.editDetector(sighting.detector)">
-                                            {{ sighting.detector.reference_id : sighting.detector.uid.length <= 10 ? sighting.detector.uid :
-                                                    sighting.detector.uid.substring(0, 3) + '...' + sighting.detector.uid.substring(sighting.detector.uid.length - 3) }}</a>
+                                                {{ sighting.detector.reference_id : sighting.detector.uid.length <= 10 ? sighting.detector.uid :
+                                                        sighting.detector.uid.substring(0, 3) + '...' + sighting.detector.uid.substring(sighting.detector.uid.length - 3) }}
+                                           ng-click="vm.editDetector(sighting.detector)"></a>
                                         <a ng-if="!!sighting.detector.name"
                                            ng-click="vm.editDetector(sighting.detector)">{{ sighting.detector.name }}</a>
                                     </td>
@@ -185,12 +188,28 @@
                     </div>
                     <div id="map" class="tab-pane fade">
                         <div class="form-group" colspan="9">
-                            <leaflet id="mapLeaflet"  height="480px" width="100%"
-                                     paths="vm.map.paths" markers="vm.map.markers" maxbounds="vm.map.maxbounds" controls="vm.map.controls" legend="vm.map.legend">
+                            <leaflet id="mapLeaflet" height="480px" width="100%"
+                                     paths="vm.map.paths" markers="vm.map.markers" maxbounds="vm.map.maxbounds"
+                                     legend="vm.map.legend">
                             </leaflet>
-                                <style> .legend {  font: 14px/16px Arial, Helvetica, sans-serif;  background: rgba(255,255,255, 0.7);  box-shadow: 0 0 15px rgba(0,0,0,0.2);  border-radius: 5px;  padding: 6px 8px;  width: 180px;  line-height: 18px;  color: #555;  }
-                                .legend i {  width: 16px;  height: 16px;  float: left;  margin-right: 8px;  opacity: 0.7;  }
-                                </style>
+                            <style> .legend {
+                                font: 14px/16px Arial, Helvetica, sans-serif;
+                                background: rgba(255, 255, 255, 0.7);
+                                box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+                                border-radius: 5px;
+                                padding: 6px 8px;
+                                width: 180px;
+                                line-height: 18px;
+                                color: #555;
+                            }
+                            .legend i {
+                                width: 16px;
+                                height: 16px;
+                                float: left;
+                                margin-right: 8px;
+                                opacity: 0.7;
+                            }
+                            </style>
                         </div>
                     </div>
                 </div>

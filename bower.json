@@ -47,6 +47,7 @@
     "angular-leaflet-directive": "angular-leaflet#^0.10.0",
     "Leaflet.vector-markers": "leaflet.vector-markers#^0.0.6",
     "font-awesome": "fontawesome#^4.6.3",
-    "leaflet-search": "^1.9.9"
+    "leaflet-search": "^1.9.9",
+    "Leaflet.EasyButton": "^1.3.1"
   }
 }
