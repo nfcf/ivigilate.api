@@ -211,7 +211,7 @@ class AddSightingsView(views.APIView):
                                 if beacon.type == 'F' and beacon.location is not None:
                                     location_parsed = beacon.location
 
-                                previous_sightings = None
+                                previous_sighting = None
                                 if beacon.type == 'M':
                                     previous_sightings = Sighting.objects.filter(is_active=True, beacon=beacon, detector__account=detector.account). \
                                                             order_by('-last_seen_at')[:1]
