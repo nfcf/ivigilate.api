@@ -3,6 +3,7 @@ import threading
 
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.models import AnonymousUser
+from django.db import transaction
 from django.db.models import Q
 from rest_framework import permissions, viewsets, status, mixins
 from rest_framework.response import Response
@@ -143,6 +144,13 @@ class DetectorViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
     def list(self, request):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         queryset = self.queryset.filter(account=account)
+
+        #Temporary update required for regression (due to removing the 'User' detector type
+        with transaction.atomic():
+            for detector in queryset:
+                type = 'F' if detector.type == 'F' else 'M'
+                Detector.objects.filter(pk=detector.pk).update(type=type)
+
         return utils.view_list(request, account, queryset, self.get_serializer_class())
 
     def retrieve(self, request, pk=None):
