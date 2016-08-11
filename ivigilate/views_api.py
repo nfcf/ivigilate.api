@@ -211,6 +211,7 @@ class AddSightingsView(views.APIView):
                                 if beacon.type == 'F' and beacon.location is not None:
                                     location_parsed = beacon.location
 
+                                previous_sightings = None
                                 if beacon.type == 'M':
                                     previous_sightings = Sighting.objects.filter(is_active=True, beacon=beacon, detector__account=detector.account). \
                                                             order_by('-last_seen_at')[:1]
@@ -223,7 +224,7 @@ class AddSightingsView(views.APIView):
 
                                 if is_active:
                                     # Only open the sighting if 'AutoClosing' or if RSSI is greater than the configured value for the detector or rssi within 5% range of previous_sighting.rssi
-                                    previous_sighting_rssi = previous_sighting.rssi if previous_sighting.rssi is not None else 0
+                                    previous_sighting_rssi = previous_sighting.rssi if previous_sighting is not None and previous_sighting.rssi is not None else 0
                                     if type == 'AC' or \
                                             (previous_sighting is None and rssi >= detector.arrival_rssi) or \
                                             (beacon.type == 'M' and (previous_sighting.detector == detector or rssi * 1.05 > previous_sighting_rssi)) or \
@@ -270,7 +271,7 @@ class AddSightingsView(views.APIView):
         previous_sighting_occurred_at = None
         new_sighting = None
         if previous_sighting is not None:
-            previous_sighting_rssi = previous_sighting.rssi if previous_sighting.rssi is not None else 0
+            previous_sighting_rssi = previous_sighting.rssi if previous_sighting is not None and previous_sighting.rssi is not None else 0
 
             # if the abs_diff between the 2 rssi values is bigger than X, "ignore" most recent value
             step_change = 1 if rssi - previous_sighting.rssi > 0 else - 1
