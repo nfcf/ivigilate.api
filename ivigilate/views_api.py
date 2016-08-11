@@ -124,7 +124,7 @@ class ProvisionDeviceView(views.APIView):
             elif type[0] == 'D':
                 try:
                     detector = Detector.objects.get(account=account, uid=uid)
-                    detector.type = type[1]
+                    detector.type = type[1] if type[1] == 'F' else 'M'  # Remove this if else check in a later release (protection for having removed the 'User' detector type
                     detector.name = name
                     detector.metadata = metadata
                     detector.is_active = is_active
@@ -205,23 +205,30 @@ class AddSightingsView(views.APIView):
 
                         if (type == 'GPS'):
                             self.open_sighting_async(detector, detector_battery, None, 0, rssi,
-                                                     location_parsed, metadata, type)
+                                                     location_parsed, metadata, type, None)
                         elif len(beacons) > 0:
                             for beacon in beacons:
                                 if beacon.type == 'F' and beacon.location is not None:
                                     location_parsed = beacon.location
 
-                                previous_sightings = Sighting.objects.filter(is_active=True, beacon=beacon, detector__account=detector.account). \
-                                                        order_by('-last_seen_at')[:1]
+                                if beacon.type == 'M':
+                                    previous_sightings = Sighting.objects.filter(is_active=True, beacon=beacon, detector__account=detector.account). \
+                                                            order_by('-last_seen_at')[:1]
+                                else:
+                                    previous_sightings = Sighting.objects.filter(is_active=True, detector=detector, detector__account=detector.account). \
+                                                            order_by('-last_seen_at')[:1]
+
                                 if len(previous_sightings) > 0:
                                     previous_sighting = previous_sightings[0]
 
                                 if is_active:
                                     # Only open the sighting if 'AutoClosing' or if RSSI is greater than the configured value for the detector or rssi within 5% range of previous_sighting.rssi
-                                    if type == 'AC' or rssi >= detector.arrival_rssi\
-                                            and (detector.type == 'F' and previous_sighting.detector != detector and rssi * 1.05 > (previous_sighting.rssi if previous_sighting.rssi is not None else 0) \
-                                            or detector.type == 'M' and rssi * 1.05 > (previous_sighting.rssi if previous_sighting.rssi is not None else 0)):
-                                        self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location_parsed, metadata, type)
+                                    previous_sighting_rssi = previous_sighting.rssi if previous_sighting.rssi is not None else 0
+                                    if type == 'AC' or \
+                                            (previous_sighting is None and rssi >= detector.arrival_rssi) or \
+                                            (beacon.type == 'M' and (previous_sighting.detector == detector or rssi * 1.05 > previous_sighting_rssi)) or \
+                                            (detector.type == 'M' and (previous_sighting.beacon == beacon or rssi * 1.05 > previous_sighting_rssi)):
+                                        self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location_parsed, metadata, type, previous_sighting)
                                     else:
                                         logger.info('AddSightingsView.post() Ignored Beacon MAC / UID as the rssi is lower than the ' +
                                             'arrival_rssi configured for this detector / user (%s < %s)', rssi,
@@ -248,33 +255,40 @@ class AddSightingsView(views.APIView):
         else:
             return utils.build_http_response(None, status.HTTP_200_OK)
 
-    def open_sighting_async(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type):
+    def open_sighting_async(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type, previous_sighting):
         # check for events associated with this sighting in a different  thread
         t = threading.Thread(target=self.open_sighting,
-                             args=(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type))
+                             args=(detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type, previous_sighting))
         t.start()
 
-    def open_sighting(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type):
+    def open_sighting(self, detector, detector_battery, beacon, beacon_battery, rssi, location, metadata, type, previous_sighting):
         REPORTED_MISSING_NOTIFICATION_EVERY_MINS = 1
         logger.debug('open_sighting() Started...')
 
         now = datetime.now(timezone.utc)
-        previous_sightings = Sighting.objects.filter(is_active=True, beacon=beacon, detector__account=detector.account). \
-                                 order_by('-last_seen_at')[:1]
 
         previous_sighting_occurred_at = None
         new_sighting = None
-        if len(previous_sightings) > 0:
-            previous_sighting = previous_sightings[0]
+        if previous_sighting is not None:
+            previous_sighting_rssi = previous_sighting.rssi if previous_sighting.rssi is not None else 0
+
             # if the abs_diff between the 2 rssi values is bigger than X, "ignore" most recent value
             step_change = 1 if rssi - previous_sighting.rssi > 0 else - 1
             avg_rssi = previous_sighting.rssi + step_change if abs(
-                previous_sighting.rssi - rssi) > 15 else 0.6 * previous_sighting.rssi + 0.4 * rssi
+                previous_sighting_rssi - rssi) > 15 else 0.6 * previous_sighting_rssi + 0.4 * rssi
 
-            if previous_sighting.detector == detector and avg_rssi < detector.departure_rssi:
+            if ((beacon.type == 'M' and previous_sighting.detector == detector) or \
+                    (detector.type == 'M' and previous_sighting.beacon == beacon)) and \
+                            avg_rssi < detector.departure_rssi:
                 logger.info('open_sighting() Closing previous related sighting \'%s\' as the rssi dropped below the ' + \
                             'departure_rssi configured for this detector (%s < %s).',
                             previous_sighting, avg_rssi, detector.departure_rssi)
+                utils.close_sighting(previous_sighting, detector)
+            elif ((beacon.type == 'M' and previous_sighting.detector != detector) or \
+                    (detector.type == 'M' and previous_sighting.beacon != beacon)) and \
+                            rssi * 1.05 > previous_sighting_rssi:
+                logger.info('open_sighting() Closing previous related sighting \'%s\' as the device moved to another location.',
+                    previous_sighting)
                 utils.close_sighting(previous_sighting, detector)
             else:
                 logger.debug('open_sighting() Updating previous related sighting \'%s\'.', previous_sighting)
