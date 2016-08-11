@@ -5,11 +5,13 @@
         .module('ivigilate.sightings.controllers')
         .controller('ViewGpsController', ViewGpsController);
 
-    ViewGpsController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data', 'Authentication', 'Sightings', 'uiGmapGoogleMapApi'];
+    ViewGpsController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data', 'Authentication', 'Sightings', 'leafletData'];
 
-    function ViewGpsController($location, $scope, $timeout, $modalInstance, data, Authentication, Detectors, uiGmapGoogleMapApi) {
+    function ViewGpsController($location, $scope, $timeout, $modalInstance, data, Authentication, Detectors, leafletData) {
         var vm = this;
         vm.cancel = cancel;
+        vm.resizeMap = resizeMap;
+        vm.zoomToFit = zoomToFit;
 
 
         vm.error = undefined;
@@ -17,31 +19,14 @@
         vm.map = undefined;
         vm.showMap = false;
         vm.defaultZoomLevel = 15;
-        vm.marker = {
-            id: 1,
-            coords: {
-                latitude: 0,
-                longitude: 0
-            },
-            options: {draggable: true},
-            events: {
-                dragend: function (marker, eventName, args) {
-                    vm.sighting.location.coordinates = [marker.getPosition().lng(), marker.getPosition().lat()];
-                }
-            }
-        };
+        vm.current_marker = [];
 
         activate();
 
         function activate() {
             var user = Authentication.getAuthenticatedUser();
             if (user) {
-                uiGmapGoogleMapApi.then(function (maps) {
-                    $timeout(function () {
-                        populateDialog(data);
-                        vm.showMap = true;
-                    }, 250);
-                });
+                populateDialog(data);
             }
             else {
                 $location.url('/');
@@ -65,16 +50,62 @@
 
             vm.map = {
                 center: {
-                    longitude: vm.sighting.location.coordinates[0],
-                    latitude: vm.sighting.location.coordinates[1]
+                    lng: vm.sighting.location.coordinates[0],
+                    lat: vm.sighting.location.coordinates[1],
+                    zoom: 10
                 },
-                zoom: vm.defaultZoomLevel
+                defaults: {
+                    scrollWheelZoom: false
+                },
+                maxbounds: {'northEast': {'lat': -60, 'lng': -120}, 'southWest': {'lat': 60, 'lng': 120}},
+                markers: {
+                    'm': {
+                        'lng': vm.sighting.location.coordinates[0],
+                        'lat': vm.sighting.location.coordinates[1],
+                        'message': vm.sighting['detector']['type'] + " " + vm.sighting['detector']['name'] + " with ID: " + vm.sighting['detector']['uid'],
+                        'icon': {
+                            'type': 'vectorMarker',
+                            'icon': 'map-marker',
+                            'markerColor': '#00c6d2'
+                        }
+                    }
+                }
             };
-            vm.marker.coords.latitude = vm.map.center.latitude;
-            vm.marker.coords.longitude = vm.map.center.longitude;
+            resizeMap();
+            vm.current_marker.push ([vm.map.markers['m']['lat'], vm.map.markers['m']['lng']]);
+            zoomToFit();
+            //set up map custom controls
+            leafletData.getMap('viewGpsMap').then(function (map) {
+                L.easyButton('fa-arrows', function () {
+                    zoomToFit();
+                }).addTo(map);
+
+            });
         }
+
         function cancel() {
             $modalInstance.dismiss('Cancel');
         }
+
+        function zoomToFit() {
+           if(!vm.map.markers){
+                vm.current_marker.push([vm.map.maxbounds.northEast.lat, vm.map.maxbounds.northEast.lng],
+                    [vm.map.maxbounds.southWest.lat, vm.map.maxbounds.southWest.lng]);
+            }
+            vm.mapBounds = new L.latLngBounds(vm.current_marker);
+            leafletData.getMap('viewGpsMap').then(function (map) {
+                map.fitBounds(vm.mapBounds, {padding: [50, 50]});
+            });
+        }
+
+        function resizeMap() {
+            leafletData.getMap('viewGpsMap').then(function (map) {
+                setTimeout(function () {
+                    map.invalidateSize();
+                    map.options.minZoom = 1;
+                }, 500);
+            });
+        }
+
     }
 })();

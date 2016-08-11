@@ -175,7 +175,6 @@ class Detector(models.Model):
     TYPE = (
         ('M', 'Movable'),
         ('F', 'Fixed'),
-        ('U', 'User'),
     )
     account = models.ForeignKey(Account, related_name='detectors')
     uid = models.CharField(max_length=36)

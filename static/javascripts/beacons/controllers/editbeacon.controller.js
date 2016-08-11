@@ -5,13 +5,15 @@
         .module('ivigilate.beacons.controllers')
         .controller('EditBeaconController', EditBeaconController);
 
-    EditBeaconController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data', 'Authentication', 'Beacons', 'Events', 'uiGmapGoogleMapApi'];
+    EditBeaconController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data', 'Authentication', 'Beacons', 'Events', 'leafletData'];
 
-    function EditBeaconController($location, $scope, $timeout, $modalInstance, data, Authentication, Beacons, Events, uiGmapGoogleMapApi) {
+    function EditBeaconController($location, $scope, $timeout, $modalInstance, data, Authentication, Beacons, Events, leafletData) {
         var vm = this;
         vm.fileChanged = fileChanged;
         vm.cancel = cancel;
         vm.save = save;
+        vm.resizeMap = resizeMap;
+        vm.zoomToFit = zoomToFit;
 
         vm.error = undefined;
         vm.beacon = undefined;
@@ -21,50 +23,34 @@
         vm.events_selected = [];
         vm.map = undefined;
         vm.showMap = false;
-        vm.defaultZoomLevel = 15;
-        vm.marker = {
-            id: 1,
-            coords: {
-                latitude: 0,
-                longitude: 0
-            },
-            options: {draggable: true},
-            events: {
-                dragend: function (marker, eventName, args) {
-                    vm.beacon.location.coordinates = [marker.getPosition().lng(), marker.getPosition().lat()];
-                }
-            }
-        };
-        vm.searchbox = {
-            template: 'searchbox.tpl.html',
-            events: {
-                places_changed: function (searchBox) {
-                    var places = searchBox.getPlaces();
-                    if (places && places.length > 0) {
-                        vm.map.center.latitude = places[0].geometry.location.lat();
-                        vm.map.center.longitude = places[0].geometry.location.lng();
-                        vm.map.center.zoom = vm.defaultZoomLevel;
+        vm.current_marker = [];
 
-                        vm.marker.coords.latitude = vm.map.center.latitude;
-                        vm.marker.coords.longitude = vm.map.center.longitude;
+        var searchControl = new L.Control.Search({
+            url: 'http://nominatim.openstreetmap.org/search?format=json&q={s}',
+            jsonpParam: 'json_callback',
+            propertyName: 'display_name',
+            propertyLoc: ['lat', 'lon'],
+            autoCollapse: true,
+            autoType: false,
+            minLength: 2
+        });
+        searchControl.on('search_locationfound', function (e) {
+            vm.map.markers['m']['lng'] = e.latlng['lng'];
+            vm.map.markers['m']['lat'] = e.latlng['lat'];
+            vm.beacon.location.coordinates = [vm.map.markers['m']['lng'], vm.map.markers['m']['lat']];
+        });
 
-                        vm.beacon.location.coordinates = [vm.marker.coords.longitude, vm.marker.coords.latitude];
-                    }
-                }
-            }
-        };
+        leafletData.getMap('editBeaconMap').then(function (map) {
+            map.addControl(searchControl);
+        });
+
 
         activate();
 
         function activate() {
             var user = Authentication.getAuthenticatedUser();
             if (user) {
-                uiGmapGoogleMapApi.then(function (maps) {
-                    $timeout(function () {
-                        populateDialog(data);
-                        vm.showMap = true;
-                    }, 250);
-                });
+                populateDialog(data);
             }
             else {
                 $location.url('/');
@@ -87,14 +73,33 @@
             }
 
             vm.map = {
-                center: {
-                    longitude: vm.beacon.location.coordinates[0],
-                    latitude: vm.beacon.location.coordinates[1]
+                defaults: {
+                    scrollWheelZoom: false
                 },
-                zoom: vm.defaultZoomLevel
+                maxbounds: {'northEast': {'lat': -60, 'lng': -120}, 'southWest': {'lat': 60, 'lng': 120}},
+                markers: {
+                    'm': {
+                        'lng': vm.beacon.location.coordinates[0],
+                        'lat': vm.beacon.location.coordinates[1],
+                        'message': vm.beacon['type'] + " " + vm.beacon['name'] + " with ID: " + vm.beacon['uid'],
+                        'icon': {
+                            'type': 'vectorMarker',
+                            'icon': 'map-marker',
+                            'markerColor': '#00c6d2'
+                        }
+                    }
+                }
             };
-            vm.marker.coords.latitude = vm.map.center.latitude;
-            vm.marker.coords.longitude = vm.map.center.longitude;
+            resizeMap();
+            vm.current_marker.push ([vm.map.markers['m']['lat'], vm.map.markers['m']['lng']]);
+            zoomToFit();
+            //set up map custom controls
+            leafletData.getMap('editBeaconMap').then(function (map) {
+                L.easyButton('fa-arrows', function () {
+                    zoomToFit();
+                }).addTo(map);
+
+            });
 
             Events.list().then(eventsSuccessFn, eventsErrorFn);
 
@@ -136,20 +141,41 @@
             }
 
             function successFn(data, status, headers, config) {
-                    $modalInstance.close(vm.sighting);
-                }
+                $modalInstance.close(vm.sighting);
+            }
 
-                function errorFn(data, status, headers, config) {
-                    vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
-                }
+            function errorFn(data, status, headers, config) {
+                vm.error = data.status != 500 ? JSON.stringify(data.data) : data.statusText;
+            }
 
-                function progressFn(evt) {
-                    //Do nothing for now...
-                }
+            function progressFn(evt) {
+                //Do nothing for now...
+            }
         }
 
         function cancel() {
             $modalInstance.dismiss('Cancel');
         }
+
+        function zoomToFit() {
+            if(!vm.map.markers){
+                vm.current_marker.push([vm.map.maxbounds.northEast.lat, vm.map.maxbounds.northEast.lng],
+                    [vm.map.maxbounds.southWest.lat, vm.map.maxbounds.southWest.lng]);
+            }
+            vm.mapBounds = new L.latLngBounds(vm.current_marker);
+            leafletData.getMap('editBeaconMap').then(function (map) {
+                map.fitBounds(vm.mapBounds, {padding: [50, 50]});
+            });
+        }
+
+        function resizeMap() {
+            leafletData.getMap('editBeaconMap').then(function (map) {
+                setTimeout(function () {
+                    map.invalidateSize();
+                    map.options.minZoom = 1;
+                }, 500);
+            });
+        }
     }
+
 })();

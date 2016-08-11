@@ -6,10 +6,10 @@
         .config(config);
 
     config.$inject = ['$httpProvider', '$locationProvider', 'uiGmapGoogleMapApiProvider', 'dialogsProvider', '$translateProvider',
-        'stripeProvider', 'showErrorsConfigProvider', 'toastrConfig'];
+        'stripeProvider', 'showErrorsConfigProvider', 'toastrConfig', '$logProvider'];
 
     function config($httpProvider, $locationProvider, uiGmapGoogleMapApiProvider, dialogsProvider, $translateProvider,
-                    stripeProvider, showErrorsConfigProvider, toastrConfig) {
+                    stripeProvider, showErrorsConfigProvider, toastrConfig, $logProvider) {
 
         $httpProvider.interceptors.push('AuthInterceptor');
 
@@ -88,6 +88,8 @@
             tapToDismiss: false,
             progressBar: true
         });
+
+        $logProvider.debugEnabled(false);
     }
 
 })();

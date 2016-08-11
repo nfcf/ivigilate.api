@@ -46,24 +46,25 @@
                 <div class="col-xs-12 col-md-6">
                     <div class="form-group">
                         <label>Type</label>
-                        <select name="type" ng-model="vm.detector.type" class="form-control" ng-disabled="vm.detector.type=='U'">
+                        <select name="type" ng-model="vm.detector.type" class="form-control">
                             <option value="M">Movable</option>
                             <option value="F">Fixed</option>
-                            <option value="U">User (Mobile Device)</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-xs-12 col-md-6">
                     <div class="form-group" show-errors>
                         <label for="arrival_rssi">Arrival Proximity</label>
-                        <input type="number" class="form-control" name="arrival_rssi" ng-model="vm.detector.arrival_rssi"
+                        <input type="number" class="form-control" name="arrival_rssi"
+                               ng-model="vm.detector.arrival_rssi"
                                placeholder="Default is -75" required/>
                     </div>
                 </div>
                 <div class="col-xs-12 col-md-6">
                     <div class="form-group" show-errors>
                         <label for="departure_rssi">Departure Proximity</label>
-                        <input type="number" class="form-control" name="departure_rssi" ng-model="vm.detector.departure_rssi"
+                        <input type="number" class="form-control" name="departure_rssi"
+                               ng-model="vm.detector.departure_rssi"
                                placeholder="Default is -90" required/>
                     </div>
                 </div>
@@ -72,15 +73,9 @@
     </form>
 
     <div class="form-group" ng-if="vm.showMap">
-        <script type="text/ng-template" id="searchbox.tpl.html">
-            <input type="text" class="angular-google-map-searchbox" placeholder="Search Box">
-        </script>
-        <ui-gmap-google-map center="vm.map.center" zoom="vm.map.zoom">
-            <ui-gmap-search-box template="vm.searchbox.template"
-                                events="vm.searchbox.events"></ui-gmap-search-box>
-            <ui-gmap-marker idKey="vm.marker.id" coords="vm.marker.coords" options="vm.marker.options"
-                            events="vm.marker.events"></ui-gmap-marker>
-        </ui-gmap-google-map>
+        <div class="form-group">
+            <leaflet id='editDetectorMap' lf-center="vm.map.center" height="480px" width="100%" markers="vm.map.markers"></leaflet>
+        </div>
     </div>
 </div>
 

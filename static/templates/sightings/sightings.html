@@ -83,94 +83,136 @@
                 </div>
             </div>
 
-            <div class="table-responsive">
-                <table st-table="vm.displayedSightings" st-safe-src="vm.sightings" class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th>Photo</th>
-                        <th st-sort="beacon.name">Beacon | GPS</th>
-                        <th st-sort="first_seen_at" st-sort-default="reverse">First Seen</th>
-                        <th st-sort="last_seen_at">Last Seen</th>
-                        <th st-sort="detector.name">Detector</th>
-                        <th class="text-center" st-sort="rssi">RSSI</th>
-                        <th class="text-center" st-sort="battery">Battery</th>
-                        <th class="text-center" st-sort="confirmed">Confirmed</th>
-                        <th class="text-right">
-                            <button ng-click="vm.addSighting()" class="btn btn-sm btn-success" style="width:72px">
-                                <span class="glyphicon glyphicon-plus"></span> Add
-                            </button>
-                        </th>
-                    </tr>
-                    <tr>
-                        <th colspan="8">
-                            <input st-search placeholder="Global Search" class="input-sm form-control" type="search"/>
-                        </th>
-                        <th colspan="1">
-                            <button type="button" class="btn btn-sm  pull-right btn-info "
-                                    ng-csv="vm.formattedSightings"
-                                    csv-header="['Beacon Name', 'Beacon Id', 'Beacon Battery', 'Detector Name',
+            <div class="form-group">
+                <ul class="nav nav-pills nav-justified">
+                    <li class="active"><a data-target="#list" data-toggle="pill"
+                                          ng-click="vm.setMapView(false)">List</a></li>
+                    <li><a data-target="#map" data-toggle="pill" ng-click="vm.setMapView(true)">Map</a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div id="list" class="tab-pane fade in active">
+                        <div class="table-responsive">
+                            <table st-table="vm.displayedSightings" st-safe-src="vm.sightings"
+                                   class="table table-striped">
+                                <thead>
+                                <tr>
+                                    <th>Photo</th>
+                                    <th st-sort="beacon.name">Beacon | GPS</th>
+                                    <th st-sort="first_seen_at" st-sort-default="reverse">First Seen</th>
+                                    <th st-sort="last_seen_at">Last Seen</th>
+                                    <th st-sort="detector.name">Detector</th>
+                                    <th class="text-center" st-sort="rssi">RSSI</th>
+                                    <th class="text-center" st-sort="battery">Battery</th>
+                                    <th class="text-center" st-sort="confirmed">Confirmed</th>
+                                    <th class="text-right">
+                                        <button ng-click="vm.addSighting()" class="btn btn-sm btn-success"
+                                                style="width:72px">
+                                            <span class="glyphicon glyphicon-plus"></span> Add
+                                        </button>
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th colspan="8">
+                                        <input st-search placeholder="Global Search" class="input-sm form-control"
+                                               type="search"/>
+                                    </th>
+                                    <th colspan="1">
+                                        <button type="button" class="btn btn-sm  pull-right btn-info "
+                                                ng-csv="vm.formattedSightings"
+                                                csv-header="['Beacon Name', 'Beacon Id', 'Beacon Battery', 'Detector Name',
                        'Detector ID', 'Detector Battery', 'First Seen','Last Seen', 'Location', 'Confirmed']"
-                                    filename="sightings.csv">
-                                <span class="glyphicon glyphicon-export"></span> Export
-                            </button>
-                        </th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr ng-repeat="sighting in vm.displayedSightings">
+                                                filename="sightings.csv">
+                                            <span class="glyphicon glyphicon-export"></span> Export
+                                        </button>
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr ng-repeat="sighting in vm.displayedSightings">
 
-                        <td style="height:56px">
-                            <img height="40px"
-                                 ng-src="{{ sighting.beacon.photo }}"
-                                 ng-if="sighting.beacon.photo"/>
-                        </td>
-                        <td class="valign-middle">
-                            <a ng-if="!sighting.beacon.uid"
-                               ng-click="vm.viewGps(sighting)">GPS Coordinates</a>
-                            <a ng-if="!!sighting.beacon.reference_id"
-                               ng-click="vm.editBeacon(sighting.beacon)">
-                                {{ sighting.beacon.reference_id : sighting.beacon.uid.length <= 10 ? sighting.beacon.uid :
-                                        sighting.beacon.uid.substring(0, 3) + '...' + sighting.beacon.uid.substring(sighting.beacon.uid.length - 3) }}</a>
-                            <a ng-if="!!sighting.beacon.name"
-                               ng-click="vm.editBeacon(sighting.beacon)">{{ sighting.beacon.name }}</a>
-                        </td>
-                        <td class="valign-middle">
-                            {{ sighting.first_seen_at | date:'yyyy-MM-dd HH:mm:ss' }}
-                        </td>
-                        <td class="valign-middle">
-                            {{ sighting.last_seen_at | date:'yyyy-MM-dd HH:mm:ss' }}
-                        </td>
-                        <td class="valign-middle">
-                            <a ng-if="!!sighting.detector.reference_id"
-                               ng-click="vm.editDetector(sighting.detector)">
-                                {{ sighting.detector.reference_id : sighting.detector.uid.length <= 10 ? sighting.detector.uid :
-                                        sighting.detector.uid.substring(0, 3) + '...' + sighting.detector.uid.substring(sighting.detector.uid.length - 3) }}</a>
-                            <a ng-if="!!sighting.detector.name"
-                               ng-click="vm.editDetector(sighting.detector)">{{ sighting.detector.name }}</a>
-                        </td>
-                        <td class="valign-middle text-center">
-                            {{ sighting.rssi || 'N/A' }}
-                        </td>
-                        <td class="valign-middle text-center">
-                            {{ sighting.beacon_battery || 'N/A' }}
-                        </td>
-                        <td class="valign-middle text-center">
-                            <input type="checkbox" ng-model="sighting.confirmed"
-                                   ng-click="vm.confirmSighting(sighting)">
-                        </td>
-                        <td class="valign-middle text-center">
-                            <a ng-click="vm.editSighting(sighting)">Edit</a>
-                        </td>
-                    </tr>
-                    </tbody>
-                    <tfoot>
-                    <tr>
-                        <td colspan="10" class="text-center">
-                            <div st-pagination="" st-items-by-page="10" st-displayed-pages="5"></div>
-                        </td>
-                    </tr>
-                    </tfoot>
-                </table>
+                                    <td style="height:56px">
+                                        <img height="40px"
+                                             ng-src="{{ sighting.beacon.photo }}"
+                                             ng-if="sighting.beacon.photo"/>
+                                    </td>
+                                    <td class="valign-middle">
+                                        <a ng-if="!sighting.beacon.uid"
+                                           ng-click="vm.viewGps(sighting)">GPS Coordinates</a>
+                                        <a ng-if="!!sighting.beacon.reference_id"
+                                                {{ sighting.beacon.reference_id : sighting.beacon.uid.length <= 10 ? sighting.beacon.uid :
+                                                        sighting.beacon.uid.substring(0, 3) + '...' + sighting.beacon.uid.substring(sighting.beacon.uid.length - 3) }}
+                                           ng-click="vm.editBeacon(sighting.beacon)">
+                                        </a>
+                                        <a ng-if="!!sighting.beacon.name"
+                                           ng-click="vm.editBeacon(sighting.beacon)">{{ sighting.beacon.name }}</a>
+                                    </td>
+                                    <td class="valign-middle">
+                                        {{ sighting.first_seen_at | date:'yyyy-MM-dd HH:mm:ss' }}
+                                    </td>
+                                    <td class="valign-middle">
+                                        {{ sighting.last_seen_at | date:'yyyy-MM-dd HH:mm:ss' }}
+                                    </td>
+                                    <td class="valign-middle">
+                                        <a ng-if="!!sighting.detector.reference_id"
+                                                {{ sighting.detector.reference_id : sighting.detector.uid.length <= 10 ? sighting.detector.uid :
+                                                        sighting.detector.uid.substring(0, 3) + '...' + sighting.detector.uid.substring(sighting.detector.uid.length - 3) }}
+                                           ng-click="vm.editDetector(sighting.detector)"></a>
+                                        <a ng-if="!!sighting.detector.name"
+                                           ng-click="vm.editDetector(sighting.detector)">{{ sighting.detector.name }}</a>
+                                    </td>
+                                    <td class="valign-middle text-center">
+                                        {{ sighting.rssi || 'N/A' }}
+                                    </td>
+                                    <td class="valign-middle text-center">
+                                        {{ sighting.beacon_battery || 'N/A' }}
+                                    </td>
+                                    <td class="valign-middle text-center">
+                                        <input type="checkbox" ng-model="sighting.confirmed"
+                                               ng-click="vm.confirmSighting(sighting)">
+                                    </td>
+                                    <td class="valign-middle text-center">
+                                        <a ng-click="vm.editSighting(sighting)">Edit</a>
+                                    </td>
+                                </tr>
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                    <td colspan="10" class="text-center">
+                                        <div st-pagination="" st-items-by-page="10" st-displayed-pages="5"></div>
+                                    </td>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="map" class="tab-pane fade">
+                        <div class="form-group" colspan="9">
+                            <leaflet id="mapLeaflet" height="480px" width="100%"
+                                     paths="vm.map.paths" markers="vm.map.markers" maxbounds="vm.map.maxbounds"
+                                     legend="vm.map.legend">
+                            </leaflet>
+                            <style> .legend {
+                                font: 14px/16px Arial, Helvetica, sans-serif;
+                                background: rgba(255, 255, 255, 0.7);
+                                box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+                                border-radius: 5px;
+                                padding: 6px 8px;
+                                width: 180px;
+                                line-height: 18px;
+                                color: #555;
+                            }
+                            .legend i {
+                                width: 16px;
+                                height: 16px;
+                                float: left;
+                                margin-right: 8px;
+                                opacity: 0.7;
+                            }
+                            </style>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
