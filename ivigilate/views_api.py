@@ -205,7 +205,7 @@ class AddSightingsView(views.APIView):
 
                         if (type == 'GPS'):
                             self.open_sighting_async(detector, detector_battery, None, 0, rssi,
-                                                     location_parsed, metadata, type)
+                                                     location_parsed, metadata, type, None)
                         elif len(beacons) > 0:
                             for beacon in beacons:
                                 if beacon.type == 'F' and beacon.location is not None:
