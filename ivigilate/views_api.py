@@ -124,7 +124,7 @@ class ProvisionDeviceView(views.APIView):
             elif type[0] == 'D':
                 try:
                     detector = Detector.objects.get(account=account, uid=uid)
-                    detector.type = type[1]
+                    detector.type = type[1] if type[1] == 'F' else 'M'  # Remove this if else check in a later release (protection for having removed the 'User' detector type
                     detector.name = name
                     detector.metadata = metadata
                     detector.is_active = is_active
