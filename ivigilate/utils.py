@@ -42,6 +42,8 @@ def get_file_extension(file_name, decoded_file):
 
 
 def close_sighting(sighting, new_sighting_detector=None):
+    if sighting.type == 'MC':
+        sighting.last_seen_at = None  # this forces the datetime update on the model save()
     sighting.is_active = False
     sighting.save()
     logger.debug('close_sighting() Sighting \'%s\' is no longer current.', sighting)
