@@ -204,8 +204,7 @@ class AddSightingsView(views.APIView):
                             #                                  status.HTTP_402_PAYMENT_REQUIRED)
 
                         if (type == 'GPS'):
-                            self.open_sighting_async(detector, detector_battery, None, 0, rssi,
-                                                     location_parsed, metadata, type, None)
+                            self.open_sighting_async(detector, detector_battery, None, 0, rssi, location_parsed, metadata, type, None)
                         elif len(beacons) > 0:
                             for beacon in beacons:
                                 if beacon.type == 'F' and beacon.location is not None:
@@ -227,8 +226,9 @@ class AddSightingsView(views.APIView):
                                     previous_sighting_rssi = previous_sighting.rssi if previous_sighting is not None and previous_sighting.rssi is not None else 0
                                     if type == 'AC' or \
                                             (previous_sighting is None and rssi >= detector.arrival_rssi) or \
-                                            (beacon.type == 'M' and (previous_sighting.detector == detector or rssi * 1.05 > previous_sighting_rssi)) or \
-                                            (detector.type == 'M' and (previous_sighting.beacon == beacon or rssi * 1.05 > previous_sighting_rssi)):
+                                            (previous_sighting is not None and \
+                                                (beacon.type == 'M' and (previous_sighting.detector == detector or rssi * 1.05 > previous_sighting_rssi)) or \
+                                                (detector.type == 'M' and (previous_sighting.beacon == beacon or rssi * 1.05 > previous_sighting_rssi))):
                                         self.open_sighting_async(detector, detector_battery, beacon, beacon_battery, rssi, location_parsed, metadata, type, previous_sighting)
                                     else:
                                         logger.info('AddSightingsView.post() Ignored Beacon MAC / UID as the rssi is lower than the ' +
