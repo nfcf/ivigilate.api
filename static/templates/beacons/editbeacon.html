@@ -79,7 +79,7 @@
 
     <div class="form-group" ng-if="vm.showMap">
         <div class="form-group">
-            <leaflet id='editBeaconMap' lf-center="vm.map.center" height="480px" width="100%" markers="vm.map.markers" maxbounds="vm.map.maxbounds"></leaflet>
+            <leaflet id='editBeaconMap' height="480px" width="100%" markers="vm.map.markers" maxbounds="vm.map.maxbounds" event-broadcast="vm.map.events"></leaflet>
         </div>
     </div>
 </div>

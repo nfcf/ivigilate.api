@@ -5,9 +5,9 @@
         .module('ivigilate.beacons.controllers')
         .controller('EditBeaconController', EditBeaconController);
 
-    EditBeaconController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data', 'Authentication', 'Beacons', 'Events', 'leafletData'];
+    EditBeaconController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data', 'Authentication', 'Beacons', 'Events', 'leafletData', 'leafletMarkerEvents'];
 
-    function EditBeaconController($location, $scope, $timeout, $modalInstance, data, Authentication, Beacons, Events, leafletData) {
+    function EditBeaconController($location, $scope, $timeout, $modalInstance, data, Authentication, Beacons, Events, leafletData, leafletMarkerEvents) {
         var vm = this;
         vm.fileChanged = fileChanged;
         vm.cancel = cancel;
@@ -32,12 +32,12 @@
             propertyLoc: ['lat', 'lon'],
             autoCollapse: true,
             autoType: false,
-            minLength: 2
+            minLength: 2,
+            circleLocation: false
         });
         searchControl.on('search_locationfound', function (e) {
             vm.map.markers['m']['lng'] = e.latlng['lng'];
             vm.map.markers['m']['lat'] = e.latlng['lat'];
-            vm.beacon.location.coordinates = [vm.map.markers['m']['lng'], vm.map.markers['m']['lat']];
         });
 
         leafletData.getMap('editBeaconMap').then(function (map) {
@@ -86,12 +86,18 @@
                             'type': 'vectorMarker',
                             'icon': 'map-marker',
                             'markerColor': '#00c6d2'
-                        }
+                        },
+                        draggable: true
+                    }
+                },
+                events: {
+                    markers: {
+                        enable: leafletMarkerEvents.getAvailableEvents()
                     }
                 }
             };
+
             resizeMap();
-            vm.current_marker.push ([vm.map.markers['m']['lat'], vm.map.markers['m']['lng']]);
             zoomToFit();
             //set up map custom controls
             leafletData.getMap('editBeaconMap').then(function (map) {
@@ -135,6 +141,7 @@
 
             if (vm.form.$valid) {
                 vm.beacon.unauthorized_events = vm.events_selected;
+                vm.beacon.location.coordinates = [vm.map.markers['m']['lng'], vm.map.markers['m']['lat']];
                 Beacons.update(vm.beacon, vm.imageToUpload).then(successFn, errorFn, progressFn);
             } else {
                 vm.error = 'There are invalid fields in the form.';
@@ -158,9 +165,12 @@
         }
 
         function zoomToFit() {
-            if(!vm.map.markers){
+            vm.current_marker = [];
+            if (!vm.map.markers) {
                 vm.current_marker.push([vm.map.maxbounds.northEast.lat, vm.map.maxbounds.northEast.lng],
                     [vm.map.maxbounds.southWest.lat, vm.map.maxbounds.southWest.lng]);
+            }else {
+                vm.current_marker.push([vm.map.markers['m']['lat'], vm.map.markers['m']['lng']]);
             }
             vm.mapBounds = new L.latLngBounds(vm.current_marker);
             leafletData.getMap('editBeaconMap').then(function (map) {
@@ -176,6 +186,12 @@
                 }, 500);
             });
         }
+
+        $scope.$on('leafletDirectiveMarker.editBeaconMap.dragend', function (e, args) {
+            vm.map.markers['m']['lng'] = args.leafletEvent.target._latlng.lng;
+            vm.map.markers['m']['lat'] = args.leafletEvent.target._latlng.lat;
+            zoomToFit();
+        });
     }
 
 })();
