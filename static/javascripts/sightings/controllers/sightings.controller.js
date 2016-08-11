@@ -373,6 +373,13 @@
                     color_index = color_index < vm.colors.length ? color_index + 1 : 0;
                     marker_index = 0;
                     circle_marker_index = 0;
+                } else {
+                    for (var det in vm.map.paths) {
+                        if (vm.map.paths.hasOwnProperty(det) && det === device_name) {
+                            circle_marker_index = vm.map.paths[det]['latlngs'].length;
+                            marker_index = Math.floor(circle_marker_index / 5);
+                        }
+                    }
                 }
                 marker = uid + "_" + marker_index;
                 circle_marker = uid + '_circleMarker_' + circle_marker_index;
@@ -383,6 +390,7 @@
                     latlngs: [vm.sightings[i]['location']['coordinates'][1], vm.sightings[i]['location']['coordinates'][0]],
                     radius: 5,
                     type: 'circleMarker'
+                    //group: 'markers'
                 };
 
                 //set up full marker object to show at first and last location as well as every 5 sightings
@@ -398,7 +406,8 @@
                     'icon': {
                         'type': 'vectorMarker',
                         'icon': 'map-marker'
-                    }
+                    },
+                    group: 'markers'
                 };
 
                 if (marker_index !== 0 && (circle_marker_index + 1 ) % 5 !== 0) {
