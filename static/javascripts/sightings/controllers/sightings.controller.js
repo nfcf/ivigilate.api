@@ -359,27 +359,30 @@
                     device_name = vm.sightings[i]['detector']['name'];
                 }
                 //set up path object and legend for each sighted device
-                if (vm.sightings[i]['location'] && !sighted_devices.includes(uid)) {
-                    sighted_devices.push(uid);
-                    vm.map.paths[uid] = {
-                        color: vm.colors[color_index],
-                        weight: 2,
-                        latlngs: [],
-                        dashArray: '1, 5'
-                    };
-                    vm.map.legend.colors.push(vm.colors[color_index]);
-                    vm.map.legend.labels.push(device_name);
-                    color_index = color_index < vm.colors.length ? color_index + 1 : 0;
-                    marker_index = 0;
-                    circle_marker_index = 0;
-                } else {
-                    for (var det in vm.map.paths) {
-                        if (vm.map.paths.hasOwnProperty(det) && det === device_name) {
-                            circle_marker_index = vm.map.paths[det]['latlngs'].length;
-                            marker_index = Math.floor(circle_marker_index / 5);
+                if (vm.sightings[i]['location']) {
+                    if (!sighted_devices.includes(uid)) {
+                        sighted_devices.push(uid);
+                        vm.map.paths[uid] = {
+                            color: vm.colors[color_index],
+                            weight: 2,
+                            latlngs: [],
+                            dashArray: '1, 5'
+                        };
+                        vm.map.legend.colors.push(vm.colors[color_index]);
+                        vm.map.legend.labels.push(device_name);
+                        color_index = color_index < vm.colors.length ? color_index + 1 : 0;
+                        marker_index = 0;
+                        circle_marker_index = 0;
+                    } else {
+                        for (var det in vm.map.paths) {
+                            if (vm.map.paths.hasOwnProperty(det) && det === device_name) {
+                                circle_marker_index = vm.map.paths[det]['latlngs'].length;
+                                marker_index = Math.ceil(circle_marker_index / 5);
+                            }
                         }
                     }
                 }
+
                 marker = uid + "_" + marker_index;
                 circle_marker = uid + '_circleMarker_' + circle_marker_index;
                 //set up circleMarker object for each sighting
@@ -424,7 +427,7 @@
                 }
                 //save sighting location to current markers for calculating map bounds
                 vm.current_markers.push(vm.map.paths[circle_marker]['latlngs']);
-                
+
                 uid = "";
                 marker_index++;
                 circle_marker_index++;
