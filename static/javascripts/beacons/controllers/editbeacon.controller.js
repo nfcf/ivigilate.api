@@ -98,6 +98,8 @@
             };
 
             resizeMap();
+            vm.current_marker.push ([vm.map.markers['m']['lat'], vm.map.markers['m']['lng']]);
+
             zoomToFit();
             //set up map custom controls
             leafletData.getMap('editBeaconMap').then(function (map) {
@@ -165,14 +167,15 @@
         }
 
         function zoomToFit() {
-            vm.current_marker = [];
-            if (!vm.map.markers) {
-                vm.current_marker.push([vm.map.maxbounds.northEast.lat, vm.map.maxbounds.northEast.lng],
+            vm.current_markers = [];
+
+            if(!vm.map.markers){
+                vm.current_markers.push([vm.map.maxbounds.northEast.lat, vm.map.maxbounds.northEast.lng],
                     [vm.map.maxbounds.southWest.lat, vm.map.maxbounds.southWest.lng]);
             }else {
-                vm.current_marker.push([vm.map.markers['m']['lat'], vm.map.markers['m']['lng']]);
+                vm.current_markers.push([vm.map.markers['m']['lat'], vm.map.markers['m']['lng']]);
             }
-            vm.mapBounds = new L.latLngBounds(vm.current_marker);
+            vm.mapBounds = new L.latLngBounds(vm.current_markers);
             leafletData.getMap('editBeaconMap').then(function (map) {
                 map.fitBounds(vm.mapBounds, {padding: [50, 50]});
             });
