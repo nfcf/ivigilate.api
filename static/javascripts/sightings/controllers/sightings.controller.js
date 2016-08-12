@@ -49,7 +49,6 @@
         vm.map = {
             id: 'map',
             defaults: {
-                tilelayer: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
                 scrollWheelZoom: false
             },
             maxbounds: {'northEast': {'lat': -60, 'lng': -120}, 'southWest': {'lat': 60, 'lng': 120}},
@@ -61,7 +60,7 @@
         };
 
         vm.colors = ['#00c6d2', '#839d57', '#f04d4c', '#65666a', '#dddddd'];
-        vm.current_marker = undefined;
+        vm.current_markers = undefined;
         vm.mapBounds = undefined;
 
         vm.resetValue = function ($event) {
@@ -339,7 +338,7 @@
                 colors: [],
                 labels: []
             };
-            vm.current_marker = [];
+            vm.current_markers = [];
 
             var uid;
             var device_name;
@@ -384,13 +383,12 @@
                 marker = uid + "_" + marker_index;
                 circle_marker = uid + '_circleMarker_' + circle_marker_index;
                 //set up circleMarker object for each sighting
-                vm.map.paths[uid + '_circleMarker_' + circle_marker_index] = {
+                vm.map.paths[circle_marker] = {
                     opacity: 1,
                     weight: 2,
                     latlngs: [vm.sightings[i]['location']['coordinates'][1], vm.sightings[i]['location']['coordinates'][0]],
                     radius: 5,
                     type: 'circleMarker'
-                    //group: 'markers'
                 };
 
                 //set up full marker object to show at first and last location as well as every 5 sightings
@@ -410,7 +408,7 @@
                     group: 'markers'
                 };
 
-                if (marker_index !== 0 && (circle_marker_index + 1 ) % 5 !== 0) {
+                if (marker_index !== 0 && (circle_marker_index + 1) % 5 !== 0) {
                     marker_index--;
                 }
                 vm.map.markers[marker] = current_marker;
@@ -425,8 +423,8 @@
                     }
                 }
                 //save sighting location to current markers for calculating map bounds
-                vm.current_marker.push([vm.map.markers[marker]['lat'], vm.map.markers[marker]['lng']]);
-
+                vm.current_markers.push(vm.map.paths[circle_marker]['latlngs']);
+                
                 uid = "";
                 marker_index++;
                 circle_marker_index++;
@@ -435,14 +433,14 @@
 
         function zoomToFit() {
 
-            if (!vm.sightings || !vm.current_marker) {
+            if (!vm.sightings || !vm.current_markers) {
                 return;
             }
-            if (vm.current_marker.length === 0) {
-                vm.current_marker.push([vm.map.maxbounds.northEast.lat, vm.map.maxbounds.northEast.lng],
+            if (vm.current_markers.length === 0) {
+                vm.current_markers.push([vm.map.maxbounds.northEast.lat, vm.map.maxbounds.northEast.lng],
                     [vm.map.maxbounds.southWest.lat, vm.map.maxbounds.southWest.lng]);
             }
-            vm.mapBounds = new L.latLngBounds(vm.current_marker);
+            vm.mapBounds = new L.latLngBounds(vm.current_markers);
             leafletData.getMap('mapLeaflet').then(function (map) {
                 map.fitBounds(vm.mapBounds, {padding: [30, 30]});
             });
