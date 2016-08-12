@@ -375,7 +375,7 @@
                         circle_marker_index = 0;
                     } else {
                         for (var det in vm.map.paths) {
-                            if (vm.map.paths.hasOwnProperty(det) && det === device_name) {
+                            if (vm.map.paths.hasOwnProperty(det) && det === uid) {
                                 circle_marker_index = vm.map.paths[det]['latlngs'].length;
                                 marker_index = Math.ceil(circle_marker_index / 5);
                             }
