@@ -9,10 +9,12 @@
                     <label for="filterStartDate">Start Date</label>
 
                     <div class="input-group">
-                        <input type="text" name="filterStartDate" class="form-control" uib-datepicker-popup="yyyy-MM-dd"
+                        <input type="text" name="filterStartDate" class="form-control"
+                               datetime-picker="yyyy-MM-dd HH:mm"
                                datepicker-options="vm.datepickerOptions" max-date="vm.filterEndDate"
-                               show-button-bar="false"
-                               is-open="vm.filterDateIsOpen" ng-model="vm.filterStartDate" placeholder="YYYY-MM-DD"
+                               show-button-bar="false" hour-step="1"
+                               is-open="vm.filterDateIsOpen" ng-model="vm.filterStartDate"
+                               placeholder="YYYY-MM-DD"
                                readonly/>
                         <span class="input-group-btn">
                             <button type="button" class="btn btn-default"
@@ -23,7 +25,6 @@
                 </div>
                 <div class="col-md-3">
                     <label for="filterDate">End Date</label>
-
                     <div class="input-group">
                         <input type="text" name="filterEndDate" class="form-control" uib-datepicker-popup="yyyy-MM-dd"
                                datepicker-options="vm.datepickerOptions" min-date="vm.filterStartDate"
@@ -202,6 +203,7 @@
                                 line-height: 18px;
                                 color: #555;
                             }
+
                             .legend i {
                                 width: 16px;
                                 height: 16px;

@@ -23,7 +23,7 @@
         vm.events_selected = [];
         vm.map = undefined;
         vm.showMap = false;
-        vm.current_marker = [];
+        vm.current_markers = undefined;
 
         var searchControl = new L.Control.Search({
             url: 'http://nominatim.openstreetmap.org/search?format=json&q={s}',
@@ -96,11 +96,7 @@
                     }
                 }
             };
-
             resizeMap();
-            vm.current_marker.push ([vm.map.markers['m']['lat'], vm.map.markers['m']['lng']]);
-
-            zoomToFit();
             //set up map custom controls
             leafletData.getMap('editBeaconMap').then(function (map) {
                 L.easyButton('fa-arrows', function () {
@@ -108,7 +104,6 @@
                 }).addTo(map);
 
             });
-
             Events.list().then(eventsSuccessFn, eventsErrorFn);
 
             function eventsSuccessFn(data, status, headers, config) {
@@ -168,12 +163,11 @@
 
         function zoomToFit() {
             vm.current_markers = [];
-
-            if(!vm.map.markers){
+            if (!vm.map.markers) {
                 vm.current_markers.push([vm.map.maxbounds.northEast.lat, vm.map.maxbounds.northEast.lng],
                     [vm.map.maxbounds.southWest.lat, vm.map.maxbounds.southWest.lng]);
-            }else {
-                vm.current_markers.push([vm.map.markers['m']['lat'], vm.map.markers['m']['lng']]);
+            }else{
+                vm.current_markers.push([vm.map.markers.m.lat, vm.map.markers.m.lng]);
             }
             vm.mapBounds = new L.latLngBounds(vm.current_markers);
             leafletData.getMap('editBeaconMap').then(function (map) {
@@ -186,6 +180,7 @@
                 setTimeout(function () {
                     map.invalidateSize();
                     map.options.minZoom = 1;
+                    zoomToFit();
                 }, 500);
             });
         }
@@ -195,6 +190,11 @@
             vm.map.markers['m']['lat'] = args.leafletEvent.target._latlng.lat;
             zoomToFit();
         });
+
+         $scope.$watch('vm.current_markers', function () {
+                vm.filterChanged = true;
+            });
+
     }
 
 })();

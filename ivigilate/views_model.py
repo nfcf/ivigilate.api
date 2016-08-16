@@ -311,7 +311,7 @@ class SightingViewSet(viewsets.ModelViewSet):
             filter_detector_id = request.query_params.get('detectorId', None)
             filter_timezone_offset = int(request.query_params.get('timezoneOffset', 0))
             filter_start_date = request.query_params.get('startDate',
-                                                         str(datetime.now(timezone.utc).date()) + 'T00:00:00')
+                                                         str(datetime.now(timezone.utc).date()))
             filter_start_date = str(
                 datetime.strptime(filter_start_date, '%Y-%m-%dT%H:%M:%S') + timedelta(
                     minutes=filter_timezone_offset)) + '+00'

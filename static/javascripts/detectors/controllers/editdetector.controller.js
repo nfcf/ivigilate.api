@@ -21,7 +21,7 @@
         vm.imageToUpload = undefined;
         vm.map = undefined;
         vm.showMap = false;
-        vm.current_marker = [];
+        vm.current_markers = undefined;
 
         var searchControl = new L.Control.Search({
             url: 'http://nominatim.openstreetmap.org/search?format=json&q={s}',
@@ -69,11 +69,6 @@
                 };
             }
             vm.map = {
-                center: {
-                    lng: vm.detector.location.coordinates[0],
-                    lat: vm.detector.location.coordinates[1],
-                    zoom: 10
-                },
                 defaults: {
                     scrollWheelZoom: false
                 },
@@ -98,9 +93,6 @@
                 }
             };
             resizeMap();
-
-            vm.current_marker.push ([vm.map.markers['m']['lat'], vm.map.markers['m']['lng']]);
-            zoomToFit();
             //set up map custom controls
             leafletData.getMap('editDetectorMap').then(function (map) {
                 L.easyButton('fa-arrows', function () {
@@ -151,12 +143,12 @@
         }
 
         function zoomToFit() {
-
+            vm.current_markers = [];
             if(!vm.map.markers){
                 vm.current_markers.push([vm.map.maxbounds.northEast.lat, vm.map.maxbounds.northEast.lng],
                     [vm.map.maxbounds.southWest.lat, vm.map.maxbounds.southWest.lng]);
             }else {
-                vm.current_marker.push([vm.map.markers['m']['lat'], vm.map.markers['m']['lng']]);
+               vm.current_markers.push([vm.map.markers.m.lat, vm.map.markers.m.lng]);
             }
             vm.mapBounds = new L.latLngBounds(vm.current_markers);
             leafletData.getMap('editDetectorMap').then(function (map) {
@@ -169,6 +161,7 @@
                 setTimeout(function () {
                     map.invalidateSize();
                     map.options.minZoom = 1;
+                    zoomToFit();
                 }, 500);
             });
         }
