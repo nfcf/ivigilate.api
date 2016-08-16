@@ -63,6 +63,7 @@
         vm.current_markers = undefined;
         vm.mapBounds = undefined;
         vm.current_markers = undefined;
+        vm.pathsOn = false;
 
         vm.resetValue = function ($event) {
             vm.filterBeaconOrDetector = null;
@@ -147,6 +148,11 @@
                 L.easyButton('fa-arrows', function () {
                     zoomToFit();
                 }).addTo(map);
+                L.easyButton('fa-ellipsis-h', function () {
+                    togglePathsOn();
+                    showPaths();
+                }).addTo(map);
+
 
             });
         }
@@ -167,9 +173,9 @@
                 if (vm.mapView) {
                     resizeMap();
                     setUpSightingsMap();
-
                     if (vm.filterChanged) {
                         zoomToFit();
+                        showPaths();
                         vm.filterChanged = false;
                     }
                 }
@@ -359,9 +365,8 @@
                         sighted_devices.push(uid);
                         vm.map.paths[uid] = {
                             color: vm.colors[color_index],
-                            weight: 5,
                             latlngs: [],
-                            dashArray: '10, 10, 2, 10',
+                            dashArray: '3,5',
                             dashOffset: 10
                         };
                         vm.map.legend.colors.push(vm.colors[color_index]);
@@ -382,8 +387,7 @@
                 //set up circleMarker object for each sighting
                 vm.map.paths[circle_marker] = {
                     type: 'circleMarker',
-                    opacity: 1,
-                    weight: 4,
+                    fillOpacity: 0.9,
                     latlngs: [vm.sightings[i]['location']['coordinates'][1], vm.sightings[i]['location']['coordinates'][0]],
                     radius: 7,
                     message: 'last seen : ' + vm.sightings[i]['last_seen_at'].substring(0, 10) + " at " + vm.sightings[i]['last_seen_at'].substring(11, 16),
@@ -402,7 +406,7 @@
                     "<br>last seen: " + vm.sightings[i]['last_seen_at'].substring(0, 10) + " at " + vm.sightings[i]['last_seen_at'].substring(11, 16),
                     'icon': {
                         'type': 'vectorMarker',
-                        'icon': 'map-marker'
+                        'icon': 'male'
                     },
                     group: 'markers'
                 };
@@ -436,6 +440,23 @@
             leafletData.getMap('mapLeaflet').then(function (map) {
                 map.fitBounds(vm.mapBounds, {padding: [50, 50]});
             });
+        }
+
+        function showPaths(){
+
+            if (!vm.sightings || !vm.map.paths) {
+                return;
+            }
+            var weight = vm.pathsOn ? 3 : 0;
+            for(var obj in vm.map.paths){
+                if(vm.map.paths.hasOwnProperty(obj)){
+                    vm.map.paths[obj]['weight'] = weight;
+                }
+            }
+        }
+
+        function togglePathsOn(){
+            vm.pathsOn = vm.pathsOn === true ? false : true;
         }
 
 
