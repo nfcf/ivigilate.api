@@ -316,7 +316,7 @@ class SightingViewSet(viewsets.ModelViewSet):
                 datetime.strptime(filter_start_date, '%Y-%m-%dT%H:%M:%S') + timedelta(
                     minutes=filter_timezone_offset)) + '+00'
             filter_end_date = request.query_params.get('endDate',
-                                                       str(datetime.now(timezone.utc).date()) + 'T23:59:59')
+                                                       str(datetime.now(timezone.utc).date()))
             filter_end_date = str(
                 datetime.strptime(filter_end_date, '%Y-%m-%dT%H:%M:%S') + timedelta(
                     minutes=filter_timezone_offset)) + '+00'
