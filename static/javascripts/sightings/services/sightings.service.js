@@ -30,8 +30,8 @@
 
         function list(filterStartDate, filterEndDate, filterBeaconOrDetector, filterShowAll) {
             var filterTimezoneOffset = new Date().getTimezoneOffset();
-            filterStartDate = filterStartDate + "T00:00:00";
-            filterEndDate = filterEndDate + "T23:59:59";
+            filterStartDate = filterStartDate + ":00";
+            filterEndDate = filterEndDate + ":59";
 
 
             return $http.get('/api/v1/sightings/',

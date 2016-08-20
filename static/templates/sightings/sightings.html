@@ -9,13 +9,9 @@
                     <label for="filterStartDate">Start Date</label>
 
                     <div class="input-group">
-                        <input type="text" name="filterStartDate" class="form-control"
-                               uib-datepicker-popup="yyyy-MM-dd"
-                               datepicker-options="vm.datepickerOptions" max-date="vm.filterEndDate"
-                               show-button-bar="false" hour-step="1"
-                               is-open="vm.filterDateIsOpen" ng-model="vm.filterStartDate"
-                               placeholder="YYYY-MM-DD"
-                               readonly/>
+                        <input type="text" name="filterStartDate" class="form-control" datetime-picker="yyyy-MM-dd HH:mm"
+                               datepicker-options="vm.datepickerOptions" timepicker-options="vm.timepickerOptions" maxDate="vm.endDate"
+                               show-button-bar="false" is-open="vm.filterDateIsOpen" ng-model="vm.startDate" readonly/>
                         <span class="input-group-btn">
                             <button type="button" class="btn btn-default"
                                     ng-click="vm.openDatePicker($event, 'filterDateIsOpen')">
@@ -26,12 +22,10 @@
                 <div class="col-md-3">
                     <label for="filterDate">End Date</label>
                     <div class="input-group">
-                        <input type="text" name="filterEndDate" class="form-control" uib-datepicker-popup="yyyy-MM-dd"
-                               datepicker-options="vm.datepickerOptions" min-date="vm.filterStartDate"
-                               max-date="vm.filterDateMax"
-                               show-button-bar="false" n
-                               is-open="vm.filterEndDateIsOpen" ng-model="vm.filterEndDate" placeholder="YYYY-MM-DD"
-                               readonly/>
+                        <input type="text" name="filterEndDate" class="form-control" datetime-picker="yyyy-MM-dd HH:mm"
+                               datepicker-options="vm.datepickerOptions"  timepicker-options="vm.timepickerOptions" minDate="vm.startDate"
+                               show-button-bar="false"
+                               is-open="vm.filterEndDateIsOpen" ng-model="vm.endDate" readonly/>
                         <span class="input-group-btn">
                             <button type="button" class="btn btn-default"
                                     ng-click="vm.openDatePicker($event, 'filterEndDateIsOpen')">

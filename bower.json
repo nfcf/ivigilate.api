@@ -14,7 +14,7 @@
     "angular": "~1.5.0",
     "angular-cookies": "~1.4.0",
     "angular-route": "~1.4.0",
-    "angular-bootstrap": "^0.14",
+    "angular-bootstrap": "1.3.3",
     "angular-bootstrap-show-errors": "~2.3.0",
     "angular-toggle-switch": "~1.2.1",
     "angular-smart-table": "~1.4.0",
@@ -32,7 +32,6 @@
     "selectize": "~0.8.5",
     "select2": "~3.5.2",
     "bootstrap": "~3.3.0",
-    "bootstrap-ui-datetime-picker": "~1.1.0",
     "bootstrap-toggle": "~2.2.0",
     "jquery": "~2.1.1",
     "ng-lodash": "~0.2.0",
@@ -50,6 +49,10 @@
     "leaflet-search": "^1.9.9",
     "Leaflet.EasyButton": "^1.3.1",
     "leaflet.markercluster": "^0.5.0",
-    "leaflet-polylinedecorator": "^1.1.0"
+    "leaflet-polylinedecorator": "^1.1.0",
+    "bootstrap-ui-datetime-picker": "^2.4.3"
+  },
+  "resolutions": {
+    "angular-bootstrap": "1.3.3"
   }
 }
