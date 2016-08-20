@@ -11,7 +11,7 @@
                     <div class="input-group">
                         <input type="text" name="filterStartDate" class="form-control" datetime-picker="yyyy-MM-dd HH:mm"
                                datepicker-options="vm.datepickerOptions" timepicker-options="vm.timepickerOptions" maxDate="vm.endDate"
-                               show-button-bar="false" is-open="vm.filterDateIsOpen" ng-model="vm.startDate" readonly/>
+                               button-bar="false" is-open="vm.filterDateIsOpen" ng-model="vm.startDate" readonly/>
                         <span class="input-group-btn">
                             <button type="button" class="btn btn-default"
                                     ng-click="vm.openDatePicker($event, 'filterDateIsOpen')">
@@ -24,8 +24,7 @@
                     <div class="input-group">
                         <input type="text" name="filterEndDate" class="form-control" datetime-picker="yyyy-MM-dd HH:mm"
                                datepicker-options="vm.datepickerOptions"  timepicker-options="vm.timepickerOptions" minDate="vm.startDate"
-                               show-button-bar="false"
-                               is-open="vm.filterEndDateIsOpen" ng-model="vm.endDate" readonly/>
+                               button-bar="false" is-open="vm.filterEndDateIsOpen" ng-model="vm.endDate" readonly/>
                         <span class="input-group-btn">
                             <button type="button" class="btn btn-default"
                                     ng-click="vm.openDatePicker($event, 'filterEndDateIsOpen')">

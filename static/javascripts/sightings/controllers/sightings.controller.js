@@ -51,7 +51,7 @@
         vm.timepickerOptions = {
             hourStep: 1,
             minuteStep: 15,
-            showMeridian: true
+            showMeridian: false
         };
 
         vm.mapView = false;
