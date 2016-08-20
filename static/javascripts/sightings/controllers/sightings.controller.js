@@ -25,11 +25,11 @@
         vm.formattedSightings = undefined;
 
         vm.startDate = new Date();
-        vm.filterStartDate = vm.filterDateMax= $filter('date')(vm.startDate, 'yyyy-MM-ddTHH:mm');
+        vm.filterStartDate = vm.filterDateMax = $filter('date')(vm.startDate, 'yyyy-MM-ddTHH:mm');
         vm.filterDateIsOpen = false;
 
         vm.endDate = new Date();
-        vm.filterEndDate = vm.filterDateMax= $filter('date')(vm.endDate, 'yyyy-MM-ddTHH:mm');
+        vm.filterEndDate = vm.filterDateMax = $filter('date')(vm.endDate, 'yyyy-MM-ddTHH:mm');
         vm.filterEndDateIsOpen = false;
 
         vm.beaconsOrDetectors = [];
@@ -111,13 +111,13 @@
             Detectors.list().then(detectorsSuccessFn, errorFn);
 
             $scope.$watch('vm.startDate', function () {
-                vm.filterStartDate = $filter('date')(vm.filterStartDate, 'yyyy-MM-ddTHH:mm');
+                vm.filterStartDate = $filter('date')(vm.startDate, 'yyyy-MM-ddTHH:mm');
                 vm.filterChanged = true;
                 refresh();
             });
 
             $scope.$watch('vm.endDate', function () {
-                vm.filterEndDate = $filter('date')(vm.filterEndDate, 'yyyy-MM-ddTHH:mm');
+                vm.filterEndDate = $filter('date')(vm.endDate, 'yyyy-MM-ddTHH:mm');
                 vm.filterChanged = true;
                 refresh();
             });
