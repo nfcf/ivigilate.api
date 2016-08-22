@@ -7,11 +7,10 @@
             <div class="row">
                 <div class="col-md-3">
                     <label for="filterStartDate">Start Date</label>
-
                     <div class="input-group">
                         <input type="text" name="filterStartDate" class="form-control" datetime-picker="yyyy-MM-dd HH:mm"
-                               datepicker-options="vm.datepickerOptions" timepicker-options="vm.timepickerOptions" maxDate="vm.endDate"
-                               button-bar="false" is-open="vm.filterDateIsOpen" ng-model="vm.startDate" readonly/>
+                               datepicker-options="vm.startDatepickerOptions" timepicker-options="vm.timepickerOptions"
+                               button-bar="vm.dateTimePickerButtonBar" is-open="vm.filterDateIsOpen" ng-model="vm.startDate" readonly/>
                         <span class="input-group-btn">
                             <button type="button" class="btn btn-default"
                                     ng-click="vm.openDatePicker($event, 'filterDateIsOpen')">
@@ -23,8 +22,8 @@
                     <label for="filterDate">End Date</label>
                     <div class="input-group">
                         <input type="text" name="filterEndDate" class="form-control" datetime-picker="yyyy-MM-dd HH:mm"
-                               datepicker-options="vm.datepickerOptions"  timepicker-options="vm.timepickerOptions" minDate="vm.startDate"
-                               button-bar="false" is-open="vm.filterEndDateIsOpen" ng-model="vm.endDate" readonly/>
+                               datepicker-options="vm.endDatepickerOptions"  timepicker-options="vm.timepickerOptions"
+                               button-bar="vm.dateTimePickerButtonBar" is-open="vm.filterEndDateIsOpen" ng-model="vm.endDate" readonly/>
                         <span class="input-group-btn">
                             <button type="button" class="btn btn-default"
                                     ng-click="vm.openDatePicker($event, 'filterEndDateIsOpen')">

@@ -5,9 +5,9 @@
         .module('ivigilate.sightings.controllers')
         .controller('ViewGpsController', ViewGpsController);
 
-    ViewGpsController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data', 'Authentication', 'Sightings', 'leafletData'];
+    ViewGpsController.$inject = ['$location', '$scope', '$timeout', '$uibModalInstance', 'data', 'Authentication', 'Sightings', 'leafletData'];
 
-    function ViewGpsController($location, $scope, $timeout, $modalInstance, data, Authentication, Detectors, leafletData) {
+    function ViewGpsController($location, $scope, $timeout, $uibModalInstance, data, Authentication, Detectors, leafletData) {
         var vm = this;
         vm.cancel = cancel;
         vm.resizeMap = resizeMap;
@@ -84,7 +84,7 @@
         }
 
         function cancel() {
-            $modalInstance.dismiss('Cancel');
+            $uibModalInstance.dismiss('Cancel');
         }
 
         function zoomToFit() {

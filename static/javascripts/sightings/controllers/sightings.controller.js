@@ -25,10 +25,12 @@
         vm.formattedSightings = undefined;
 
         vm.startDate = new Date();
+        vm.startDate.setHours(0, 0, 0, 0);
         vm.filterStartDate = vm.filterDateMax = $filter('date')(vm.startDate, 'yyyy-MM-ddTHH:mm');
         vm.filterDateIsOpen = false;
 
         vm.endDate = new Date();
+        vm.endDate.setHours(23, 59, 59, 59);
         vm.filterEndDate = vm.filterDateMax = $filter('date')(vm.endDate, 'yyyy-MM-ddTHH:mm');
         vm.filterEndDateIsOpen = false;
 
@@ -42,17 +44,55 @@
         vm.filteredSightings = undefined;
         vm.filterChanged = false;
 
-        vm.datepickerOptions = {
-            initDate: new Date(),
+        vm.dateTimePickerButtonBar = {
+                show: true,
+                now: {
+                    show: true,
+                    text: 'Now'
+                },
+                today: {
+                    show: true,
+                    text: 'Today'
+                },
+                clear: {
+                    show: false,
+                    text: 'Clear'
+                },
+                date: {
+                    show: true,
+                    text: 'Date'
+                },
+                time: {
+                    show: true,
+                    text: 'Time'
+                },
+                close: {
+                    show: true,
+                    text: 'Close'
+                }
+        };
+
+        vm.startDatepickerOptions = {
+            maxDate: vm.endDate,
             showWeeks: false,
             sideBySide: true,
             startingDay: 1
         };
+
+        vm.endDatepickerOptions = {
+            minDate: vm.startDate,
+            maxDate: new Date(),
+            showWeeks: false,
+            sideBySide: true,
+            startingDay: 1
+        };
+
         vm.timepickerOptions = {
             hourStep: 1,
-            minuteStep: 15,
+            minuteStep: 1,
             showMeridian: false
         };
+
 
         vm.mapView = false;
 
@@ -112,12 +152,14 @@
 
             $scope.$watch('vm.startDate', function () {
                 vm.filterStartDate = $filter('date')(vm.startDate, 'yyyy-MM-ddTHH:mm');
+                vm.endDatepickerOptions.minDate = vm.startDate;
                 vm.filterChanged = true;
                 refresh();
             });
 
             $scope.$watch('vm.endDate', function () {
                 vm.filterEndDate = $filter('date')(vm.endDate, 'yyyy-MM-ddTHH:mm');
+                vm.startDatepickerOptions.maxDate = vm.endDate;
                 vm.filterChanged = true;
                 refresh();
             });
@@ -175,7 +217,7 @@
         }
 
         function refresh() {
-            if (vm.filterStartDate) {
+            if (vm.filterStartDate && vm.filterEndDate) {
                 Sightings.list(vm.filterStartDate, vm.filterEndDate, vm.filterBeaconOrDetector, vm.filterShowAll).then(successFn, errorFn);
                 Notifications.checkForNotifications();
 
@@ -191,7 +233,7 @@
                     resizeMap();
                     setUpSightingsMap();
                     if (vm.filterChanged) {
-                        zoomToFit();
+                        setTimeout(zoomToFit, 500);
                         showPaths();
                         vm.filterChanged = false;
                     }
@@ -450,8 +492,6 @@
                 uid = "";
                 circle_marker_index++;
             }
-
-            //if showing current markers only , push sighting locations to current markers for calculating current map bounds
             //if showing current markers only , push sighting locations to current markers for calculating current map bounds
             if (!vm.pathsOn) {
                 for (var marker in vm.map.markers) {
