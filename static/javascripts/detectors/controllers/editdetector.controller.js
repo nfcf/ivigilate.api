@@ -5,9 +5,9 @@
         .module('ivigilate.detectors.controllers')
         .controller('EditDetectorController', EditDetectorController);
 
-    EditDetectorController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data', 'Authentication', 'Detectors', 'leafletData', 'leafletMarkerEvents'];
+    EditDetectorController.$inject = ['$location', '$scope', '$timeout', '$uibModalInstance', 'data', 'Authentication', 'Detectors', 'leafletData', 'leafletMarkerEvents'];
 
-    function EditDetectorController($location, $scope, $timeout, $modalInstance, data, Authentication, Detectors, leafletData, leafletMarkerEvents) {
+    function EditDetectorController($location, $scope, $timeout, $uibModalInstance, data, Authentication, Detectors, leafletData, leafletMarkerEvents) {
         var vm = this;
         vm.fileChanged = fileChanged;
         vm.cancel = cancel;
@@ -36,10 +36,6 @@
         searchControl.on('search_locationfound', function (e) {
             vm.map.markers['m']['lng'] = e.latlng['lng'];
             vm.map.markers['m']['lat'] = e.latlng['lat'];
-        });
-
-        leafletData.getMap('editDetectorMap').then(function (map) {
-            map.addControl(searchControl);
         });
 
         activate();
@@ -98,7 +94,7 @@
                 L.easyButton('fa-arrows', function () {
                     zoomToFit();
                 }).addTo(map);
-
+                map.addControl(searchControl);
             });
         }
 
@@ -130,7 +126,7 @@
             }
 
             function successFn(data, status, headers, config) {
-                $modalInstance.close(vm.detector);
+                $uibModalInstance.close(vm.detector);
             }
 
             function errorFn(data, status, headers, config) {
@@ -139,7 +135,7 @@
         }
 
         function cancel() {
-            $modalInstance.dismiss('Cancel');
+            $uibModalInstance.dismiss('Cancel');
         }
 
         function zoomToFit() {

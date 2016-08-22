@@ -5,9 +5,9 @@
         .module('ivigilate.beacons.controllers')
         .controller('EditBeaconController', EditBeaconController);
 
-    EditBeaconController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data', 'Authentication', 'Beacons', 'Events', 'leafletData', 'leafletMarkerEvents'];
+    EditBeaconController.$inject = ['$location', '$scope', '$timeout', '$uibModalInstance', 'data', 'Authentication', 'Beacons', 'Events', 'leafletData', 'leafletMarkerEvents'];
 
-    function EditBeaconController($location, $scope, $timeout, $modalInstance, data, Authentication, Beacons, Events, leafletData, leafletMarkerEvents) {
+    function EditBeaconController($location, $scope, $timeout, $uibModalInstance, data, Authentication, Beacons, Events, leafletData, leafletMarkerEvents) {
         var vm = this;
         vm.fileChanged = fileChanged;
         vm.cancel = cancel;
@@ -39,11 +39,6 @@
             vm.map.markers['m']['lng'] = e.latlng['lng'];
             vm.map.markers['m']['lat'] = e.latlng['lat'];
         });
-
-        leafletData.getMap('editBeaconMap').then(function (map) {
-            map.addControl(searchControl);
-        });
-
 
         activate();
 
@@ -102,6 +97,7 @@
                 L.easyButton('fa-arrows', function () {
                     zoomToFit();
                 }).addTo(map);
+                 map.addControl(searchControl);
 
             });
             Events.list().then(eventsSuccessFn, eventsErrorFn);
@@ -145,7 +141,7 @@
             }
 
             function successFn(data, status, headers, config) {
-                $modalInstance.close(vm.sighting);
+                $uibModalInstance.close(vm.sighting);
             }
 
             function errorFn(data, status, headers, config) {
@@ -158,7 +154,7 @@
         }
 
         function cancel() {
-            $modalInstance.dismiss('Cancel');
+            $uibModalInstance.dismiss('Cancel');
         }
 
         function zoomToFit() {
