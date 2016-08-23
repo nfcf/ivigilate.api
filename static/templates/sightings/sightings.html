@@ -76,15 +76,9 @@
                 </div>
             </div>
 
-            <div class="form-group">
-                <ul class="nav nav-pills nav-justified">
-                    <li class="active"><a data-target="#list" data-toggle="pill"
-                                          ng-click="vm.setMapView(false)">List</a></li>
-                    <li><a data-target="#map" data-toggle="pill" ng-click="vm.setMapView(true)">Map</a>
-                    </li>
-                </ul>
-                <div class="tab-content">
-                    <div id="list" class="tab-pane fade in active">
+            <div>
+                <uib-tabset active="activePill" justified="true" type="pills">
+                    <uib-tab index="0" heading="List" select="vm.setMapView(false)">
                         <div class="table-responsive">
                             <table st-table="vm.displayedSightings" st-safe-src="vm.sightings"
                                    class="table table-striped">
@@ -178,8 +172,8 @@
                                 </tfoot>
                             </table>
                         </div>
-                    </div>
-                    <div id="map" class="tab-pane fade">
+                    </uib-tab>
+                    <uib-tab index="1" heading="Map" select="vm.setMapView(true)">
                         <div class="form-group" colspan="9">
                             <leaflet id="mapLeaflet" height="480px" width="100%"
                                      paths="vm.map.paths" markers="vm.map.markers" maxbounds="vm.map.maxbounds"
@@ -205,8 +199,8 @@
                             }
                             </style>
                         </div>
-                    </div>
-                </div>
+                    </uib-tab>
+                </uib-tabset>
             </div>
         </div>
     </div>
