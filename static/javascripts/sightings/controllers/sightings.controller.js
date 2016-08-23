@@ -45,31 +45,31 @@
         vm.filterChanged = false;
 
         vm.dateTimePickerButtonBar = {
+            show: true,
+            now: {
                 show: true,
-                now: {
-                    show: true,
-                    text: 'Now'
-                },
-                today: {
-                    show: true,
-                    text: 'Today'
-                },
-                clear: {
-                    show: false,
-                    text: 'Clear'
-                },
-                date: {
-                    show: true,
-                    text: 'Date'
-                },
-                time: {
-                    show: true,
-                    text: 'Time'
-                },
-                close: {
-                    show: true,
-                    text: 'Close'
-                }
+                text: 'Now'
+            },
+            today: {
+                show: true,
+                text: 'Today'
+            },
+            clear: {
+                show: false,
+                text: 'Clear'
+            },
+            date: {
+                show: true,
+                text: 'Date'
+            },
+            time: {
+                show: true,
+                text: 'Time'
+            },
+            close: {
+                show: true,
+                text: 'Close'
+            }
         };
 
         vm.startDatepickerOptions = {
@@ -106,8 +106,25 @@
             paths: {},
             legend: {
                 position: 'bottomleft'
+            },
+            layers: {
+                baselayers: {
+                    xyz: {
+                        name: 'OpenStreetMap (XYZ)',
+                        url: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        type: 'xyz'
+                    }
+                },
+                overlays: {
+                    sightings: {
+                        name: "sightings",
+                        type: "markercluster",
+                        visible: true
+                    }
+                }
             }
         };
+
 
         vm.colors = ['#00c6d2', '#839d57', '#f04d4c', '#65666a', '#dddddd'];
         vm.current_markers = undefined;
@@ -472,9 +489,9 @@
                         'type': 'vectorMarker',
                         'icon': 'male'
                     },
-                    group: 'markers'
+                    layer: 'sightings'
                 };
-
+                
                 //update current marker and circle_marker color and add sighting coordinates to corresponding array for device path calculation
                 for (var prop in vm.map.paths) {
                     if (vm.map.paths.hasOwnProperty(prop) && prop === uid) {
@@ -534,7 +551,6 @@
         function togglePathsOn() {
             vm.pathsOn = !vm.pathsOn;
         }
-
 
         Array.prototype.extend = function (other_array) {
             /* should include a test to check whether other_array really is an array... */
