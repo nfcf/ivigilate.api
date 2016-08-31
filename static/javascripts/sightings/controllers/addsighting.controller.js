@@ -5,10 +5,10 @@
         .module('ivigilate.sightings.controllers')
         .controller('AddSightingController', AddSightingController);
     
-    AddSightingController.$inject = ['$location', '$scope', '$filter', '$modalInstance', 'data', 'Authentication',
+    AddSightingController.$inject = ['$location', '$scope', '$filter', '$uibModalInstance', 'data', 'Authentication',
                                     'Detectors', 'Beacons', 'Sightings'];
 
-    function AddSightingController($location, $scope, $filter, $modalInstance, data, Authentication,
+    function AddSightingController($location, $scope, $filter, $uibModalInstance, data, Authentication,
                                    Detectors, Beacons, Sightings) {
         var vm = this;
         vm.openDateTimePicker = openDateTimePicker;
@@ -97,7 +97,7 @@
             }
 
             function successFn(data, status, headers, config) {
-                $modalInstance.close(vm.sighting);
+                $uibModalInstance.close(vm.sighting);
             }
 
             function errorFn(data, status, headers, config) {
@@ -106,7 +106,7 @@
         }
 
         function cancel() {
-            $modalInstance.dismiss('Cancel');
+            $uibModalInstance.dismiss('Cancel');
         }
 
         function convertToUTC(dt) {

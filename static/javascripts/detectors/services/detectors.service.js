@@ -23,8 +23,8 @@
             return $http.delete('/api/v1/detectors/' + detector.id + '/');
         }
 
-        function get(id) {
-            return $http.get('/api/v1/detectors/' + id + '/');
+        function get(uid) {
+            return $http.get('/api/v1/detectors/' + uid + '/');
         }
 
         function list() {

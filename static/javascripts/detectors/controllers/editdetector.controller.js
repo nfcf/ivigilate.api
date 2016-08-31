@@ -22,7 +22,15 @@
         vm.map = undefined;
         vm.showMap = false;
         vm.current_markers = undefined;
-
+        
+        vm.patrolOrHomeCareMode = true;
+        vm.sosNumber = undefined;
+        vm.number1 = undefined;
+        vm.number2 = undefined;
+        vm.nameCall1 = undefined;
+        vm.nameCall2 = undefined;
+        
+        
         var searchControl = new L.Control.Search({
             url: 'http://nominatim.openstreetmap.org/search?format=json&q={s}',
             jsonpParam: 'json_callback',
@@ -53,10 +61,12 @@
         function populateDialog(data) {
             vm.detector = data;
             vm.imagePreview = vm.detector.photo;
+            initializeContacts();
 
             $scope.$watch('vm.detector.type', function () {
                 vm.showMap = vm.detector.type == 'F';
             }, true);
+
 
             if (!vm.detector.location) {
                 vm.detector.location = {
@@ -117,6 +127,7 @@
 
         function save() {
             $scope.$broadcast('show-errors-check-validity');
+            updateContactSettings();
 
             if (vm.form.$valid) {
                 vm.detector.location.coordinates = [vm.map.markers['m']['lng'], vm.map.markers['m']['lat']];
@@ -140,11 +151,11 @@
 
         function zoomToFit() {
             vm.current_markers = [];
-            if(!vm.map.markers){
+            if (!vm.map.markers) {
                 vm.current_markers.push([vm.map.maxbounds.northEast.lat, vm.map.maxbounds.northEast.lng],
                     [vm.map.maxbounds.southWest.lat, vm.map.maxbounds.southWest.lng]);
-            }else {
-               vm.current_markers.push([vm.map.markers.m.lat, vm.map.markers.m.lng]);
+            } else {
+                vm.current_markers.push([vm.map.markers.m.lat, vm.map.markers.m.lng]);
             }
             vm.mapBounds = new L.latLngBounds(vm.current_markers);
             leafletData.getMap('editDetectorMap').then(function (map) {
@@ -161,11 +172,48 @@
                 }, 500);
             });
         }
-         $scope.$on('leafletDirectiveMarker.editDetectorMap.dragend', function (e, args) {
+
+        $scope.$on('leafletDirectiveMarker.editDetectorMap.dragend', function (e, args) {
             vm.map.markers['m']['lng'] = args.leafletEvent.target._latlng.lng;
             vm.map.markers['m']['lat'] = args.leafletEvent.target._latlng.lat;
             zoomToFit();
         });
 
+        function initializeContacts() {
+            if (!vm.patrolOrHomeCareMode || !vm.detector.metadata) {
+                return;
+            }
+            var metadata = JSON.parse(vm.detector.metadata);
+            if (metadata['contact_settings']) {
+                vm.sosNumber = metadata['contact_settings']['sos_number'] ? metadata['contact_settings']['sos_number'] : '';
+                vm.number1 = metadata['contact_settings']['number1'] ? metadata['contact_settings']['number1'] : '';
+                vm.number2 = metadata['contact_settings']['number2'] ? metadata['contact_settings']['number2'] : '';
+                vm.nameCall1 = metadata['contact_settings']['name_call1'] ? metadata['contact_settings']['name_call1'] : '';
+                vm.nameCall2 = metadata['contact_settings']['name_call2'] ? metadata['contact_settings']['name_call2'] : '';
+            }
+        }
+
+        function updateContactSettings() {
+            if (!vm.patrolOrHomeCareMode) {
+                return;
+            }
+            var contact_values = {
+                'sos_number': vm.sosNumber,
+                'number1': vm.number1,
+                'number2': vm.number2,
+                'name_call1': vm.nameCall1,
+                'name_call2': vm.nameCall2
+            };
+            var detector_metadata = !vm.detector.metadata ? {} : JSON.parse(vm.detector.metadata);
+            if (!detector_metadata['contact_settings']) {
+                detector_metadata['contact_settings'] = {};
+            }
+
+            angular.forEach(contact_values, function(value, key){
+                detector_metadata['contact_settings'][key] = contact_values[key];
+            });
+            
+            vm.detector.metadata = JSON.stringify(detector_metadata);
+        }
     }
 })();

@@ -5,9 +5,9 @@
         .module('ivigilate.sightings.controllers')
         .controller('EditSightingController', EditSightingController);
 
-    EditSightingController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data', 'Authentication', 'Sightings'];
+    EditSightingController.$inject = ['$location', '$scope', '$timeout', '$uibModalInstance', 'data', 'Authentication', 'Sightings'];
 
-    function EditSightingController($location, $scope, $timeout, $modalInstance, data, Authentication, Sightings) {
+    function EditSightingController($location, $scope, $timeout, $uibModalInstance, data, Authentication, Sightings) {
         var vm = this;
         vm.cancel = cancel;
         vm.save = save;
@@ -37,7 +37,7 @@
             }
 
             function successFn(data, status, headers, config) {
-                $modalInstance.close(vm.sighting);
+                $uibModalInstance.close(vm.sighting);
             }
 
             function errorFn(data, status, headers, config) {
@@ -46,7 +46,7 @@
         }
 
         function cancel() {
-            $modalInstance.dismiss('Cancel');
+            $uibModalInstance.dismiss('Cancel');
         }
     }
 })();
