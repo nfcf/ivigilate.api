@@ -93,7 +93,7 @@ class DetectorBeaconHistorySerializer(gis_serializers.GeoModelSerializer):
     class Meta:
         model = Detector
         geo_field = 'location'
-        fields = ('id', 'uid', 'name', 'reference_id', 'type', 'type_display', 'location', 'is_active')
+        fields = ('id', 'uid', 'name', 'reference_id', 'type', 'type_display', 'location', 'is_active', 'metadata')
 
 
 class DetectorReadSerializer(gis_serializers.GeoModelSerializer):
@@ -105,7 +105,7 @@ class DetectorReadSerializer(gis_serializers.GeoModelSerializer):
         geo_field = 'location'
         fields = ('id', 'account', 'uid', 'reference_id', 'type', 'type_display', 'photo', 'name',
                   'location', 'arrival_rssi', 'departure_rssi',
-                  'created_at', 'updated_at', 'updated_by', 'is_active')
+                  'created_at', 'updated_at', 'updated_by', 'is_active', 'metadata')
 
 
 class DetectorWriteSerializer(serializers.ModelSerializer):

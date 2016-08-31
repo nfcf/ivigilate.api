@@ -354,12 +354,12 @@
                 return;
             }
             vm.filteredSightings = [];
-            for (var i = 0; i < vm.sightings.length; i++) {
-                if (vm.filterSightingType.type === 'GPS' && vm.sightings[i].type === vm.filterSightingType.type ||
-                    vm.filterSightingType.type === 'Beacon' && vm.sightings[i].type !== 'GPS') {
-                    vm.filteredSightings.push(vm.sightings[i]);
+            angular.forEach(vm.sightings, function (sighting) {
+                if (vm.filterSightingType.type === 'GPS' && sighting.type === vm.filterSightingType.type ||
+                    vm.filterSightingType.type === 'Beacon' && sighting.type !== 'GPS') {
+                    vm.filteredSightings.push(sighting);
                 }
-            }
+            });
             vm.sightings = vm.filteredSightings;
         }
 
@@ -374,24 +374,24 @@
             var fields = ['beacon', 'detector', 'first_seen_at', 'last_seen_at', 'location',
                 'beacon_battery', 'confirmed', 'detector_battery'];
 
-            for (var i = 0; i < vm.sightings.length; i++) {
+            angular.forEach(vm.sightings, function (sighting) {
                 formattedSighting = {};
-                for (var prop in vm.sightings[i]) {
-                    if (vm.sightings[i].hasOwnProperty(prop) && fields.includes(prop)) {
-                        if (prop === 'beacon' || prop === 'detector') {
-                            formattedSighting[prop + '_name'] = vm.sightings[i][prop] != null ? vm.sightings[i][prop]['name'] : 'GPS';
-                            formattedSighting[prop + '_uid'] = vm.sightings[i][prop] != null ? vm.sightings[i][prop]['uid'] : 'N/A';
-                            continue;
-                        } else if (prop == 'location' && vm.sightings[i][prop] != null) {
-                            formattedSighting['location'] = vm.sightings[i][prop]['coordinates'][0] + ', ' +
-                                vm.sightings[i][prop]['coordinates'][1];
-                            continue;
+                angular.forEach(sighting, function (value, key) {
+                    if (fields.includes(key)) {
+                        if (key === 'beacon' || key === 'detector') {
+                            formattedSighting[key + '_name'] = value != null ? value['name'] : 'GPS';
+                            formattedSighting[key + '_uid'] = value != null ? value['uid'] : 'N/A';
+                            return;
+                        } else if (key == 'location' && value != null) {
+                            formattedSighting['location'] = value['coordinates'][0] + ', ' +
+                                value['coordinates'][1];
+                            return;
                         }
-                        formattedSighting[prop] = vm.sightings[i][prop];
+                        formattedSighting[key] = value;
                     }
-                }
+                });
                 vm.formattedSightings.push(formattedSighting);
-            }
+            });
         }
 
 
@@ -427,18 +427,18 @@
             var utc_date;
             var last_seen;
 
-            for (var i = 0; i < vm.sightings.length; i++) {
+            angular.forEach(vm.sightings, function (sighting) {
 
-                if (vm.sightings[i]['beacon'] && vm.sightings[i]['beacon']['type'] === 'M') {
-                    uid = vm.sightings[i]['beacon']['uid'];
-                    device_name = vm.sightings[i]['beacon']['name'];
+                if (sighting['beacon'] && sighting['beacon']['type'] === 'M') {
+                    uid = sighting['beacon']['uid'];
+                    device_name = sighting['beacon']['name'];
                 } else {
-                    uid = vm.sightings[i]['detector']['uid'];
-                    device_name = vm.sightings[i]['detector']['name'];
+                    uid = sighting['detector']['uid'];
+                    device_name = sighting['detector']['name'];
                 }
 
                 //set up path object and legend for each new sighted device
-                if (vm.sightings[i]['location']) {
+                if (sighting['location']) {
                     if (!sighted_devices.includes(uid)) {
                         sighted_devices.push(uid);
                         vm.map.paths[uid] = {
@@ -453,23 +453,23 @@
                         circle_marker_index = 0;
                     } else {
                         //if device was already sighted update current marker index according to number of previous sightings
-                        for (var det in vm.map.paths) {
-                            if (vm.map.paths.hasOwnProperty(det) && det === uid) {
-                                circle_marker_index = vm.map.paths[det]['latlngs'].length;
+                        angular.forEach(vm.map.paths, function (path, key) {
+                            if (key === uid) {
+                                circle_marker_index = path['latlngs'].length
                             }
-                        }
+                        });
                     }
                 }
 
                 //update timestamp to display in map
-                utc_date = new Date(vm.sightings[i]['last_seen_at']);
+                utc_date = new Date(sighting['last_seen_at']);
                 last_seen = (new Date(utc_date.getTime() + vm.timeZoneOffset * -60000)).toISOString();
 
                 //set up circleMarker (vector path) object for each sighting
                 circle_marker = uid + '_circleMarker_' + circle_marker_index;
                 vm.map.paths[circle_marker] = {
                     type: 'circleMarker',
-                    latlngs: [vm.sightings[i]['location']['coordinates'][1], vm.sightings[i]['location']['coordinates'][0]],
+                    latlngs: [sighting['location']['coordinates'][1], sighting['location']['coordinates'][0]],
                     radius: 5,
                     message: 'last seen : ' + last_seen.substring(0, 10) + " at " + last_seen.substring(11, 16),
                     clickable: true
@@ -477,13 +477,13 @@
 
                 //set up full marker object to show at last sighting location, overwriting previous one if it exists
                 vm.map.markers[uid] = {
-                    'lng': vm.sightings[i]['location']['coordinates'][0],
-                    'lat': vm.sightings[i]['location']['coordinates'][1],
-                    'message': vm.sightings[i]['beacon'] != null ?
-                    vm.sightings[i]['detector']['type'] + " " + vm.sightings[i]['detector']['name'] + " with ID: " + vm.sightings[i]['detector']['uid'] +
-                    "<br>" + vm.sightings[i]['beacon']['type'] + " " + vm.sightings[i]['beacon']['name'] + " with ID: " + vm.sightings[i]['beacon']['uid'] +
+                    'lng': sighting['location']['coordinates'][0],
+                    'lat': sighting['location']['coordinates'][1],
+                    'message': sighting['beacon'] != null ?
+                    sighting['detector']['type'] + " " + sighting['detector']['name'] + " with ID: " + sighting['detector']['uid'] +
+                    "<br>" + sighting['beacon']['type'] + " " + sighting['beacon']['name'] + " with ID: " + sighting['beacon']['uid'] +
                     "<br>last seen: " + last_seen.substring(0, 10) + " at " + last_seen.substring(11, 16) :
-                    vm.sightings[i]['detector']['type'] + " " + vm.sightings[i]['detector']['name'] + " with ID: " + vm.sightings[i]['detector']['uid'] +
+                    sighting['detector']['type'] + " " + sighting['detector']['name'] + " with ID: " + sighting['detector']['uid'] +
                     "<br>last seen: " + last_seen.substring(0, 10) + " at " + last_seen.substring(11, 16),
                     'icon': {
                         'type': 'vectorMarker',
@@ -491,7 +491,7 @@
                     },
                     layer: 'sightings'
                 };
-                
+
                 //update current marker and circle_marker color and add sighting coordinates to corresponding array for device path calculation
                 for (var prop in vm.map.paths) {
                     if (vm.map.paths.hasOwnProperty(prop) && prop === uid) {
@@ -508,14 +508,13 @@
                 }
                 uid = "";
                 circle_marker_index++;
-            }
+            });
+
             //if showing current markers only , push sighting locations to current markers for calculating current map bounds
             if (!vm.pathsOn) {
-                for (var marker in vm.map.markers) {
-                    if (vm.map.markers.hasOwnProperty(marker)) {
-                        vm.current_markers.push([vm.map.markers[marker]['lat'], vm.map.markers[marker]['lng']]);
-                    }
-                }
+                angular.forEach(vm.map.markers, function (marker, key) {
+                    vm.current_markers.push([marker['lat'], marker['lng']]);
+                });
             }
         }
 
@@ -540,12 +539,10 @@
             }
             var weight = vm.pathsOn ? 3 : 0;
             var opacity = vm.pathsOn ? 0.9 : 0;
-            for (var obj in vm.map.paths) {
-                if (vm.map.paths.hasOwnProperty(obj)) {
-                    vm.map.paths[obj]['weight'] = weight;
-                    vm.map.paths[obj]['fillOpacity'] = opacity;
-                }
-            }
+            angular.forEach(vm.map.paths, function (path) {
+                path['weight'] = weight;
+                path['fillOpacity'] = opacity;
+            });
         }
 
         function togglePathsOn() {

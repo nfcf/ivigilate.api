@@ -300,7 +300,8 @@ class Sighting(models.Model):
         super(Sighting, self).save(*args, **kwargs)
 
     def __str__(self):
-        return "%s: beacon=%s, detector=%s" % (self.id, self.beacon.name, self.detector.name)
+        beacon_name = self.beacon.name if self.beacon else "None"
+        return "%s: beacon=%s, detector=%s" % (self.id, beacon_name, self.detector.name)
 
 
 class Event(models.Model):

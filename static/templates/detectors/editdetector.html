@@ -68,13 +68,52 @@
                                placeholder="Default is -90" required/>
                     </div>
                 </div>
+                <div class="form-group" ng-if="vm.patrolOrHomeCareMode">
+
+                    <div class="col-xs-12 col-md-12">
+                        <div class="form-group" show-errors>
+                            <label for="metadata">Sos Contact Number</label>
+                            <input type="text" class="form-control" name="metadata"
+                                   ng-model="vm.sosNumber"/>
+                        </div>
+                    </div>
+                     <div class="col-xs-12 col-md-6">
+                        <div class="form-group" show-errors>
+                            <label for="metadata">Contact 1 name</label>
+                            <input type="text" class="form-control" name="metadata"
+                                   ng-model="vm.nameCall1"/>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-md-6">
+                        <div class="form-group" show-errors>
+                            <label for="metadata">Contact 1 number</label>
+                            <input type="text" class="form-control" name="metadata"
+                                   ng-model="vm.number1"/>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-md-6">
+                        <div class="form-group" show-errors>
+                            <label for="metadata">Contact 2 name</label>
+                            <input type="text" class="form-control" name="metadata"
+                                   ng-model="vm.nameCall2"/>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-md-6" >
+                        <div class="form-group" show-errors>
+                            <label for="metadata">Contact 2 number</label>
+                            <input type="text" class="form-control" name="metadata"
+                                   ng-model="vm.number2"/>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </form>
 
     <div class="form-group" ng-if="vm.showMap">
         <div class="form-group">
-            <leaflet id='editDetectorMap' height="480px" width="100%" markers="vm.map.markers" event-broadcast="vm.map.events"></leaflet>
+            <leaflet id='editDetectorMap' height="480px" width="100%" markers="vm.map.markers"
+                     event-broadcast="vm.map.events"></leaflet>
         </div>
     </div>
 </div>

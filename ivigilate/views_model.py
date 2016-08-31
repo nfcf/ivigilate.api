@@ -153,10 +153,10 @@ class DetectorViewSet(mixins.UpdateModelMixin, mixins.ListModelMixin,
 
         return utils.view_list(request, account, queryset, self.get_serializer_class())
 
-    def retrieve(self, request, pk=None):
+    def retrieve(self, request, uid=None):
         account = request.user.account if not isinstance(request.user, AnonymousUser) else None
         try:
-            queryset = self.queryset.get(id=pk, account=account)
+            queryset = self.queryset.get(id=uid, account=account)
         except Detector.DoesNotExist:
             return Response('Detector does not exist or is not associated with the current logged on account.',
                             status=status.HTTP_400_BAD_REQUEST)

@@ -125,8 +125,10 @@ class ProvisionDeviceView(views.APIView):
                 try:
                     detector = Detector.objects.get(account=account, uid=uid)
                     detector.type = type[1] if type[1] == 'F' else 'M'  # Remove this if else check in a later release (protection for having removed the 'User' detector type
-                    detector.name = name
-                    detector.metadata = metadata
+                    #detector.name = name
+                    updated_metadata = metadata
+                    for key, value in updated_metadata.items():
+                        detector.metadata[key] = value
                     detector.is_active = is_active
                     detector.save()
                     return utils.build_http_response('Detector already provisioned for this account. Info updated.',
