@@ -471,9 +471,8 @@
                     type: 'circleMarker',
                     latlngs: [sighting['location']['coordinates'][1], sighting['location']['coordinates'][0]],
                     radius: 5,
-                    message: (sighting['beacon'] != null ? '(' + sighting['beacon']['name'] + ')' : '(GPS)') +
-                        ' ' +
-                        'last seen : ' + last_seen.substring(0, 10) + " at " + last_seen.substring(11, 16),
+                    message: 'last seen: ' + last_seen.substring(0, 10) + " " + last_seen.substring(11, 16) + ' at ' +
+                    (sighting['beacon'] != null ? sighting['beacon']['name'] : 'GPS Location'),
                     clickable: true
                 };
 
