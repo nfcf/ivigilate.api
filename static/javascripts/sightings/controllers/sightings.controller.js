@@ -6,10 +6,10 @@
         .controller('SightingsController', SightingsController);
 
     SightingsController.$inject = ['$location', '$scope', '$filter', '$interval', 'Authentication',
-        'Users', 'Beacons', 'Detectors', 'Sightings', 'Payments', 'dialogs', 'Notifications', 'leafletData'];
+        'Users', 'Beacons', 'Detectors', 'Sightings', 'Payments', 'dialogs', 'Notifications', 'leafletData', '$http'];
 
     function SightingsController($location, $scope, $filter, $interval, Authentication,
-                                 Users, Beacons, Detectors, Sightings, Payments, dialogs, Notifications, leafletData) {
+                                 Users, Beacons, Detectors, Sightings, Payments, dialogs, Notifications, leafletData, $http) {
         var vm = this;
         vm.refresh = refresh;
         vm.addSighting = addSighting;
@@ -43,6 +43,8 @@
         vm.filterSightingType = undefined;
         vm.filteredSightings = undefined;
         vm.filterChanged = false;
+        vm.indoorFlag = false;
+        vm.indoorData = undefined;
 
         vm.dateTimePickerButtonBar = {
             show: true,
@@ -125,12 +127,13 @@
             }
         };
 
-
         vm.colors = ['#00c6d2', '#839d57', '#f04d4c', '#65666a', '#dddddd'];
         vm.current_markers = undefined;
         vm.mapBounds = undefined;
         vm.current_markers = undefined;
         vm.pathsOn = false;
+
+        vm.geojson = {};
 
         vm.resetValue = function ($event) {
             vm.filterBeaconOrDetector = null;
@@ -145,6 +148,7 @@
         vm.setMapView = function (mapView) {
             vm.mapView = mapView;
             resizeMap();
+            vm.indoorFlag = true;
         };
 
 
@@ -228,7 +232,11 @@
                     togglePathsOn();
                     showPaths();
                 }).addTo(map);
+                L.easyButton('fa-building-o', function () {
+                    goHome();
+                }).addTo(map);
 
+                map.options.minZoom = 1;
 
             });
         }
@@ -246,10 +254,17 @@
                 vm.sightings = sortByKey(response.data.data, 'id');
                 applyClientServerTimeOffset(response.data.timestamp);
                 filterSightingsByType();
+                if (vm.indoorFlag) {
+                    leafletData.getMap('mapLeaflet').then(function (map) {
+                        map.options.maxZoom = 22;
+                    });
+                    setUpIndoorMap();
+                    vm.indoorFlag = false;
+                }
                 if (vm.mapView) {
-                    resizeMap();
-                    setUpSightingsMap();
                     if (vm.filterChanged) {
+                        resizeMap();
+                        setUpSightingsMap();
                         setTimeout(zoomToFit, 500);
                         showPaths();
                         vm.filterChanged = false;
@@ -397,7 +412,6 @@
 
         function resizeMap() {
             leafletData.getMap('mapLeaflet').then(function (map) {
-                map.options.minZoom = 1;
                 setTimeout(function () {
                     map.invalidateSize();
                 }, 500);
@@ -516,6 +530,9 @@
                     vm.current_markers.push([marker['lat'], marker['lng']]);
                 });
             }
+            if (vm.data) {
+                setUpBuildingMarker(vm.data);
+            }
         }
 
         function zoomToFit() {
@@ -548,6 +565,116 @@
         function togglePathsOn() {
             vm.pathsOn = !vm.pathsOn;
         }
+
+
+        function setUpIndoorMap() {
+            if (!vm.mapView) {
+                return;
+            }
+
+
+            var url = "static/bower_components/leaflet-indoor/examples/data.json";
+            $http.get(url).success(function (data) {
+
+                vm.data = data;
+
+                /*var testData = {
+                    "type": "FeatureCollection", "features": [
+                        {
+                            "type": "Feature",
+                            "id": "JPN",
+                            "properties": {"name": "Japan"},
+                            "geometry": {
+                                "type": "MultiPolygon",
+                                "coordinates": [[[[134.638428, 34.149234], [134.766379, 33.806335], [134.203416, 33.201178], [133.79295, 33.521985], [133.280268, 33.28957], [133.014858, 32.704567], [132.363115, 32.989382], [132.371176, 33.463642], [132.924373, 34.060299], [133.492968, 33.944621], [133.904106, 34.364931], [134.638428, 34.149234]]], [[[140.976388, 37.142074], [140.59977, 36.343983], [140.774074, 35.842877], [140.253279, 35.138114], [138.975528, 34.6676], [137.217599, 34.606286], [135.792983, 33.464805], [135.120983, 33.849071], [135.079435, 34.596545], [133.340316, 34.375938], [132.156771, 33.904933], [130.986145, 33.885761], [132.000036, 33.149992], [131.33279, 31.450355], [130.686318, 31.029579], [130.20242, 31.418238], [130.447676, 32.319475], [129.814692, 32.61031], [129.408463, 33.296056], [130.353935, 33.604151], [130.878451, 34.232743], [131.884229, 34.749714], [132.617673, 35.433393], [134.608301, 35.731618], [135.677538, 35.527134], [136.723831, 37.304984], [137.390612, 36.827391], [138.857602, 37.827485], [139.426405, 38.215962], [140.05479, 39.438807], [139.883379, 40.563312], [140.305783, 41.195005], [141.368973, 41.37856], [141.914263, 39.991616], [141.884601, 39.180865], [140.959489, 38.174001], [140.976388, 37.142074]]], [[[143.910162, 44.1741], [144.613427, 43.960883], [145.320825, 44.384733], [145.543137, 43.262088], [144.059662, 42.988358], [143.18385, 41.995215], [141.611491, 42.678791], [141.067286, 41.584594], [139.955106, 41.569556], [139.817544, 42.563759], [140.312087, 43.333273], [141.380549, 43.388825], [141.671952, 44.772125], [141.967645, 45.551483], [143.14287, 44.510358], [143.910162, 44.1741]]]]
+                            }
+                        }
+                    ]
+                };*/
+
+                var level;
+                var indoorLayer = new L.Indoor(data, {
+                    getLevel: function (feature) {
+                        //if no configured levels in data, default level is 0 or some other int
+                        if (!feature.properties.relations) {
+                            level = 0;
+                            //if levels are configured for some features but not all, should return null as default (not 0)
+                        } else if (feature.properties.relations.length === 0) {
+                            level = null;
+                        } else {
+                            level = feature.properties.relations[0].reltags.level;
+                        }
+                        return level;
+                    }
+                    ,
+                    onEachFeature: function (feature, layer) {
+                        layer.bindPopup(JSON.stringify(feature.properties, null, 4));
+
+                    },
+                    style: function (feature) {
+                        var fill = 'white';
+                        if (feature.properties.tags) {
+                            if (feature.properties.tags.buildingpart === 'corridor') {
+                                fill = '#169EC6';
+                            } else if (feature.properties.tags.buildingpart === 'verticalpassage') {
+                                fill = '#0A485B';
+                            }
+                        }
+                        return {
+                            fillColor: fill,
+                            weight: 1,
+                            color: '#666',
+                            fillOpacity: 1
+                        };
+                    }
+                });
+
+                setUpBuildingMarker(data);
+
+                indoorLayer.setLevel("0");
+
+                leafletData.getMap('mapLeaflet').then(function (map) {
+                    indoorLayer.addTo(map);
+                });
+
+                var levelControl = new L.Control.Level({
+                    level: "0",
+                    levels: indoorLayer.getLevels()
+                });
+                // Connect the level control to the indoor layer
+                levelControl.addEventListener("levelchange", indoorLayer.setLevel, indoorLayer);
+                leafletData.getMap('mapLeaflet').then(function (map) {
+                    levelControl.addTo(map);
+                });
+            });
+
+        }
+
+        function setUpBuildingMarker(data) {
+            vm.map.markers['myBuilding'] = {
+                'lat': data.features[0].geometry.coordinates[0][0][1],
+                'lng': data.features[0].geometry.coordinates[0][0][0],
+                'message': 'Building 1',
+                'icon': {
+                    'type': 'vectorMarker',
+                    'icon': 'building-o',
+                    'markerColor': 'red'
+                }
+            }
+        }
+
+        function goHome() {
+            if (!vm.data) {
+                return;
+            }
+            //depends on type of data 
+            vm.current_markers = [];
+            var lat = vm.data.features[0].geometry.coordinates[0][0][1];
+            var lng = vm.data.features[0].geometry.coordinates[0][0][0];
+            vm.current_markers.push([lat, lng],[lat + 0.0005, lng + 0.0005], [lat - 0.0005, lng - 0.0005]);
+            zoomToFit();
+        }
+
 
         Array.prototype.extend = function (other_array) {
             /* should include a test to check whether other_array really is an array... */
