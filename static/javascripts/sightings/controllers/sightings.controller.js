@@ -255,7 +255,7 @@
                 if (vm.mapView) {
                     if (vm.indoorFlag) {
                         leafletData.getMap('mapLeaflet').then(function (map) {
-                            map.options.maxZoom = 22;
+                            map.options.maxZoom = 18; //22;
                         });
                         setUpIndoorMap();
                         vm.indoorFlag = false;
