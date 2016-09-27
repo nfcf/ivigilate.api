@@ -252,14 +252,15 @@
                 vm.sightings = sortByKey(response.data.data, 'id');
                 applyClientServerTimeOffset(response.data.timestamp);
                 filterSightingsByType();
-                if (vm.indoorFlag) {
-                    leafletData.getMap('mapLeaflet').then(function (map) {
-                        map.options.maxZoom = 22;
-                    });
-                    setUpIndoorMap();
-                    vm.indoorFlag = false;
-                }
                 if (vm.mapView) {
+                    if (vm.indoorFlag) {
+                        leafletData.getMap('mapLeaflet').then(function (map) {
+                            map.options.maxZoom = 22;
+                        });
+                        setUpIndoorMap();
+                        vm.indoorFlag = false;
+                    }
+
                     if (vm.filterChanged) {
                         resizeMap();
                         setUpSightingsMap();
@@ -545,8 +546,7 @@
             }
             vm.mapBounds = new L.latLngBounds(vm.current_markers);
             leafletData.getMap('mapLeaflet').then(function (map) {
-                map.fitBounds(vm.mapBounds, {padding: [30, 30]});
-                if (map.zoom > 18) map.zoom = 18;
+                map.fitBounds(vm.mapBounds, {padding: [50, 50]});
             });
         }
 
