@@ -133,7 +133,7 @@
         vm.current_markers = undefined;
         vm.pathsOn = false;
 
-        vm.geojson = {};
+        vm.indoorFlag = true;
 
         vm.resetValue = function ($event) {
             vm.filterBeaconOrDetector = null;
@@ -148,7 +148,6 @@
         vm.setMapView = function (mapView) {
             vm.mapView = mapView;
             resizeMap();
-            vm.indoorFlag = true;
         };
 
 
@@ -249,7 +248,6 @@
             }
 
             function successFn(response, status, headers, config) {
-
                 vm.error = null;
                 vm.sightings = sortByKey(response.data.data, 'id');
                 applyClientServerTimeOffset(response.data.timestamp);
@@ -548,6 +546,7 @@
             vm.mapBounds = new L.latLngBounds(vm.current_markers);
             leafletData.getMap('mapLeaflet').then(function (map) {
                 map.fitBounds(vm.mapBounds, {padding: [30, 30]});
+                if (map.zoom > 18) map.zoom = 18;
             });
         }
 
