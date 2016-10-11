@@ -5,10 +5,10 @@
         .module('ivigilate.events.controllers')
         .controller('AddEditEventController', AddEditEventController);
 
-    AddEditEventController.$inject = ['$location', '$scope', '$timeout', '$modalInstance', 'data',
+    AddEditEventController.$inject = ['$location', '$scope', '$timeout', '$uibModalInstance', 'data',
         'Authentication', 'Beacons', 'Detectors', 'Events'];
 
-    function AddEditEventController($location, $scope, $timeout, $modalInstance, data,
+    function AddEditEventController($location, $scope, $timeout, $uibModalInstance, data,
                                     Authentication, Beacons, Detectors, Events) {
         var vm = this;
         vm.cancel = cancel;
@@ -260,7 +260,7 @@
                 vm.event.unauthorized_beacons = vm.unauthorized_beacons_selected;
                 vm.event.authorized_beacons = vm.authorized_beacons_selected;
                 vm.event.detectors = vm.detectors_selected;
-                $modalInstance.close(vm.event);
+                $uibModalInstance.close(vm.event);
             }
 
             function errorFn(data, status, headers, config) {
@@ -270,11 +270,11 @@
 
         function destroy() {
             Events.destroy(vm.event);
-            $modalInstance.close(null);
+            $uibModalInstance.close(null);
         }
 
         function cancel() {
-            $modalInstance.dismiss();
+            $uibModalInstance.dismiss();
         }
 
         function pad(pad, str, padLeft) {
